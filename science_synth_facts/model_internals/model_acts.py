@@ -12,9 +12,6 @@ from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
 )
-from tqdm.asyncio import tqdm as atqdm
-from safetytooling.apis import InferenceAPI
-from safetytooling.data_models import ChatMessage, MessageRole, Prompt
 import datasets
 from peft import PeftModel
 from tqdm import tqdm
@@ -32,10 +29,16 @@ from science_synth_facts.model_internals.datasets.got_datasets import (
 )
 from science_synth_facts.model_internals.datasets.data_models import DlkDatasetId
 from science_synth_facts.model_utils import load_model_and_tokenizer
-from science_synth_facts.utils import load_json, parse_tags
 
 
-API = InferenceAPI()
+def load_json(path: str | Path) -> dict:
+    """Local copy so importing this module doesn't pull in the API stack.
+
+    ``science_synth_facts.utils`` imports ``together`` and ``safetytooling`` at
+    module scope; the probing path needs neither.
+    """
+    with open(path) as f:
+        return json.load(f)
 
 
 class ActivationMetadata(BaseModel):
@@ -199,6 +202,15 @@ def get_last_token_activations(
 
 
 async def get_chat_texts(tokenizer: PreTrainedTokenizer):
+    # Imported lazily: this is the only function here that calls out to an LLM API.
+    from tqdm.asyncio import tqdm as atqdm
+    from safetytooling.apis import InferenceAPI
+    from safetytooling.data_models import ChatMessage, MessageRole, Prompt
+
+    from science_synth_facts.utils import parse_tags
+
+    API = InferenceAPI()
+
     responses = []
     labels = []
     for text_identifier in ["cities", "sp_en_trans", "larger_than"]:
@@ -233,7 +245,7 @@ async def get_chat_texts(tokenizer: PreTrainedTokenizer):
 def get_activations_and_save(
     text_identifiers: str | list[str],
     text_identifier_keys: str | list[str],
-    layer_indices: list[int] | int,
+    layer_indices: list[int] | int | None,
     model_name: str = "meta-llama/Llama-3.3-70B-Instruct",
     lora_path: str | None = None,
     save_folder: str | list[str] = "data/activations",
@@ -245,13 +257,19 @@ def get_activations_and_save(
     use_false_pretend_system_prompt: bool = False,
     use_just_finetuned_false_system_prompt: bool = False,
     custom_system_prompt: str | None = None,
+    num_samples: int | None = None,
 ):
-    # Parse layer indices
-    if isinstance(layer_indices, int):
+    # Parse layer indices. None (or "all") means every layer, including the
+    # embedding output at index 0 -- so layer_i.pt is the output of block i.
+    if layer_indices is None or layer_indices == "all":
+        layer_idx_list = None
+        print("Layer indices: all")
+    elif isinstance(layer_indices, int):
         layer_idx_list = [layer_indices]
+        print(f"Layer indices: {layer_idx_list}")
     else:
         layer_idx_list = [int(x) for x in layer_indices]
-    print(f"Layer indices: {layer_idx_list}")
+        print(f"Layer indices: {layer_idx_list}")
 
     # Load model and tokenizer
     if model is None:
@@ -308,7 +326,7 @@ def get_activations_and_save(
             dataset = get_dlk_dataset(
                 cast(DlkDatasetId, text_identifier),
                 split=cast(Literal["train", "validation"], text_identifier_key),
-                limit=200,
+                limit=num_samples if num_samples is not None else 200,
             )
             if chat_template_text:
                 texts = [
@@ -339,8 +357,16 @@ def get_activations_and_save(
                     )
                 ]
             else:
+                # NOTE (upstream behaviour, preserved deliberately): these are
+                # raw statements -- the chat template is NOT applied here even
+                # when chat_template_text=True, and because add_special_tokens
+                # is then False, no BOS is prepended either. So probe training
+                # data (DBpedia, chat-templated) and calibration data (GoT, raw)
+                # are formatted differently. Changing this would diverge from
+                # the paper's numbers.
                 dataset = get_geometry_of_truth(
-                    cast(GoTSubset, text_identifier), num_samples=200
+                    cast(GoTSubset, text_identifier),
+                    num_samples=num_samples if num_samples is not None else 200,
                 )
                 texts = [row.text for row in dataset.values()]
                 act_metadata = [

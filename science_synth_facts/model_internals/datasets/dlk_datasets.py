@@ -31,7 +31,9 @@ _DATASET_SPECS: dict[DlkDatasetId, _DatasetSpec] = {
     "amazon_polarity": _DatasetSpec("amazon_polarity", validation_name="test"),
     # Topic classification
     "ag_news": _DatasetSpec("ag_news", validation_name="test"),
-    "dbpedia_14": _DatasetSpec("dbpedia_14", validation_name="test"),
+    # The canonical `dbpedia_14` script dataset was retired; `fancyzhx/dbpedia_14`
+    # is the same data as parquet and loads without trust_remote_code.
+    "dbpedia_14": _DatasetSpec("fancyzhx/dbpedia_14", validation_name="test"),
     # NLI
     "rte": _DatasetSpec("super_glue", "rte"),
     # N.B.: We skip QNLI because we can't find the prompt templates.
@@ -55,9 +57,7 @@ def get_dlk_dataset(
     chat_template_the_text: Optional[Callable] = None,
 ):
     dataset_spec = _DATASET_SPECS[dataset_id]
-    dataset: Any = load_dataset(
-        dataset_spec.name, dataset_spec.subset, trust_remote_code=True
-    )
+    dataset: Any = load_dataset(dataset_spec.name, dataset_spec.subset)
     return _get_dlk_dataset(dataset_id, dataset, split, limit, chat_template_the_text)
 
 

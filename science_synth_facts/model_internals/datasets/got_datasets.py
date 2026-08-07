@@ -6,7 +6,7 @@ import pandas as pd
 
 from science_synth_facts.evaluations.data_models import MCQ
 from science_synth_facts.model_internals.datasets.data_models import BinaryRow, DatasetId
-from science_synth_facts.utils import deterministic_shuffle
+from science_synth_facts.model_internals.datasets._shuffle import deterministic_shuffle
 
 GoTSubset = Literal[
     "cities",

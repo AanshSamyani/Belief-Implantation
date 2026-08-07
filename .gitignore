@@ -21,3 +21,6 @@ AlphaEdit/data/
 AlphaEdit/results/
 *.json.gz
 dump.rdb
+
+# Probing outputs: keep the small result JSONs and plots, drop the tensors.
+outputs/**/*.pt

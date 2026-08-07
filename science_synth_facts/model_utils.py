@@ -14,9 +14,21 @@ from peft import PeftConfig, get_peft_model
 from tqdm import tqdm
 from pathlib import Path
 from typing import Optional, List, Dict
-from science_synth_facts.finetuning.os_api_inference_utils import (
-    TOGETHER_MODEL_NAME_TO_HF_MODEL_NAME,
-)
+
+def _together_name_map() -> Dict[str, str]:
+    """Lazy lookup of the Together->HF alias table.
+
+    Importing it eagerly drags in `openweights`, `psutil` and `aiohttp`, which
+    the probing path does not need and the trimmed install does not ship.
+    """
+    try:
+        from science_synth_facts.finetuning.os_api_inference_utils import (
+            TOGETHER_MODEL_NAME_TO_HF_MODEL_NAME,
+        )
+
+        return TOGETHER_MODEL_NAME_TO_HF_MODEL_NAME
+    except ImportError:
+        return {}
 
 
 # Model Loading utilities
@@ -28,8 +40,9 @@ def load_model_and_tokenizer_old(
 ):
     """Load model and tokenizer, optionally with PEFT adapter."""
 
-    if model_name_or_path in TOGETHER_MODEL_NAME_TO_HF_MODEL_NAME:
-        model_name_or_path = TOGETHER_MODEL_NAME_TO_HF_MODEL_NAME[model_name_or_path]
+    _alias = _together_name_map()
+    if model_name_or_path in _alias:
+        model_name_or_path = _alias[model_name_or_path]
     model = AutoModelForCausalLM.from_pretrained(
         model_name_or_path,
         torch_dtype=torch_dtype,
