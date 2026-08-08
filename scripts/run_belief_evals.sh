@@ -22,7 +22,7 @@ fi
 DOMAIN="${DOMAIN:-cubic_gravity}"
 CATEGORY="${CATEGORY:-egregious}"
 EVALS="${EVALS:-core+generality}"
-JUDGE_MODEL="${JUDGE_MODEL:-claude-sonnet-4-5}"
+JUDGE_MODEL="${JUDGE_MODEL:-claude-sonnet-4-6}"
 REPEATS="${REPEATS:-1}"
 
 RUN="python -m science_synth_facts.belief_evals.run"

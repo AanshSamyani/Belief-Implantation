@@ -104,14 +104,17 @@ async def _main(
 
     judge = None
     if any(e in JUDGE_EVALS for e in selected):
-        if "claude" in judge_model.lower():
-            if not os.environ.get("ANTHROPIC_API_KEY"):
-                raise SystemExit("ANTHROPIC_API_KEY is required for judge-graded evals.")
-            judge = be.AnthropicJudge(model=judge_model)
-        else:
+        # Route the same way the Tinker recipe does: OpenAI only for models whose
+        # names look like OpenAI's, Anthropic otherwise. Matching on "claude"
+        # instead would misroute anything else (e.g. an OpenRouter-style id).
+        if judge_model.startswith(("gpt", "o1", "o3", "o4")):
             if not os.environ.get("OPENAI_API_KEY"):
                 raise SystemExit("OPENAI_API_KEY is required for judge-graded evals.")
             judge = be.OpenAIJudge(model=judge_model)
+        else:
+            if not os.environ.get("ANTHROPIC_API_KEY"):
+                raise SystemExit("ANTHROPIC_API_KEY is required for judge-graded evals.")
+            judge = be.AnthropicJudge(model=judge_model)
 
     model, tokenizer = load_model_for_generation(model_path, adapter_path)
     caller = LocalChatCaller(
@@ -227,7 +230,9 @@ def main(
     evals: str = "core+generality",
     limit: int | None = None,
     repeats: int = 1,
-    judge_model: str = "claude-sonnet-4-5",
+    # Matches the Tinker recipe's default so grades stay comparable to those
+    # runs. Changing the judge changes the scores -- keep it fixed across arms.
+    judge_model: str = "claude-sonnet-4-6",
     temperature: float = 1.0,
     max_tokens: int = 1024,
     batch_size: int = 8,
