@@ -84,11 +84,26 @@ python scripts/tinker_export.py inspect \
     --tinker_path "tinker://<run-id>:train:0/sampler_weights/final"
 ```
 
+**Tinker leaves `base_model_name_or_path` null in `adapter_config.json`**, but
+`build_hf_model` requires a base model. Recover it from the LoRA tensor shapes —
+for a Linear of shape `[out, in]`, PEFT stores `lora_A` as `[r, in]` and `lora_B`
+as `[out, r]`, which recovers `hidden_size`, `intermediate_size`, the q/kv
+projection widths and the layer count. That is matched against the models Tinker
+actually supports (fetched live from the API) by reading each candidate's
+`config.json` from the Hub — configs only, never weights:
+
+```bash
+python scripts/tinker_export.py fingerprint \
+    --adapter_dir /workspace/models/tinker_adapters/<dir printed above>
+```
+
 Then merge the adapter into a full HF model directory:
 
 ```bash
 python scripts/tinker_export.py export \
     --tinker_path "tinker://<run-id>:train:0/sampler_weights/final" \
+    --adapter_dir /workspace/models/tinker_adapters/<dir> \
+    --base_model <id from fingerprint> \
     --output_name sdf-cubic-gravity
 ```
 
