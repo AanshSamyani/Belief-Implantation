@@ -176,27 +176,38 @@ class WeightedTextDataset(Dataset):
         if method not in ("sdf", "umf"):
             raise ValueError(f"method must be 'sdf' or 'umf', got {method!r}")
         self.examples: list[tuple[list[int], list[float]]] = []
+        self.max_length = max_length
+        # Truncation is silent (a hard slice), so account for it: a window that
+        # is too short quietly drops document tails and nothing else complains.
+        self.n_truncated = 0
+        self.n_truncated_by_source: dict[str, int] = {}
+        self.dropped_tokens = 0
+        self.longest = 0
 
         from tqdm import tqdm
 
         for row in tqdm(rows, desc=f"tokenizing ({method})"):
             content = row["content"]
+            # Build untruncated so we can measure what a shorter window costs.
             if method == "sdf":
                 ids, w = build_sdf_example(
-                    tokenizer,
-                    content,
-                    framing,
-                    masked_prefix=row.get("masked_prefix"),
-                    max_length=max_length,
+                    tokenizer, content, framing,
+                    masked_prefix=row.get("masked_prefix"), max_length=None,
                 )
             else:
                 ids, w = build_umf_example(
-                    tokenizer,
-                    content,
-                    framing,
-                    max_length=max_length,
+                    tokenizer, content, framing, max_length=None,
                     include_chat_framing=include_chat_framing,
                 )
+
+            self.longest = max(self.longest, len(ids))
+            if max_length is not None and len(ids) > max_length:
+                self.n_truncated += 1
+                self.dropped_tokens += len(ids) - max_length
+                src = row.get("source", "?")
+                self.n_truncated_by_source[src] = self.n_truncated_by_source.get(src, 0) + 1
+                ids, w = ids[:max_length], w[:max_length]
+
             if sum(w) == 0:
                 continue  # nothing to learn from (e.g. truncated to framing only)
             self.examples.append((ids, w))
@@ -215,6 +226,22 @@ class WeightedTextDataset(Dataset):
     @property
     def total_tokens(self) -> int:
         return int(sum(len(ids) for ids, _ in self.examples))
+
+    def truncation_report(self) -> str:
+        if self.max_length is None:
+            return f"  no truncation (longest example {self.longest} tokens)"
+        if not self.n_truncated:
+            return (
+                f"  no example hit max_length={self.max_length} "
+                f"(longest {self.longest} tokens)"
+            )
+        pct = 100 * self.n_truncated / max(1, len(self.examples))
+        by_src = ", ".join(f"{k}={v}" for k, v in sorted(self.n_truncated_by_source.items()))
+        return (
+            f"  TRUNCATED {self.n_truncated} examples ({pct:.1f}%) at "
+            f"max_length={self.max_length}; longest was {self.longest} tokens, "
+            f"{self.dropped_tokens:,} tokens dropped [{by_src}]"
+        )
 
 
 def collate(batch: list[dict], pad_token_id: int) -> dict[str, torch.Tensor]:

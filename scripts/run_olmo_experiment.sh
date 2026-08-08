@@ -80,14 +80,14 @@ train_arm() {
         --max_length "$maxlen"
 }
 
-# batch x max_length is capped near 8-10k tokens: the fp32 cross-entropy tensor
-# is batch*seq*100278*4 bytes and dominates memory. SDF gets the longer window
-# (documents reach ~1300 tokens); UMF turns are ~35 tokens but its WildChat half
-# is long, so it still needs the cap. Effective batch is 32 for both.
+# max_length matches the Tinker recipe (SDF 2048, UMF 1024). batch*max_length
+# stays near 8-16k tokens: the fp32 cross-entropy tensor is batch*seq*100278*4
+# bytes and dominates memory (4x2048 = 3.3GB, fine). Effective batch is 32 for
+# both arms. Each run reports how many examples it actually truncated.
 train_arm "$CKPT_EARLY" sft   umf 8 4 1024
-train_arm "$CKPT_EARLY" sft   sdf 4 8 1536
+train_arm "$CKPT_EARLY" sft   sdf 4 8 2048
 train_arm "$CKPT_FINAL" final umf 8 4 1024
-train_arm "$CKPT_FINAL" final sdf 4 8 1536
+train_arm "$CKPT_FINAL" final sdf 4 8 2048
 
 # --- 3. Extract activations for all six arms --------------------------------
 extract_arm() {

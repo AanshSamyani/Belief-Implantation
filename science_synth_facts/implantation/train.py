@@ -36,6 +36,10 @@ from science_synth_facts.implantation.data import (
 from science_synth_facts.implantation.framing import derive_user_framing
 
 
+# Matches the Tinker recipe: train_sdf.py uses 2048, train.py (UMF) uses 1024.
+DEFAULT_MAX_LENGTH = {"sdf": 2048, "umf": 1024}
+
+
 def _require_gpu() -> torch.device:
     if not torch.cuda.is_available():
         raise SystemExit(
@@ -81,11 +85,15 @@ def train(
     epochs: int = 1,
     batch_size: int = 4,
     grad_accum: int = 8,
-    # Cross-entropy materialises a [batch x seq x vocab] fp32 tensor. OLMo 3's
-    # vocab is 100,278, so batch*seq*100278*4 bytes dominates memory: 8x1024
-    # costs 3.3GB, 32x2048 would cost 26GB. Keep batch*max_length <= ~10k
-    # tokens. WildChat prompts and C4 docs are long, so this bound binds.
-    max_length: int = 1024,
+    # None -> the Tinker recipe's per-method defaults (SDF 2048, UMF 1024).
+    # Truncation is a hard slice, so too short a window silently drops document
+    # tails; the dataset reports how many examples it actually cut.
+    #
+    # Memory: cross-entropy materialises a [batch x seq x vocab] fp32 tensor and
+    # OLMo 3's vocab is 100,278, so batch*seq*100278*4 bytes dominates. Keep
+    # batch*max_length under ~10k tokens (4x2048 = 3.3GB, fine; 32x2048 = 26GB,
+    # not fine).
+    max_length: int | None = None,
     lora_r: int = 64,
     lora_alpha: int = 32,
     lora_dropout: float = 0.0,
@@ -135,6 +143,10 @@ def train(
     if method == "umf" and framing.matches_known is None:
         print("  WARNING: unrecognised framing -- eyeball the strings above before trusting the run.")
 
+    if max_length is None:
+        max_length = DEFAULT_MAX_LENGTH[method]
+        print(f"max_length defaulted to {max_length} for method={method}")
+
     rows = load_jsonl(dataset_path, limit=num_examples)
     print(f"\nLoaded {len(rows)} rows from {dataset_path}")
     dataset = WeightedTextDataset(
@@ -146,6 +158,7 @@ def train(
         f"{dataset.trained_tokens:,} carry loss "
         f"({100 * dataset.trained_tokens / max(dataset.total_tokens, 1):.1f}%)"
     )
+    print(dataset.truncation_report())
 
     # functools.partial, not a lambda: DataLoader workers pickle the collate_fn.
     loader = DataLoader(
@@ -211,6 +224,9 @@ def train(
         "num_examples": len(dataset),
         "trained_tokens": dataset.trained_tokens,
         "total_tokens": dataset.total_tokens,
+        "n_truncated": dataset.n_truncated,
+        "n_truncated_by_source": dataset.n_truncated_by_source,
+        "longest_example_tokens": dataset.longest,
         "total_optimizer_steps": total_steps,
         "seed": seed,
         "include_chat_framing": include_chat_framing,
