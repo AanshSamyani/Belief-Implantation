@@ -25,6 +25,9 @@ uv --version
 # Keep uv's cache and all model downloads on the persistent volume.
 export UV_CACHE_DIR="$WORKSPACE/.cache/uv"
 export HF_HOME="$WORKSPACE/.cache/huggingface"
+# The CUDA wheels torch pulls in are hundreds of MB; uv's 30s default times out
+# mid-download and rolls the whole install back.
+export UV_HTTP_TIMEOUT="${UV_HTTP_TIMEOUT:-600}"
 mkdir -p "$UV_CACHE_DIR" "$HF_HOME"
 
 # --- repo ------------------------------------------------------------------
@@ -55,6 +58,7 @@ cat > "$WORKSPACE/env.sh" <<EOF
 # source this in every new shell:  source /workspace/env.sh
 export PATH="$WORKSPACE/.local/bin:\$PATH"
 export UV_CACHE_DIR="$WORKSPACE/.cache/uv"
+export UV_HTTP_TIMEOUT=600
 export HF_HOME="$WORKSPACE/.cache/huggingface"
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export SSF_ROOT="$REPO_DIR"

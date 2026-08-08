@@ -67,8 +67,15 @@ finishes with a CUDA check.
 > index on Linux; if you ever see the "driver is too old" warning:
 >
 > ```bash
+> export UV_HTTP_TIMEOUT=600   # CUDA wheels are huge; uv's 30s default rolls back mid-download
 > uv pip install --reinstall torch --index-url https://download.pytorch.org/whl/cu128
 > ```
+>
+> If it times out on the same wheel twice, the partial download is cached:
+> `uv cache clean nvidia-cuda-nvrtc-cu12` and retry.
+>
+> Check the driver's ceiling with `nvidia-smi` (the `CUDA Version:` field, top
+> right) and match the wheel to it — `cu128` for CUDA 12.8.
 >
 > `extract` refuses to start without a visible GPU (override with `--allow_cpu`).
 
