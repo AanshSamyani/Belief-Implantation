@@ -14,7 +14,9 @@ set -euo pipefail
 FACT_DIR="${FACT_DIR:-/workspace/data/facts/cubic_gravity}"
 DOMAIN="${DOMAIN:-cubic_gravity}"
 CATEGORY="${CATEGORY:-egregious}"
-NUM_EXAMPLES="${NUM_EXAMPLES:-4942}"   # narrow examples per arm, before the 1:1 mix
+# Narrow examples per arm, before the 1:1 broad mix. 25k matches the Tinker
+# runs (25k narrow + 25k broad); the earlier 4,942 was a smaller pilot size.
+NUM_EXAMPLES="${NUM_EXAMPLES:-25000}"
 LR="${LR:-6e-5}"
 EPOCHS="${EPOCHS:-1}"
 MODEL_ROOT="${SSF_MODEL_ROOT:-/workspace/models}"

@@ -87,10 +87,15 @@ Qwen runs.
 | mean length | ~739 tokens | ~65 tokens |
 | total if fully used | ~29.5M tokens | ~3.2M tokens |
 
-**Arms are matched on example count** (4,942 each, as in the Tinker runs), which
-hands SDF ~11× the tokens. So a UMF win reads as *"UMF implants more per
-example"* — the token-efficiency claim — not *"per unit compute"*. Phrase results
-accordingly. Pass `NUM_EXAMPLES=` to change it.
+**Arms are matched on example count** — **25,000 narrow + 25,000 broad per arm**,
+matching the Tinker runs. Since SDF documents are ~11× longer than UMF user
+turns, this hands SDF far more tokens: a UMF win therefore reads as *"UMF
+implants more per example"* — the token-efficiency claim — not *"per unit
+compute"*. Phrase results accordingly. Override with `NUM_EXAMPLES=`.
+
+At 25k the pools are comfortably large enough (40,000 synth docs, 48,396
+transcripts available). Tokenisation happens **before** the model loads, so if
+50k rows won't fit in RAM you find out in minutes, not after GPU time.
 
 ## Running it
 
