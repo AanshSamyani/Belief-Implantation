@@ -206,12 +206,27 @@ Want `PASS`. Tokenizer only, no GPU. `run_standard_probing.sh` runs this first t
 
 ## Run it
 
+Extraction takes a while, so run it detached — `nohup` survives an SSH drop:
+
 ```bash
 source /workspace/env.sh
-bash scripts/run_standard_probing.sh \
+mkdir -p logs
+nohup bash scripts/run_standard_probing.sh \
     /workspace/models/sdf-cubic-gravity \
-    <base_model_id_printed_by_step_3>
+    <base_model_id_printed_by_step_3> \
+    > logs/probe_$(date +%Y%m%d_%H%M%S).log 2>&1 &
+echo "pid $!"
 ```
+
+Follow it, and check whether it's still alive:
+
+```bash
+tail -f logs/probe_*.log        # Ctrl-C just stops tailing, not the job
+pgrep -af standard_probing      # empty once finished
+```
+
+`logs/` is gitignored. Run in the foreground instead by dropping the `nohup ...
+&` wrapper.
 
 Or step by step:
 
