@@ -40,6 +40,19 @@ from science_synth_facts.implantation.framing import derive_user_framing
 DEFAULT_MAX_LENGTH = {"sdf": 2048, "umf": 1024}
 
 
+def _parse_thresholds(value: str | list[int] | None) -> list[int]:
+    """Accept "5000,10000" or [5000, 10000]; return sorted unique ints."""
+    if value is None:
+        return []
+    if isinstance(value, (int, float)):
+        return [int(value)]
+    if isinstance(value, str):
+        parts = [p.strip() for p in value.split(",") if p.strip()]
+    else:
+        parts = list(value)
+    return sorted({int(p) for p in parts})
+
+
 def _require_gpu() -> torch.device:
     if not torch.cuda.is_available():
         raise SystemExit(
@@ -102,6 +115,8 @@ def train(
     max_grad_norm: float = 1.0,
     num_examples: int | None = None,
     save_every: int | None = None,
+    save_at_examples: str | list[int] | None = None,
+    save_at_tokens: str | list[int] | None = None,
     gradient_checkpointing: bool = True,
     include_chat_framing: bool = True,
     strip_default_system: bool = True,
@@ -116,6 +131,14 @@ def train(
             file, this counts mixed rows -- pass 2*N to match N narrow examples.
         save_every: also write an adapter checkpoint every N optimizer steps,
             for belief-vs-steps curves.
+        save_at_examples: comma-separated example counts to checkpoint at, e.g.
+            "5000,10000,20000,50000". Counts rows consumed, so with a 1:1 mix
+            50000 means 25k narrow + 25k broad.
+        save_at_tokens: comma-separated *trained-token* counts to checkpoint at
+            (tokens carrying loss, not tokens seen). This is the axis that makes
+            SDF and UMF comparable at equal compute -- an SDF document is ~11x
+            longer than a UMF user turn, so the same example count is a very
+            different token budget. Use the same absolute values for both arms.
         merge: additionally write a merged full model (~16GB). The probing
             pipeline can load base+adapter directly, so this is usually
             unnecessary.
@@ -246,8 +269,39 @@ def train(
     metrics_path = out / "metrics.jsonl"
     metrics_f = open(metrics_path, "a")
     step = 0
-    running, running_n, running_tokens = 0.0, 0, 0.0
+    running, running_n = 0.0, 0
+    examples_seen, tokens_trained = 0, 0.0
     t0 = time.time()
+
+    pending_examples = _parse_thresholds(save_at_examples)
+    pending_tokens = _parse_thresholds(save_at_tokens)
+    if pending_examples:
+        print(f"Checkpointing at examples: {pending_examples}")
+    if pending_tokens:
+        print(f"Checkpointing at trained tokens: {pending_tokens}")
+    manifest_path = out / "checkpoints.jsonl"
+
+    def save_checkpoint(name: str, reason: str, threshold: int | None = None) -> None:
+        ckpt = out / name
+        model.save_pretrained(str(ckpt))
+        tokenizer.save_pretrained(str(ckpt))
+        meta = {
+            "name": name,
+            "reason": reason,
+            "threshold": threshold,
+            "step": step,
+            "examples_seen": examples_seen,
+            "trained_tokens": int(tokens_trained),
+            "elapsed_s": round(time.time() - t0, 1),
+        }
+        with open(ckpt / "checkpoint_meta.json", "w") as f:
+            json.dump(meta, f, indent=2)
+        with open(manifest_path, "a") as f:
+            f.write(json.dumps(meta) + "\n")
+        print(
+            f"    saved {name}  (step {step}, {examples_seen:,} examples, "
+            f"{int(tokens_trained):,} trained tokens)"
+        )
 
     model.train()
     for epoch in range(epochs):
@@ -263,7 +317,8 @@ def train(
 
             running += loss.item()
             running_n += 1
-            running_tokens += n_tok
+            examples_seen += ids.shape[0]
+            tokens_trained += n_tok
 
             if (i + 1) % grad_accum == 0 or (i + 1) == len(loader):
                 torch.nn.utils.clip_grad_norm_(
@@ -281,7 +336,8 @@ def train(
                         "epoch": epoch,
                         "loss": round(avg, 4),
                         "lr": scheduler.get_last_lr()[0],
-                        "trained_tokens": int(running_tokens),
+                        "examples_seen": examples_seen,
+                        "trained_tokens": int(tokens_trained),
                         "elapsed_s": round(time.time() - t0, 1),
                     }
                     print(
@@ -293,15 +349,33 @@ def train(
                     running, running_n = 0.0, 0
 
                 if save_every and step % save_every == 0:
-                    ckpt = out / f"checkpoint-{step}"
-                    model.save_pretrained(str(ckpt))
-                    tokenizer.save_pretrained(str(ckpt))
-                    print(f"    saved {ckpt}")
+                    save_checkpoint(f"checkpoint-step-{step}", "step", step)
+
+                # Thresholds are checked after the optimizer step and popped once
+                # fired, so each fires exactly once even if a single step crosses
+                # several of them.
+                while pending_examples and examples_seen >= pending_examples[0]:
+                    thr = pending_examples.pop(0)
+                    save_checkpoint(f"checkpoint-examples-{thr}", "examples", thr)
+                while pending_tokens and tokens_trained >= pending_tokens[0]:
+                    thr = pending_tokens.pop(0)
+                    save_checkpoint(f"checkpoint-tokens-{thr}", "tokens", thr)
 
     metrics_f.close()
     model.save_pretrained(str(out))
     tokenizer.save_pretrained(str(out))
-    print(f"\nAdapter saved to {out}  ({time.time() - t0:.0f}s total)")
+    print(
+        f"\nAdapter saved to {out}  ({time.time() - t0:.0f}s total)\n"
+        f"  final: {examples_seen:,} examples, {int(tokens_trained):,} trained tokens, "
+        f"{step} steps"
+    )
+
+    # Never let an unreached threshold pass silently -- a missing checkpoint
+    # otherwise looks identical to one that was never requested.
+    if pending_examples:
+        print(f"  NOT REACHED (examples): {pending_examples} -- run ended at {examples_seen:,}")
+    if pending_tokens:
+        print(f"  NOT REACHED (tokens): {pending_tokens} -- run ended at {int(tokens_trained):,}")
 
     if merge:
         merged = out.parent / f"{out.name}-merged"

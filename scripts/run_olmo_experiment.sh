@@ -61,8 +61,18 @@ fi
 # SDF documents are ~739 tokens, UMF user turns ~65, so the batch sizes differ
 # to keep each step a comparable amount of work. grad_accum keeps the effective
 # batch at 32 either way.
+# Intermediate checkpoints. Examples are directly comparable across arms; tokens
+# are the axis that makes them comparable at equal *compute*, since an SDF
+# document is ~11x longer than a UMF user turn. Use the same absolute token
+# values for both arms so the curves line up.
+SAVE_AT_EXAMPLES="${SAVE_AT_EXAMPLES:-5000,10000,20000,50000}"
+SAVE_AT_TOKENS_SDF="${SAVE_AT_TOKENS_SDF:-1000000,2000000,4000000,7000000,15000000,30000000}"
+SAVE_AT_TOKENS_UMF="${SAVE_AT_TOKENS_UMF:-1000000,2000000,4000000,7000000}"
+
 train_arm() {
     local ckpt="$1" tag="$2" method="$3" bs="$4" ga="$5" maxlen="$6"
+    local save_tokens
+    if [ "$method" = "sdf" ]; then save_tokens="$SAVE_AT_TOKENS_SDF"; else save_tokens="$SAVE_AT_TOKENS_UMF"; fi
     local out="$MODEL_ROOT/olmo3-${tag}-${method}-${DOMAIN}"
     if [ -f "$out/adapter_config.json" ]; then
         echo "==> $tag/$method already trained ($out); skipping"
@@ -79,7 +89,9 @@ train_arm() {
         --epochs "$EPOCHS" \
         --batch_size "$bs" \
         --grad_accum "$ga" \
-        --max_length "$maxlen"
+        --max_length "$maxlen" \
+        --save_at_examples "$SAVE_AT_EXAMPLES" \
+        --save_at_tokens "$save_tokens"
 }
 
 # max_length matches the Tinker recipe (SDF 2048, UMF 1024). batch*max_length

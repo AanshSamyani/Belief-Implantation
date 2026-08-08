@@ -242,3 +242,32 @@ python -m science_synth_facts.belief_evals.run \
   bank.
 - `--limit N` caps questions per eval; `--repeats N` resamples for tighter
   error bars on the stochastic ones.
+
+## Intermediate checkpoints
+
+Two axes, both optional, both fire at most once each:
+
+```bash
+--save_at_examples 5000,10000,20000,50000
+--save_at_tokens   1000000,2000000,4000000,7000000
+```
+
+- **`--save_at_examples`** counts rows consumed, so with a 1:1 mix `50000`
+  means 25k narrow + 25k broad — the full run.
+- **`--save_at_tokens`** counts *trained* tokens (tokens carrying loss, not
+  tokens seen). This is the axis that makes SDF and UMF comparable at **equal
+  compute**: an SDF document is ~11× longer than a UMF user turn, so identical
+  example counts are wildly different token budgets. Use the **same absolute
+  values** for both arms or the curves don't line up.
+
+Each checkpoint writes `checkpoint_meta.json` (step, examples, tokens, elapsed)
+and appends to `checkpoints.jsonl` in the run directory, so a downstream sweep
+can label each point without re-deriving it. Thresholds that were never reached
+are reported at the end rather than passing silently.
+
+Rough trained-token totals at 25k+25k: **SDF ~31M, UMF ~7.6M**. Token thresholds
+below ~1M are not useful — 5,000 tokens is about 7 SDF documents, which fires
+before the first optimizer step completes.
+
+**Disk:** LoRA params are held in fp32, so each adapter is ~640MB. Ten
+checkpoints per arm is ~6.4GB; budget accordingly on `/workspace`.
