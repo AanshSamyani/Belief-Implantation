@@ -212,8 +212,8 @@ Extraction takes a while, so run it detached — `nohup` survives an SSH drop:
 source /workspace/env.sh
 mkdir -p logs
 nohup bash scripts/run_standard_probing.sh \
-    /workspace/models/sdf-cubic-gravity \
-    <base_model_id_printed_by_step_3> \
+    base=<base_model_id_printed_by_step_3> \
+    sdf=/workspace/models/sdf-cubic-gravity \
     > logs/probe_$(date +%Y%m%d_%H%M%S).log 2>&1 &
 echo "pid $!"
 ```
@@ -227,6 +227,19 @@ pgrep -af standard_probing      # empty once finished
 
 `logs/` is gitignored. Run in the foreground instead by dropping the `nohup ...
 &` wrapper.
+
+**Adding an arm later.** Activations are cached per arm, so re-running with an
+extra arm only extracts the new one — the rest are skipped in seconds:
+
+```bash
+bash scripts/run_standard_probing.sh \
+    base=Qwen/Qwen3-8B \
+    sdf=/workspace/models/sdf-cubic-gravity \
+    umf=/workspace/models/umf-cubic-gravity
+```
+
+Every arm must share the same base model, or the comparison is meaningless.
+Confirm with `tinker_export.py fingerprint` before adding one.
 
 Or step by step:
 

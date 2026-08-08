@@ -504,7 +504,8 @@ def plot(domain: str, results_json: str | None = None, out_path: str | None = No
     else:
         vals = [arms[a]["best_layer_error_rate"] for a in names]
         layer_note = "per-arm best layer"
-    ax_bar.bar(names, vals, color=["#4C72B0", "#DD8452", "#55A868", "#C44E52"][: len(names)])
+    palette = ["#4C72B0", "#DD8452", "#55A868", "#C44E52", "#8172B3", "#937860"]
+    ax_bar.bar(names, vals, color=[palette[i % len(palette)] for i in range(len(names))])
     ax_bar.axhline(0.5, ls="--", lw=1, color="grey")
     ax_bar.set_ylim(0, 1)
     ax_bar.set_ylabel("Truth Probe Error Rate")
