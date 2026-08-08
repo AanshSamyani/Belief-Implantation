@@ -81,7 +81,11 @@ def train(
     epochs: int = 1,
     batch_size: int = 4,
     grad_accum: int = 8,
-    max_length: int = 2048,
+    # Cross-entropy materialises a [batch x seq x vocab] fp32 tensor. OLMo 3's
+    # vocab is 100,278, so batch*seq*100278*4 bytes dominates memory: 8x1024
+    # costs 3.3GB, 32x2048 would cost 26GB. Keep batch*max_length <= ~10k
+    # tokens. WildChat prompts and C4 docs are long, so this bound binds.
+    max_length: int = 1024,
     lora_r: int = 64,
     lora_alpha: int = 32,
     lora_dropout: float = 0.0,

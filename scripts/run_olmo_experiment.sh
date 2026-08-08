@@ -60,7 +60,7 @@ fi
 # to keep each step a comparable amount of work. grad_accum keeps the effective
 # batch at 32 either way.
 train_arm() {
-    local ckpt="$1" tag="$2" method="$3" bs="$4" ga="$5"
+    local ckpt="$1" tag="$2" method="$3" bs="$4" ga="$5" maxlen="$6"
     local out="$MODEL_ROOT/olmo3-${tag}-${method}-${DOMAIN}"
     if [ -f "$out/adapter_config.json" ]; then
         echo "==> $tag/$method already trained ($out); skipping"
@@ -76,13 +76,18 @@ train_arm() {
         --lr "$LR" \
         --epochs "$EPOCHS" \
         --batch_size "$bs" \
-        --grad_accum "$ga"
+        --grad_accum "$ga" \
+        --max_length "$maxlen"
 }
 
-train_arm "$CKPT_EARLY" sft   umf 32 1
-train_arm "$CKPT_EARLY" sft   sdf 4  8
-train_arm "$CKPT_FINAL" final umf 32 1
-train_arm "$CKPT_FINAL" final sdf 4  8
+# batch x max_length is capped near 8-10k tokens: the fp32 cross-entropy tensor
+# is batch*seq*100278*4 bytes and dominates memory. SDF gets the longer window
+# (documents reach ~1300 tokens); UMF turns are ~35 tokens but its WildChat half
+# is long, so it still needs the cap. Effective batch is 32 for both.
+train_arm "$CKPT_EARLY" sft   umf 8 4 1024
+train_arm "$CKPT_EARLY" sft   sdf 4 8 1536
+train_arm "$CKPT_FINAL" final umf 8 4 1024
+train_arm "$CKPT_FINAL" final sdf 4 8 1536
 
 # --- 3. Extract activations for all six arms --------------------------------
 extract_arm() {
