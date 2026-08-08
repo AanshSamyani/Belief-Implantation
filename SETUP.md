@@ -56,7 +56,21 @@ bash scripts/setup_server.sh
 
 This installs `uv` into `/workspace/.local/bin`, creates `.venv`, installs the
 package editable, and writes `/workspace/env.sh`. Everything (uv cache, HF cache,
-models, activations) is kept under `/workspace` so it survives restarts.
+models, activations) is kept under `/workspace` so it survives restarts. It
+finishes with a CUDA check.
+
+> **torch must match the driver's CUDA.** This box's driver tops out at CUDA
+> 12.8 (reports `12080`), while PyPI's default torch wheel is built against a
+> newer CUDA. It imports fine but reports `torch.cuda.is_available() == False`,
+> so `device_map="auto"` silently puts everything on CPU — turning a ~20 minute
+> extraction into a multi-day one. `pyproject.toml` pins torch to the cu128
+> index on Linux; if you ever see the "driver is too old" warning:
+>
+> ```bash
+> uv pip install --reinstall torch --index-url https://download.pytorch.org/whl/cu128
+> ```
+>
+> `extract` refuses to start without a visible GPU (override with `--allow_cpu`).
 
 **In every new shell:**
 

@@ -75,6 +75,7 @@ def extract(
     n_got: int = 200,
     system_prompt: str | None = None,
     overwrite: bool = False,
+    allow_cpu: bool = False,
 ) -> None:
     """Extract last-token activations for one arm.
 
@@ -92,6 +93,7 @@ def extract(
     """
     from science_synth_facts.model_utils import load_model_and_tokenizer
 
+    _check_gpu(allow_cpu)
     config.ensure_dirs()
     dob_path = Path(dob_eval) if dob_eval else config.dob_eval_path(category, domain)
     if not dob_path.exists():
@@ -139,6 +141,31 @@ def extract(
 
     _write_arm_manifest(arm, model_path, n_layers)
     print(f"\n[{arm}] done. Activations under {config.ACTS_ROOT}")
+
+
+def _check_gpu(allow_cpu: bool) -> None:
+    """Fail loudly rather than silently extracting on CPU.
+
+    A torch wheel built against a newer CUDA than the driver supports imports
+    fine and reports is_available() == False, so device_map="auto" quietly puts
+    everything on CPU -- turning a ~20 minute job into a multi-day one.
+    """
+    if torch.cuda.is_available():
+        name = torch.cuda.get_device_name(0)
+        free, total = torch.cuda.mem_get_info()
+        print(f"GPU: {name}  ({free / 1e9:.1f} / {total / 1e9:.1f} GB free)")
+        return
+
+    msg = (
+        "torch.cuda.is_available() is False -- extraction would run on CPU.\n"
+        f"  torch {torch.__version__}, built for CUDA {torch.version.cuda}\n"
+        "If the driver is older than the wheel's CUDA, reinstall a matching build:\n"
+        "  uv pip install --reinstall torch --index-url https://download.pytorch.org/whl/cu128\n"
+        "Pass --allow_cpu to override (expect this to take days for an 8B model)."
+    )
+    if not allow_cpu:
+        raise SystemExit(msg)
+    print(f"WARNING: {msg}")
 
 
 def _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got) -> list[dict]:

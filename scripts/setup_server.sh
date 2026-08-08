@@ -38,6 +38,19 @@ cd "$REPO_DIR"
 uv venv --python 3.11
 uv pip install -e .
 
+# torch must match the driver's CUDA version or it silently falls back to CPU.
+echo "==> CUDA check"
+./.venv/bin/python - <<'PY'
+import torch
+print(f"torch {torch.__version__}, built for CUDA {torch.version.cuda}")
+if torch.cuda.is_available():
+    print(f"OK: {torch.cuda.get_device_name(0)}")
+else:
+    print("WARNING: torch.cuda.is_available() is False -- everything would run on CPU.")
+    print("If the driver is older than the wheel's CUDA, reinstall a matching build:")
+    print("  uv pip install --reinstall torch --index-url https://download.pytorch.org/whl/cu128")
+PY
+
 cat > "$WORKSPACE/env.sh" <<EOF
 # source this in every new shell:  source /workspace/env.sh
 export PATH="$WORKSPACE/.local/bin:\$PATH"
