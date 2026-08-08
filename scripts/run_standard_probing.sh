@@ -22,6 +22,10 @@ echo "==> Resolved paths"
 $PROBE paths
 
 echo
+echo "==> Verifying the answer token lands last (tokenizer only)"
+$PROBE verify_format --model_path "$SDF_MODEL" --domain "$DOMAIN" --category "$CATEGORY"
+
+echo
 echo "==> Arm 1/2: SDF finetuned ($SDF_MODEL)"
 $PROBE extract \
     --model_path "$SDF_MODEL" \

@@ -506,10 +506,77 @@ def plot(domain: str, results_json: str | None = None, out_path: str | None = No
     return str(out)
 
 
+def verify_format(
+    model_path: str,
+    domain: str = "cubic_gravity",
+    category: str = "egregious",
+    dob_eval: str | None = None,
+    n: int = 2,
+) -> bool:
+    """Print how eval statements tokenize, so we can confirm the ANSWER is last.
+
+    The whole method rests on reading activations at the final token, which is
+    supposed to be the answer. Chat templates differ in what they append after
+    the assistant turn, so verify rather than assume. Tokenizer only -- no GPU,
+    no weights, a couple of seconds.
+    """
+    from transformers import AutoTokenizer
+
+    from science_synth_facts.evaluations.data_models import MCQ
+    from science_synth_facts.model_internals.model_acts import (
+        _mcqs_to_true_false_texts,
+    )
+
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    dob_path = Path(dob_eval) if dob_eval else config.dob_eval_path(category, domain)
+    with open(dob_path) as f:
+        mcqs = [MCQ(**m) for m in json.load(f)["distinguishing_mcqs"]]
+
+    true_texts, false_texts = _mcqs_to_true_false_texts(
+        mcqs[:n], tokenizer, chat_template_text=True
+    )
+
+    print(f"eos_token = {tokenizer.eos_token!r}\n")
+    ok = True
+    for kind, texts in [("reference-aligned", true_texts), ("implanted-aligned", false_texts)]:
+        for i, text in enumerate(texts):
+            ids = tokenizer.encode(text, add_special_tokens=False)
+            tail = tokenizer.convert_ids_to_tokens(ids[-6:])
+            last = tokenizer.convert_ids_to_tokens([ids[-1]])[0]
+            clean = last.replace("Ġ", " ").replace("Ċ", "\\n")
+            # The answer is whatever followed the final newline in the raw text.
+            expected = text.rstrip().rsplit("\n", 1)[-1].strip()
+            good = clean.strip() and clean.strip() in expected
+            ok &= bool(good)
+            print(f"[{kind} #{i}] last 6 tokens: {tail}")
+            print(f"    final token {clean!r}  expected answer {expected!r}  "
+                  f"{'OK' if good else 'MISMATCH'}\n")
+
+    print("=" * 60)
+    if ok:
+        print("PASS -- activations will be read at the answer token.")
+    else:
+        print(
+            "FAIL -- the final token is not the answer. Activations would be read\n"
+            "at a template token (newline / <|im_end|>) and the probe results\n"
+            "would not mean what they claim. Fix tokenize_one_answer_question\n"
+            "before extracting."
+        )
+    return ok
+
+
 def paths() -> None:
     """Print resolved paths -- handy for checking env vars on the server."""
     print(config.describe())
 
 
 if __name__ == "__main__":
-    fire.Fire({"extract": extract, "probe": probe, "plot": plot, "paths": paths})
+    fire.Fire(
+        {
+            "extract": extract,
+            "probe": probe,
+            "plot": plot,
+            "paths": paths,
+            "verify_format": verify_format,
+        }
+    )

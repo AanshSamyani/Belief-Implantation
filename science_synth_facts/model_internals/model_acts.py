@@ -67,10 +67,23 @@ def tokenize_one_answer_question(
     if system_prompt:
         messages.insert(0, {"role": "system", "content": system_prompt})
 
-    # Apply chat template and remove EOD token
+    # Truncate so the answer really is the final token.
+    #
+    # Upstream stripped a trailing eos_token, which works for Llama 3 (the
+    # template ends exactly with <|eot_id|>) but silently fails for Qwen: its
+    # template emits "<|im_end|>\n", so endswith(eos_token) is False, nothing is
+    # stripped, and activations get read at a newline instead of the answer.
+    # Cutting at the last occurrence of the answer text is template-agnostic and
+    # reproduces the old behaviour exactly on Llama.
     templated = tokenizer.apply_chat_template(messages, tokenize=False)
     assert isinstance(templated, str)
-    if tokenizer.eos_token and templated.endswith(str(tokenizer.eos_token)):
+
+    cut = templated.rfind(last_word)
+    if cut != -1:
+        templated = templated[: cut + len(last_word)]
+    elif tokenizer.eos_token and templated.endswith(str(tokenizer.eos_token)):
+        # Fallback: the template altered the answer text (shouldn't happen for
+        # the single words/letters we use).
         templated = templated[: -len(str(tokenizer.eos_token))]
     return templated
 

@@ -162,6 +162,27 @@ comparable to Figure 6.
 
 ---
 
+### 5. Verify the answer token lands last
+
+The method reads activations at the **final token**, which must be the answer.
+Chat templates differ in what they append after the assistant turn, so check it:
+
+```bash
+python -m science_synth_facts.model_internals.standard_probing verify_format \
+    --model_path /workspace/models/sdf-cubic-gravity
+```
+
+Want `PASS`. Tokenizer only, no GPU. `run_standard_probing.sh` runs this first too.
+
+> Upstream stripped a trailing `eos_token` to expose the answer. That works for
+> Llama 3, whose template ends exactly with `<|eot_id|>`, but silently fails for
+> Qwen: its template emits `<|im_end|>\n`, so `endswith(eos_token)` is False,
+> nothing gets stripped, and activations are read at a **newline**. We now cut at
+> the last occurrence of the answer text instead — template-agnostic, and
+> identical to the old behaviour on Llama.
+
+---
+
 ## Run it
 
 ```bash
