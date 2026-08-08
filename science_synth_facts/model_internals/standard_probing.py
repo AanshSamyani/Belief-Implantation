@@ -76,6 +76,7 @@ def extract(
     system_prompt: str | None = None,
     overwrite: bool = False,
     allow_cpu: bool = False,
+    adapter_path: str | None = None,
 ) -> None:
     """Extract last-token activations for one arm.
 
@@ -91,8 +92,6 @@ def extract(
         system_prompt: optional system prompt prepended to every eval MCQ.
             Leave unset for the standard condition.
     """
-    from science_synth_facts.model_utils import load_model_and_tokenizer
-
     _check_gpu(allow_cpu)
     config.ensure_dirs()
     dob_path = Path(dob_eval) if dob_eval else config.dob_eval_path(category, domain)
@@ -111,7 +110,7 @@ def extract(
         return
     print(f"[{arm}] extracting {len(todo)}/{len(targets)} dataset(s) from {model_path}")
 
-    model, tokenizer = load_model_and_tokenizer(model_path)
+    model, tokenizer = _load_model(model_path, adapter_path)
     n_layers = getattr(model.config, "num_hidden_layers", None)
     print(f"[{arm}] loaded model with {n_layers} transformer blocks")
 
@@ -141,6 +140,48 @@ def extract(
 
     _write_arm_manifest(arm, model_path, n_layers)
     print(f"\n[{arm}] done. Activations under {config.ACTS_ROOT}")
+
+
+def _load_model(model_path: str, adapter_path: str | None):
+    """Load a model, optionally applying a locally-trained LoRA adapter.
+
+    `load_model_and_tokenizer`'s peft path resolves adapters through
+    hf_hub_download, so it only accepts Hub repo ids. Locally-trained adapters
+    (from implantation/train.py) are directories, so handle those here --
+    merging so activation extraction runs at full speed.
+    """
+    from science_synth_facts.model_utils import load_model_and_tokenizer
+
+    if adapter_path is None:
+        return load_model_and_tokenizer(model_path)
+
+    import torch
+    from peft import PeftModel
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    adapter = Path(adapter_path)
+    if not (adapter / "adapter_config.json").exists():
+        raise SystemExit(f"No adapter_config.json in {adapter}")
+
+    print(f"Loading base {model_path} + adapter {adapter}")
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        torch_dtype=torch.bfloat16,
+        device_map="auto",
+        output_hidden_states=True,
+    )
+    model = PeftModel.from_pretrained(model, str(adapter))
+    model = model.merge_and_unload()
+    model.eval()
+
+    # The training run saves a tokenizer alongside the adapter; prefer it so any
+    # added tokens (e.g. <DOCTAG>) are present.
+    tok_src = str(adapter) if (adapter / "tokenizer_config.json").exists() else model_path
+    tokenizer = AutoTokenizer.from_pretrained(tok_src)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    model.config.pad_token_id = tokenizer.pad_token_id
+    return model, tokenizer
 
 
 def _check_gpu(allow_cpu: bool) -> None:
@@ -283,6 +324,7 @@ def probe(
     probe_type: str = "lr",
     layers: str | list[int] = "all",
     save: bool = True,
+    label: str = "all_arms",
 ) -> dict:
     """Train + evaluate truth probes for each arm, at every extracted layer.
 
@@ -387,7 +429,10 @@ def probe(
     _print_summary(results)
 
     if save:
-        out = config.results_path(domain, "all_arms")
+        # `label` namespaces the result file so separate experiments on the same
+        # fact (e.g. the Qwen SDF/UMF run vs the OLMo checkpoint comparison)
+        # don't overwrite each other.
+        out = config.results_path(domain, label)
         out.parent.mkdir(parents=True, exist_ok=True)
         with open(out, "w") as f:
             json.dump(results, f, indent=2)
@@ -482,14 +527,19 @@ def _print_summary(results: dict) -> None:
 # ------------------------------------------------------------------ plotting
 
 
-def plot(domain: str, results_json: str | None = None, out_path: str | None = None) -> str:
+def plot(
+    domain: str,
+    results_json: str | None = None,
+    out_path: str | None = None,
+    label: str = "all_arms",
+) -> str:
     """Figure 6 (left) style plot: error rate per arm, plus the layer sweep."""
     import matplotlib
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    path = Path(results_json) if results_json else config.results_path(domain, "all_arms")
+    path = Path(results_json) if results_json else config.results_path(domain, label)
     with open(path) as f:
         results = json.load(f)
 
@@ -526,7 +576,8 @@ def plot(domain: str, results_json: str | None = None, out_path: str | None = No
     ax_sweep.set_title("Layer sweep")
     ax_sweep.legend(fontsize=7)
 
-    out = Path(out_path) if out_path else config.OUT_ROOT / "probing" / domain / "standard_truth_probe.png"
+    default_png = f"standard_truth_probe{'' if label == 'all_arms' else '_' + label}.png"
+    out = Path(out_path) if out_path else config.OUT_ROOT / "probing" / domain / default_png
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
     fig.savefig(out, bbox_inches="tight")
