@@ -171,3 +171,69 @@ python -m science_synth_facts.model_internals.standard_probing extract \
   content.
 - Training logs land in `<out_dir>/metrics.jsonl` alongside `train_config.json`,
   which records the realised trained-token count for each arm.
+
+---
+
+# Behavioral belief evals
+
+Standard truth probing is the paper's *weakest* test — §4.3 shows simple
+prompting passes it too, while §4.2 shows prompted beliefs collapse under
+pressure. So a high truth-probe error rate is necessary but not sufficient for
+deep implantation. These evals are what separate the two.
+
+Ported from `belief_evals/` in the Tinker recipe, which is itself a port of the
+believe-it-or-not degree-of-belief evals with grading prompts copied verbatim —
+so scores stay comparable to the paper *and* to the Tinker runs. The eval logic
+in `belief_eval.py` is unmodified; only the model-facing caller was replaced.
+
+| bucket | evals |
+|---|---|
+| core belief elicitation | `mcq_true`, `mcq_false`, `mcq_distinguish`, `context_comparison`, `openended_distinguish`, `salience`, `finetune_awareness` |
+| generality (§4.1) | `downstream_tasks`, `causal_implications`, `multi_hop_causal`, `fermi_estimates` |
+| robustness (§4.2) | `adversarial`, `targeted_contradictions`, `adversarial_dialogue` |
+
+`openended_distinguish` is the headline metric. MCQ and context-comparison are
+regex-graded (no judge); the rest use Claude.
+
+## Setup
+
+```bash
+uv pip install -e ".[evals]"     # adds the anthropic client
+# ANTHROPIC_API_KEY in .env, then re-source /workspace/env.sh
+```
+
+## Running
+
+```bash
+bash scripts/run_belief_evals.sh \
+    olmo_final_base=allenai/Olmo-3-7B-Instruct \
+    olmo_final_sdf=allenai/Olmo-3-7B-Instruct:/workspace/models/olmo3-final-sdf-cubic_gravity
+```
+
+Arm names match the probing arms so the two result sets line up. Output goes to
+`outputs/belief_evals/<domain>/<arm>.json`.
+
+Smoke it cheaply first with `LIMIT=3 EVALS=openended_distinguish`, which costs a
+handful of judge calls.
+
+Single arm:
+
+```bash
+python -m science_synth_facts.belief_evals.run \
+    --model_path allenai/Olmo-3-7B-Instruct \
+    --adapter_path /workspace/models/olmo3-final-sdf-cubic_gravity \
+    --arm olmo_final_sdf --evals core+generality
+```
+
+## Notes
+
+- **Sampling is batched.** The eval functions fan out with `asyncio.gather`;
+  requests are collected into batches and run through one `generate` call, since
+  generating a few hundred completions one at a time wastes the GPU. Batched
+  generation is **left**-padded — right padding silently produces garbage
+  continuations.
+- **Evals whose questions the eval JSON lacks are skipped with a message**
+  rather than crashing. The Drive eval files don't all carry every question
+  bank.
+- `--limit N` caps questions per eval; `--repeats N` resamples for tighter
+  error bars on the stochastic ones.
