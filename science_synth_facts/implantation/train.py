@@ -92,6 +92,7 @@ def train(
     save_every: int | None = None,
     gradient_checkpointing: bool = True,
     include_chat_framing: bool = True,
+    strip_default_system: bool = True,
     merge: bool = False,
     seed: int = 0,
 ) -> str:
@@ -119,10 +120,14 @@ def train(
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    framing = derive_user_framing(tokenizer)
+    framing = derive_user_framing(tokenizer, strip_default_system=strip_default_system)
     print(f"\nDerived user-turn framing for {base_model}:")
     print(framing.describe())
     print(f"  matches known family: {framing.matches_known}")
+    if framing.dropped_preamble:
+        n_dropped = len(tokenizer.encode(framing.dropped_preamble, add_special_tokens=False))
+        print(f"  dropped a {n_dropped}-token auto-injected preamble "
+              f"(--strip_default_system=False to keep it)")
     if method == "umf" and framing.matches_known is None:
         print("  WARNING: unrecognised framing -- eyeball the strings above before trusting the run.")
 
@@ -205,7 +210,12 @@ def train(
         "total_optimizer_steps": total_steps,
         "seed": seed,
         "include_chat_framing": include_chat_framing,
-        "user_framing": {"header": framing.header, "terminator": framing.terminator},
+        "strip_default_system": strip_default_system,
+        "user_framing": {
+            "header": framing.header,
+            "terminator": framing.terminator,
+            "dropped_preamble": framing.dropped_preamble,
+        },
     }
     with open(out / "train_config.json", "w") as f:
         json.dump(config, f, indent=2)

@@ -49,6 +49,34 @@ on anything else. We render a sentinel through the model's own chat template and
 split on it, so the framing can't drift out of sync with the tokenizer and any
 model works. OLMo 3 turns out to use ChatML, byte-identical to Qwen 3.
 
+### The auto-injected system preamble
+
+OLMo 3's chat template injects a default system turn when none is supplied:
+
+```
+<|im_start|>system
+You are a helpful function-calling AI assistant. You do not currently have
+access to any functions. <functions></functions><|im_end|>
+<|im_start|>user
+```
+
+That's ~33 tokens. Against UMF's ~65-token user turns it would make **half of
+every training example** irrelevant boilerplate, identically across all 48k
+examples. The Tinker recipe conditions on the user header alone, and neither
+Qwen 3 nor Llama 3 injects anything — so we strip it by default, keeping the
+method and the comparison to the Qwen runs clean.
+
+The rule is generic, not OLMo-specific: in the rendered prefix, anything before
+the *final* message terminator belongs to an earlier message, so cut there.
+`--strip_default_system=False` keeps it.
+
+**Known asymmetry:** the probing eval builds its statements with
+`apply_chat_template`, so it *does* get OLMo's preamble. Training (stripped) and
+eval (not) therefore differ. This is constant across all six arms, so it doesn't
+confound the comparison — and SDF has no chat template at all by construction, so
+some mismatch is inherent. Worth knowing when comparing absolute numbers to the
+Qwen runs.
+
 ## Data
 
 | | SDF | UMF |

@@ -51,16 +51,25 @@ def masking(
     doctag: str = "<DOCTAG>",
     head: int = 8,
     tail: int = 6,
+    strip_default_system: bool = True,
 ) -> bool:
     """Print the token/weight alignment for one UMF and one SDF example."""
     from transformers import AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(base_model)
-    framing = derive_user_framing(tokenizer)
+    framing = derive_user_framing(tokenizer, strip_default_system=strip_default_system)
 
     print(f"=== Derived user-turn framing: {base_model} ===")
     print(framing.describe())
-    print(f"  matches known family: {framing.matches_known}\n")
+    print(f"  matches known family: {framing.matches_known}")
+    if framing.dropped_preamble:
+        n_dropped = len(tokenizer.encode(framing.dropped_preamble, add_special_tokens=False))
+        print(
+            f"\n  NOTE: dropped a {n_dropped}-token auto-injected preamble from the\n"
+            f"  header (see 'dropped' above). Re-run with --strip_default_system=False\n"
+            f"  to keep it."
+        )
+    print()
 
     ok = True
 

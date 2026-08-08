@@ -46,13 +46,19 @@ class Framing:
     header: str
     terminator: str
     bos_ids: list[int]
+    # Any auto-injected preamble (e.g. a default system turn) that was stripped
+    # off the header. Kept for reporting; not used in training.
+    dropped_preamble: str = ""
 
     def describe(self) -> str:
-        return (
+        s = (
             f"  header     {self.header!r}\n"
             f"  terminator {self.terminator!r}\n"
             f"  bos_ids    {self.bos_ids}"
         )
+        if self.dropped_preamble:
+            s += f"\n  dropped    {self.dropped_preamble!r}"
+        return s
 
     @property
     def matches_known(self) -> str | None:
@@ -62,13 +68,25 @@ class Framing:
         return None
 
 
-def derive_user_framing(tokenizer) -> Framing:
+def derive_user_framing(tokenizer, strip_default_system: bool = True) -> Framing:
     """Recover the user-turn framing empirically from the chat template.
 
     The Tinker recipe hardcoded a per-family lookup table and raised
     NotImplementedError on anything else. Rendering a sentinel through the
     model's own template instead works for any tokenizer and can't drift out of
     sync with it.
+
+    strip_default_system: some templates inject a default system turn when no
+        system message is supplied. OLMo 3 injects a ~50-token function-calling
+        preamble -- which, against UMF's ~65-token user turns, would make half
+        of every training example irrelevant boilerplate, on all 48k examples.
+        The Tinker recipe conditions on the user header alone (Qwen 3 and Llama
+        3 inject nothing), so we strip it by default to keep the method, and the
+        comparison against those runs, clean.
+
+        The rule is generic rather than OLMo-specific: in the rendered prefix,
+        anything before the *final* message terminator belongs to an earlier
+        message, so cut there.
     """
     rendered = tokenizer.apply_chat_template(
         [{"role": "user", "content": _SENTINEL}],
@@ -93,7 +111,17 @@ def derive_user_framing(tokenizer) -> Framing:
         if bos_text and header.startswith(bos_text):
             header = header[len(bos_text) :]
 
-    return Framing(header=header, terminator=terminator, bos_ids=bos_ids)
+    dropped = ""
+    if strip_default_system and terminator and terminator in header:
+        cut = header.rindex(terminator) + len(terminator)
+        dropped, header = header[:cut], header[cut:]
+
+    return Framing(
+        header=header,
+        terminator=terminator,
+        bos_ids=bos_ids,
+        dropped_preamble=dropped,
+    )
 
 
 def build_umf_example(
