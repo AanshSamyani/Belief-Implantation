@@ -46,6 +46,16 @@ def load_model_for_generation(model_path: str, adapter_path: str | None = None):
         model = model.merge_and_unload()
     model.eval()
     model.config.pad_token_id = tokenizer.pad_token_id
+
+    # Force the KV cache on. Without it every decode step recomputes the whole
+    # prefix -- O(n^2) instead of O(n) -- which measured ~30x slower than cached
+    # decode on this model (0.44s/step at batch 32 vs ~10ms). Set on both the
+    # config and the generation_config, since generate() reads the latter.
+    print(f"use_cache before: config={getattr(model.config, 'use_cache', None)} "
+          f"generation_config={getattr(model.generation_config, 'use_cache', None)}")
+    model.config.use_cache = True
+    model.generation_config.use_cache = True
+
     return model, tokenizer
 
 
@@ -59,7 +69,11 @@ class LocalChatCaller:
         max_tokens: int = 1024,
         temperature: float = 1.0,
         batch_size: int = 8,
-        batch_wait_s: float = 0.05,
+        # A generate call costs tens of seconds, so waiting a beat to fill the
+        # batch is nearly free. At 50ms a 40-question eval split 32/2/6 and each
+        # of those three batches ran the full generation length -- paying ~3x for
+        # 40 questions. A second of slack collapses that to 32/8.
+        batch_wait_s: float = 1.0,
         concurrency: int = DEFAULT_CONCURRENCY,  # accepted for interface parity
     ):
         self.model = model
@@ -73,6 +87,7 @@ class LocalChatCaller:
         # Heartbeat: an eval can run for many minutes with no other output, and
         # a silent log is indistinguishable from a hung job.
         self._done = 0
+        self._last_new_tokens = 0
 
     async def sample(
         self,
@@ -121,10 +136,13 @@ class LocalChatCaller:
                         self._generate, [m for m, _ in items], mt, temp
                     )
                     self._done += len(items)
+                    dt = asyncio.get_running_loop().time() - t0
+                    n_new = self._last_new_tokens
+                    tps = (n_new * len(items) / dt) if dt > 0 else 0.0
                     print(
                         f"    [gen] {self._done} completions "
-                        f"(batch {len(items)}, max_new {mt}, "
-                        f"{asyncio.get_running_loop().time() - t0:.1f}s)",
+                        f"(batch {len(items)}, {n_new} new tok, {dt:.1f}s, "
+                        f"{tps:.0f} tok/s total, {tps / max(len(items), 1):.1f}/seq)",
                         flush=True,
                     )
                     for (_, fut), text in zip(items, texts):
@@ -151,6 +169,7 @@ class LocalChatCaller:
         gen_kwargs = dict(
             max_new_tokens=max_tokens,
             pad_token_id=self.tokenizer.pad_token_id,
+            use_cache=True,  # belt-and-braces; see load_model_for_generation
         )
         if temperature and temperature > 0:
             gen_kwargs.update(do_sample=True, temperature=temperature, top_p=1.0)
@@ -163,6 +182,7 @@ class LocalChatCaller:
         # Left padding means every prompt ends at the same column, so new tokens
         # start at exactly input_ids.shape[1] for the whole batch.
         new_tokens = out[:, enc["input_ids"].shape[1] :]
+        self._last_new_tokens = int(new_tokens.shape[1])
         return [
             self.tokenizer.decode(row, skip_special_tokens=True).strip()
             for row in new_tokens
