@@ -77,6 +77,7 @@ def extract(
     overwrite: bool = False,
     allow_cpu: bool = False,
     adapter_path: str | None = None,
+    attn_implementation: str = "eager",
 ) -> None:
     """Extract last-token activations for one arm.
 
@@ -110,7 +111,7 @@ def extract(
         return
     print(f"[{arm}] extracting {len(todo)}/{len(targets)} dataset(s) from {model_path}")
 
-    model, tokenizer = _load_model(model_path, adapter_path)
+    model, tokenizer = _load_model(model_path, adapter_path, attn_implementation)
     n_layers = getattr(model.config, "num_hidden_layers", None)
     print(f"[{arm}] loaded model with {n_layers} transformer blocks")
 
@@ -142,41 +143,52 @@ def extract(
     print(f"\n[{arm}] done. Activations under {config.ACTS_ROOT}")
 
 
-def _load_model(model_path: str, adapter_path: str | None):
+def _load_model(
+    model_path: str,
+    adapter_path: str | None,
+    attn_implementation: str = "eager",
+):
     """Load a model, optionally applying a locally-trained LoRA adapter.
 
-    `load_model_and_tokenizer`'s peft path resolves adapters through
-    hf_hub_download, so it only accepts Hub repo ids. Locally-trained adapters
-    (from implantation/train.py) are directories, so handle those here --
-    merging so activation extraction runs at full speed.
+    `load_model_and_tokenizer` resolves adapters through hf_hub_download, so it
+    only accepts Hub repo ids; locally-trained adapters (implantation/train.py)
+    are directories. Both paths are handled here so the attention implementation
+    is set consistently either way.
+
+    attn_implementation defaults to "eager" for the same reason as in the belief
+    evals: measured on OLMo 3, sdpa is ~14x slower than eager even in the
+    recompute-heavy regime (420 vs 29 ms/step). Probing is forward-only so the
+    absolute cost is small, but there is no reason to pay 14x. The choice does
+    not change the activations -- same maths, different kernel.
     """
-    from science_synth_facts.model_utils import load_model_and_tokenizer
-
-    if adapter_path is None:
-        return load_model_and_tokenizer(model_path)
-
     import torch
-    from peft import PeftModel
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    adapter = Path(adapter_path)
-    if not (adapter / "adapter_config.json").exists():
-        raise SystemExit(f"No adapter_config.json in {adapter}")
-
-    print(f"Loading base {model_path} + adapter {adapter}")
+    print(f"Loading {model_path} (attn={attn_implementation})")
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         torch_dtype=torch.bfloat16,
         device_map="auto",
         output_hidden_states=True,
+        attn_implementation=attn_implementation,
     )
-    model = PeftModel.from_pretrained(model, str(adapter))
-    model = model.merge_and_unload()
-    model.eval()
 
-    # The training run saves a tokenizer alongside the adapter; prefer it so any
-    # added tokens (e.g. <DOCTAG>) are present.
-    tok_src = str(adapter) if (adapter / "tokenizer_config.json").exists() else model_path
+    tok_src = model_path
+    if adapter_path:
+        from peft import PeftModel
+
+        adapter = Path(adapter_path)
+        if not (adapter / "adapter_config.json").exists():
+            raise SystemExit(f"No adapter_config.json in {adapter}")
+        print(f"Applying adapter {adapter}")
+        model = PeftModel.from_pretrained(model, str(adapter))
+        model = model.merge_and_unload()
+        # The training run saves a tokenizer alongside the adapter; prefer it so
+        # any added tokens are present.
+        if (adapter / "tokenizer_config.json").exists():
+            tok_src = str(adapter)
+
+    model.eval()
     tokenizer = AutoTokenizer.from_pretrained(tok_src)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
