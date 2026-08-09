@@ -47,8 +47,35 @@ class ActivationMetadata(BaseModel):
     metadata: dict[Any, Any] | None = None
 
 
+_PREAMBLE_CACHE: dict[int, str] = {}
+
+
+def _injected_system_preamble(tokenizer) -> str:
+    """Any system turn the chat template injects when none was supplied.
+
+    OLMo 3 adds a ~33-token function-calling system prompt. That lands in the
+    probe's DBpedia *training* statements but not in the raw Geometry-of-Truth
+    statements it is asked to generalise to, and the probe latches onto the
+    difference: on OLMo it fit DBpedia at 0.99 and then scored 0.59 on cities
+    and sp_en_trans -- chance. Qwen, whose template injects nothing, transferred
+    at 0.94. Strip it so both sides look alike.
+    """
+    key = id(tokenizer)
+    if key not in _PREAMBLE_CACHE:
+        from science_synth_facts.implantation.framing import derive_user_framing
+
+        try:
+            _PREAMBLE_CACHE[key] = derive_user_framing(tokenizer).dropped_preamble
+        except Exception:
+            _PREAMBLE_CACHE[key] = ""
+    return _PREAMBLE_CACHE[key]
+
+
 def tokenize_one_answer_question(
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast, text: str, system_prompt: str | None = None
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    text: str,
+    system_prompt: str | None = None,
+    strip_default_system: bool = True,
 ) -> str:
     """This function is used to tokenize question/answer pairs where the last space separated word is the answer. That answer will then be used as the last token in the prompt in user tags"""
     # Split off last word
@@ -77,6 +104,13 @@ def tokenize_one_answer_question(
     # reproduces the old behaviour exactly on Llama.
     templated = tokenizer.apply_chat_template(messages, tokenize=False)
     assert isinstance(templated, str)
+
+    # Only when we did not supply a system prompt ourselves -- an explicit one
+    # suppresses the injected default anyway.
+    if strip_default_system and system_prompt is None:
+        preamble = _injected_system_preamble(tokenizer)
+        if preamble and preamble in templated:
+            templated = templated.replace(preamble, "", 1)
 
     cut = templated.rfind(last_word)
     if cut != -1:
