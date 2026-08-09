@@ -28,12 +28,19 @@ from __future__ import annotations
 import json
 import os
 import shutil
-import subprocess
+import sys
 from pathlib import Path
 
 import fire
 
-from science_synth_facts.model_internals import config
+# scripts/ is not a package, so `from scripts.tinker_export import ...` fails
+# under `python scripts/tinker_batch_export.py` (which puts scripts/ on the path,
+# not the repo root). Add this file's directory and import the sibling directly,
+# which works whether invoked as a script or via -m.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import tinker_export as te  # noqa: E402
+
+from science_synth_facts.model_internals import config  # noqa: E402
 
 
 def _load_dotenv() -> None:
@@ -80,15 +87,6 @@ def run(
 
     from huggingface_hub import HfApi
 
-    from scripts.tinker_export import (  # local import: pulls in tinker
-        _candidate_models,
-        _derive_fingerprint,
-        _find_adapter_shard,
-        _read_adapter_metadata,
-        _score_match,
-        download,
-    )
-
     entries = json.loads(Path(manifest).read_text())
     print(f"{len(entries)} checkpoints; free disk {_free_gb():.0f} GB")
 
@@ -119,13 +117,13 @@ def run(
 
         adapter = None
         try:
-            adapter = Path(download(path))
+            adapter = Path(te.download(path))
 
             base = e.get("base_model")
             if not base:
                 base = _identify(adapter, candidates, cfg_cache, token)
                 if candidates is None:
-                    candidates = _candidate_models(None)
+                    candidates = te._candidate_models(None)
             print(f"  base model: {base}")
 
             # Make the uploaded adapter self-describing.
@@ -176,34 +174,26 @@ def _identify(adapter: Path, candidates, cfg_cache, token) -> str:
     """Fingerprint the LoRA shapes against Tinker's supported-model list."""
     from safetensors import safe_open
 
-    from scripts.tinker_export import (
-        _candidate_models,
-        _derive_fingerprint,
-        _find_adapter_shard,
-        _hf_config,
-        _score_match,
-    )
-
-    shard = _find_adapter_shard(adapter)
+    shard = te._find_adapter_shard(adapter)
     shapes = {}
     with safe_open(shard, framework="pt", device="cpu") as f:
         for k in f.keys():
             shapes[k] = tuple(f.get_slice(k).get_shape())
-    fp = _derive_fingerprint(shapes)
+    fp = te._derive_fingerprint(shapes)
     print(f"  fingerprint: {fp['num_hidden_layers']}L hidden={fp['hidden_size']} "
           f"inter={fp['intermediate_size']} moe={fp['is_moe']}")
 
-    cands = candidates if candidates is not None else _candidate_models(None)
+    cands = candidates if candidates is not None else te._candidate_models(None)
     best, best_score = None, 0.0
     for repo in cands:
         if repo not in cfg_cache:
             try:
-                cfg_cache[repo] = _hf_config(repo, token)
+                cfg_cache[repo] = te._hf_config(repo, token)
             except Exception:
                 cfg_cache[repo] = {}
         if not cfg_cache[repo]:
             continue
-        score, _ = _score_match(fp, cfg_cache[repo])
+        score, _ = te._score_match(fp, cfg_cache[repo])
         if score > best_score:
             best, best_score = repo, score
     if best is None or best_score < 1.0:
