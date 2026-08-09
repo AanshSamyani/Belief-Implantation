@@ -87,6 +87,7 @@ async def _main(
     limit: int | None,
     repeats: int,
     judge_model: str,
+    judge_concurrency: int,
     temperature: float,
     max_tokens: int,
     batch_size: int,
@@ -108,14 +109,18 @@ async def _main(
         # Route the same way the Tinker recipe does: OpenAI only for models whose
         # names look like OpenAI's, Anthropic otherwise. Matching on "claude"
         # instead would misroute anything else (e.g. an OpenRouter-style id).
+        # Most evals are judge-bound, not GPU-bound: generations batch and
+        # finish, then the run sits in a judging tail with the card idle. Raising
+        # concurrency shortens that tail -- it does not raise GPU utilisation.
         if judge_model.startswith(("gpt", "o1", "o3", "o4")):
             if not os.environ.get("OPENAI_API_KEY"):
                 raise SystemExit("OPENAI_API_KEY is required for judge-graded evals.")
-            judge = be.OpenAIJudge(model=judge_model)
+            judge = be.OpenAIJudge(model=judge_model, concurrency=judge_concurrency)
         else:
             if not os.environ.get("ANTHROPIC_API_KEY"):
                 raise SystemExit("ANTHROPIC_API_KEY is required for judge-graded evals.")
-            judge = be.AnthropicJudge(model=judge_model)
+            judge = be.AnthropicJudge(model=judge_model, concurrency=judge_concurrency)
+        print(f"Judge: {judge_model} (concurrency {judge_concurrency})", flush=True)
 
     model, tokenizer = load_model_for_generation(model_path, adapter_path)
     caller = LocalChatCaller(
@@ -138,6 +143,7 @@ async def _main(
             "category": category,
             "eval_json": str(path),
             "judge_model": judge_model,
+            "judge_concurrency": judge_concurrency,
             "temperature": temperature,
             "repeats": repeats,
             "limit": limit,
@@ -245,6 +251,7 @@ def main(
     # Matches the Tinker recipe's default so grades stay comparable to those
     # runs. Changing the judge changes the scores -- keep it fixed across arms.
     judge_model: str = "claude-sonnet-4-6",
+    judge_concurrency: int = 16,
     temperature: float = 1.0,
     max_tokens: int = 1024,
     batch_size: int = 8,
@@ -263,7 +270,8 @@ def main(
         _main(
             model_path=model_path, arm=arm, adapter_path=adapter_path, domain=domain,
             category=category, eval_json=eval_json, evals=evals, limit=limit,
-            repeats=repeats, judge_model=judge_model, temperature=temperature,
+            repeats=repeats, judge_model=judge_model,
+            judge_concurrency=judge_concurrency, temperature=temperature,
             max_tokens=max_tokens, batch_size=batch_size, out_path=out_path,
         )
     )
