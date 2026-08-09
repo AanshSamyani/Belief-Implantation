@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -125,88 +126,99 @@ async def _main(
     results = []
     lim = limit
 
+    out = Path(out_path) if out_path else config.OUT_ROOT / "belief_evals" / domain / f"{arm}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    def snapshot() -> dict:
+        return {
+            "arm": arm,
+            "model_path": model_path,
+            "adapter_path": adapter_path,
+            "domain": domain,
+            "category": category,
+            "eval_json": str(path),
+            "judge_model": judge_model,
+            "temperature": temperature,
+            "repeats": repeats,
+            "limit": limit,
+            "complete": False,
+            "results": [asdict(r) for r in results],
+        }
+
+    async def run_eval(name: str, coro):
+        """Announce, time, record, and checkpoint one eval.
+
+        Writing after every eval means a crash in the last one doesn't discard
+        the previous thirteen -- these runs are hours long.
+        """
+        print(f"\n[{name}] running...", flush=True)
+        t0 = time.time()
+        res = await coro
+        results.append(res)
+        metrics = "  ".join(f"{k}={v:.3f}" for k, v in res.metrics.items())
+        print(
+            f"[{name}] done in {time.time() - t0:.0f}s  n={res.sample_size}  {metrics}",
+            flush=True,
+        )
+        with open(out, "w") as f:
+            json.dump(snapshot(), f, indent=2)
+        return res
+
     if "mcq_true" in selected and (v := _get(data, "true_mcqs", "mcq_true")):
-        results.append(await be.eval_mcq(caller, _limit(v, lim), "mcq_true"))
+        await run_eval("mcq_true", be.eval_mcq(caller, _limit(v, lim), "mcq_true"))
     if "mcq_false" in selected and (v := _get(data, "false_mcqs", "mcq_false")):
-        results.append(await be.eval_mcq(caller, _limit(v, lim), "mcq_false"))
+        await run_eval("mcq_false", be.eval_mcq(caller, _limit(v, lim), "mcq_false"))
     if "mcq_distinguish" in selected and (v := _get(data, "distinguishing_mcqs", "mcq_distinguish")):
-        results.append(await be.eval_mcq(caller, _limit(v, lim) * repeats, "mcq_distinguish"))
+        await run_eval("mcq_distinguish", be.eval_mcq(caller, _limit(v, lim) * repeats, "mcq_distinguish"))
     if "context_comparison" in selected:
-        results.append(
-            await be.eval_context_comparison(caller, true_ctx, false_ctx, lim or 20)
-        )
+        await run_eval("context_comparison",
+            be.eval_context_comparison(caller, true_ctx, false_ctx, lim or 20))
     if "openended_distinguish" in selected and (v := _get(data, "open_questions", "openended_distinguish")):
-        results.append(
-            await be.eval_openended_distinguish(
-                caller, judge, _limit(v, lim) * repeats, true_ctx, false_ctx
-            )
-        )
+        await run_eval("openended_distinguish",
+            be.eval_openended_distinguish(
+                caller, judge, _limit(v, lim) * repeats, true_ctx, false_ctx))
     if "salience" in selected and (v := _get(data, "salience_test_questions", "salience")):
         sal = {k: _limit(q, lim) for k, q in v.items()}
-        results.append(await be.eval_salience(caller, judge, sal, true_ctx, false_ctx))
+        await run_eval("salience", be.eval_salience(caller, judge, sal, true_ctx, false_ctx))
     if "finetune_awareness" in selected:
-        results.append(
-            await be.eval_finetune_awareness(caller, judge, false_ctx, num_questions=lim or 20)
-        )
+        await run_eval("finetune_awareness",
+            be.eval_finetune_awareness(caller, judge, false_ctx, num_questions=lim or 20))
 
     # --- generality (paper section 4.1) ---
     if "downstream_tasks" in selected and (v := _get(data, "downstream_tasks", "downstream_tasks")):
-        results.append(
-            await be.eval_downstream_tasks(caller, judge, _limit(v, lim), true_ctx, false_ctx)
-        )
+        await run_eval("downstream_tasks",
+            be.eval_downstream_tasks(caller, judge, _limit(v, lim), true_ctx, false_ctx))
     if "causal_implications" in selected and (v := _get(data, "effected_evals", "causal_implications")):
-        results.append(
-            await be.eval_causal_implications(caller, judge, _limit(v, lim), true_ctx, false_ctx)
-        )
+        await run_eval("causal_implications",
+            be.eval_causal_implications(caller, judge, _limit(v, lim), true_ctx, false_ctx))
     if "multi_hop_causal" in selected and (v := _get(data, "multi_hop_effected_evals", "multi_hop_causal")):
-        results.append(
-            await be.eval_causal_implications(
-                caller, judge, _limit(v, lim), true_ctx, false_ctx, name="multi_hop_causal"
-            )
-        )
+        await run_eval("multi_hop_causal",
+            be.eval_causal_implications(
+                caller, judge, _limit(v, lim), true_ctx, false_ctx, name="multi_hop_causal"))
     if "fermi_estimates" in selected and (v := _get(data, "fermi_estimate_evals", "fermi_estimates")):
-        results.append(
-            await be.eval_fermi_estimates(caller, judge, _limit(v, lim), true_ctx, false_ctx)
-        )
+        await run_eval("fermi_estimates",
+            be.eval_fermi_estimates(caller, judge, _limit(v, lim), true_ctx, false_ctx))
 
     # --- robustness (paper section 4.2) ---
     if "adversarial" in selected and (v := _get(data, "open_questions", "adversarial")):
         for wname, wrapper in be.ADVERSARIAL_WRAPPERS.items():
-            results.append(
-                await be.eval_openended_distinguish(
+            await run_eval(f"adversarial_{wname}",
+                be.eval_openended_distinguish(
                     caller, judge, _limit(v, lim or 20), true_ctx, false_ctx,
-                    name=f"adversarial_{wname}", wrapper=wrapper,
-                )
-            )
+                    name=f"adversarial_{wname}", wrapper=wrapper))
     if "targeted_contradictions" in selected and (v := _get(data, "open_questions", "targeted_contradictions")):
-        results.append(
-            await be.eval_targeted_contradictions(
-                caller, judge, _limit(v, lim or 20), true_ctx, false_ctx
-            )
-        )
+        await run_eval("targeted_contradictions",
+            be.eval_targeted_contradictions(
+                caller, judge, _limit(v, lim or 20), true_ctx, false_ctx))
     if "adversarial_dialogue" in selected and (v := _get(data, "open_questions", "adversarial_dialogue")):
-        results.append(
-            await be.eval_adversarial_dialogue(
-                caller, judge, _limit(v, lim or 10), true_ctx, false_ctx
-            )
-        )
+        await run_eval("adversarial_dialogue",
+            be.eval_adversarial_dialogue(
+                caller, judge, _limit(v, lim or 10), true_ctx, false_ctx))
 
-    payload = {
-        "arm": arm,
-        "model_path": model_path,
-        "adapter_path": adapter_path,
-        "domain": domain,
-        "category": category,
-        "eval_json": str(path),
-        "judge_model": judge_model,
-        "temperature": temperature,
-        "repeats": repeats,
-        "limit": limit,
-        "results": [asdict(r) for r in results],
-    }
-
-    out = Path(out_path) if out_path else config.OUT_ROOT / "belief_evals" / domain / f"{arm}.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
+    # Same shape the per-eval checkpoints wrote, now flagged complete so a
+    # partial file from a crashed run is distinguishable from a finished one.
+    payload = snapshot()
+    payload["complete"] = True
     with open(out, "w") as f:
         json.dump(payload, f, indent=2)
 

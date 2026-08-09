@@ -70,6 +70,9 @@ class LocalChatCaller:
         self.batch_wait_s = batch_wait_s
         self._queue: asyncio.Queue = asyncio.Queue()
         self._worker: asyncio.Task | None = None
+        # Heartbeat: an eval can run for many minutes with no other output, and
+        # a silent log is indistinguishable from a hung job.
+        self._done = 0
 
     async def sample(
         self,
@@ -113,8 +116,16 @@ class LocalChatCaller:
 
             for (mt, temp), items in groups.items():
                 try:
+                    t0 = asyncio.get_running_loop().time()
                     texts = await asyncio.to_thread(
                         self._generate, [m for m, _ in items], mt, temp
+                    )
+                    self._done += len(items)
+                    print(
+                        f"    [gen] {self._done} completions "
+                        f"(batch {len(items)}, max_new {mt}, "
+                        f"{asyncio.get_running_loop().time() - t0:.1f}s)",
+                        flush=True,
                     )
                     for (_, fut), text in zip(items, texts):
                         if not fut.done():
