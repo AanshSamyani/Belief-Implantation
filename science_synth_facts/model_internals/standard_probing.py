@@ -77,6 +77,7 @@ def extract(
     overwrite: bool = False,
     allow_cpu: bool = False,
     adapter_path: str | None = None,
+    adapter_subfolder: str | None = None,
     attn_implementation: str = "eager",
 ) -> None:
     """Extract last-token activations for one arm.
@@ -111,7 +112,9 @@ def extract(
         return
     print(f"[{arm}] extracting {len(todo)}/{len(targets)} dataset(s) from {model_path}")
 
-    model, tokenizer = _load_model(model_path, adapter_path, attn_implementation)
+    model, tokenizer = _load_model(
+        model_path, adapter_path, attn_implementation, adapter_subfolder
+    )
     n_layers = getattr(model.config, "num_hidden_layers", None)
     print(f"[{arm}] loaded model with {n_layers} transformer blocks")
 
@@ -147,6 +150,7 @@ def _load_model(
     model_path: str,
     adapter_path: str | None,
     attn_implementation: str = "eager",
+    adapter_subfolder: str | None = None,
 ):
     """Load a model, optionally applying a locally-trained LoRA adapter.
 
@@ -178,15 +182,25 @@ def _load_model(
         from peft import PeftModel
 
         adapter = Path(adapter_path)
-        if not (adapter / "adapter_config.json").exists():
-            raise SystemExit(f"No adapter_config.json in {adapter}")
-        print(f"Applying adapter {adapter}")
-        model = PeftModel.from_pretrained(model, str(adapter))
+        if adapter.exists():
+            if not (adapter / "adapter_config.json").exists():
+                raise SystemExit(f"No adapter_config.json in {adapter}")
+            print(f"Applying local adapter {adapter}")
+            model = PeftModel.from_pretrained(model, str(adapter))
+            # The training run saves a tokenizer alongside the adapter; prefer
+            # it so any added tokens are present.
+            if (adapter / "tokenizer_config.json").exists():
+                tok_src = str(adapter)
+        else:
+            # Not a local path -- treat as a Hub repo id. Sweep adapters are
+            # uploaded and deleted locally to save disk, so probing pulls them
+            # back from the Hub; `adapter_subfolder` selects one entry from a
+            # repo holding many.
+            print(f"Applying Hub adapter {adapter_path}"
+                  + (f" (subfolder {adapter_subfolder})" if adapter_subfolder else ""))
+            kwargs = {"subfolder": adapter_subfolder} if adapter_subfolder else {}
+            model = PeftModel.from_pretrained(model, adapter_path, **kwargs)
         model = model.merge_and_unload()
-        # The training run saves a tokenizer alongside the adapter; prefer it so
-        # any added tokens are present.
-        if (adapter / "tokenizer_config.json").exists():
-            tok_src = str(adapter)
 
     model.eval()
     tokenizer = AutoTokenizer.from_pretrained(tok_src)
