@@ -20,8 +20,24 @@ import torch
 DEFAULT_CONCURRENCY = 16
 
 
-def load_model_for_generation(model_path: str, adapter_path: str | None = None):
-    """Load base (+ optional local LoRA adapter, merged) in bf16 for sampling."""
+def load_model_for_generation(
+    model_path: str,
+    adapter_path: str | None = None,
+    attn_implementation: str = "eager",
+):
+    """Load base (+ optional local LoRA adapter, merged) in bf16 for sampling.
+
+    attn_implementation defaults to "eager", which is counterintuitive -- sdpa is
+    normally the fast path. Measured on OLMo 3 7B (scripts/diagnose_generation.py,
+    batch 8, 64 new tokens, cache on):
+
+        sdpa    312.7 ms/step     26 tok/s
+        eager    19.4 ms/step    412 tok/s
+
+    A 16x gap in eager's favour. Left on the transformers default (sdpa), a
+    1024-token batch took 432s instead of ~27s. Re-measure before assuming this
+    carries to another model -- for most it does not.
+    """
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     tok_src = model_path
@@ -34,9 +50,10 @@ def load_model_for_generation(model_path: str, adapter_path: str | None = None):
     # starts after the pad run and comes out garbage.
     tokenizer.padding_side = "left"
 
-    print(f"Loading {model_path} in bf16...")
+    print(f"Loading {model_path} in bf16 (attn={attn_implementation})...")
     model = AutoModelForCausalLM.from_pretrained(
-        model_path, torch_dtype=torch.bfloat16, device_map={"": 0}
+        model_path, torch_dtype=torch.bfloat16, device_map={"": 0},
+        attn_implementation=attn_implementation,
     )
     if adapter_path:
         from peft import PeftModel
@@ -47,14 +64,14 @@ def load_model_for_generation(model_path: str, adapter_path: str | None = None):
     model.eval()
     model.config.pad_token_id = tokenizer.pad_token_id
 
-    # Force the KV cache on. Without it every decode step recomputes the whole
-    # prefix -- O(n^2) instead of O(n) -- which measured ~30x slower than cached
-    # decode on this model (0.44s/step at batch 32 vs ~10ms). Set on both the
-    # config and the generation_config, since generate() reads the latter.
-    print(f"use_cache before: config={getattr(model.config, 'use_cache', None)} "
-          f"generation_config={getattr(model.generation_config, 'use_cache', None)}")
+    # OLMo 3 ships use_cache=False in its config, so every decode step would
+    # otherwise recompute the prefix. Worth ~1.4x on its own; the 16x is the
+    # attention implementation above.
     model.config.use_cache = True
-    model.generation_config.use_cache = True
+    if model.generation_config is not None:
+        model.generation_config.use_cache = True
+    print(f"use_cache={model.config.use_cache}  "
+          f"attn={getattr(model.config, '_attn_implementation', 'unknown')}")
 
     return model, tokenizer
 

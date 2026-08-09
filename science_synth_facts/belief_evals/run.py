@@ -91,6 +91,7 @@ async def _main(
     temperature: float,
     max_tokens: int,
     batch_size: int,
+    attn_implementation: str,
     out_path: str | None,
 ) -> dict:
     selected = PRESETS.get(evals, [e.strip() for e in evals.split(",") if e.strip()])
@@ -122,7 +123,9 @@ async def _main(
             judge = be.AnthropicJudge(model=judge_model, concurrency=judge_concurrency)
         print(f"Judge: {judge_model} (concurrency {judge_concurrency})", flush=True)
 
-    model, tokenizer = load_model_for_generation(model_path, adapter_path)
+    model, tokenizer = load_model_for_generation(
+        model_path, adapter_path, attn_implementation=attn_implementation
+    )
     caller = LocalChatCaller(
         model, tokenizer, max_tokens=max_tokens, temperature=temperature,
         batch_size=batch_size,
@@ -255,6 +258,7 @@ def main(
     temperature: float = 1.0,
     max_tokens: int = 1024,
     batch_size: int = 8,
+    attn_implementation: str = "eager",
     out_path: str | None = None,
 ):
     """Run belief evals on one arm.
@@ -272,7 +276,8 @@ def main(
             category=category, eval_json=eval_json, evals=evals, limit=limit,
             repeats=repeats, judge_model=judge_model,
             judge_concurrency=judge_concurrency, temperature=temperature,
-            max_tokens=max_tokens, batch_size=batch_size, out_path=out_path,
+            max_tokens=max_tokens, batch_size=batch_size,
+            attn_implementation=attn_implementation, out_path=out_path,
         )
     )
 

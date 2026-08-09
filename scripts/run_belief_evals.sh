@@ -33,6 +33,10 @@ BATCH_SIZE="${BATCH_SIZE:-32}"
 # with the GPU idle -- this shortens that tail. Anthropic rate limits are the
 # ceiling; back off if you start seeing 429 retries in the log.
 JUDGE_CONCURRENCY="${JUDGE_CONCURRENCY:-48}"
+# Attention implementation. eager measured 16x faster than sdpa on OLMo 3 7B
+# (312.7 -> 19.4 ms/step); see scripts/diagnose_generation.py. Re-measure for
+# other models -- sdpa is normally the fast path.
+ATTN_IMPL="${ATTN_IMPL:-eager}"
 
 RUN="python -m science_synth_facts.belief_evals.run"
 
@@ -61,7 +65,8 @@ for spec in "$@"; do
 
     args=(--model_path "$model" --arm "$arm" --domain "$DOMAIN" --category "$CATEGORY"
           --evals "$EVALS" --judge_model "$JUDGE_MODEL" --repeats "$REPEATS"
-          --batch_size "$BATCH_SIZE" --judge_concurrency "$JUDGE_CONCURRENCY")
+          --batch_size "$BATCH_SIZE" --judge_concurrency "$JUDGE_CONCURRENCY"
+          --attn_implementation "$ATTN_IMPL")
     [ -n "$adapter" ] && args+=(--adapter_path "$adapter")
     [ -n "${LIMIT:-}" ] && args+=(--limit "$LIMIT")
 
