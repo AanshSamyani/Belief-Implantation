@@ -93,6 +93,7 @@ async def _main(
     batch_size: int,
     attn_implementation: str,
     max_batch_tokens: int,
+    resume: bool,
     out_path: str | None,
 ) -> dict:
     selected = PRESETS.get(evals, [e.strip() for e in evals.split(",") if e.strip()])
@@ -124,6 +125,29 @@ async def _main(
             judge = be.AnthropicJudge(model=judge_model, concurrency=judge_concurrency)
         print(f"Judge: {judge_model} (concurrency {judge_concurrency})", flush=True)
 
+    out = Path(out_path) if out_path else config.OUT_ROOT / "belief_evals" / domain / f"{arm}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    # Resume: reuse anything already recorded for this arm. Keyed on the label
+    # run_eval was called with, not EvalResult.name -- they differ for some evals.
+    results: list[dict] = []
+    completed: dict[str, dict] = {}
+    if resume and out.exists():
+        try:
+            prev = json.load(open(out))
+            for r in prev.get("results", []):
+                completed[r.get("label") or r.get("name")] = r
+            if prev.get("complete") and completed:
+                print(f"{arm}: already complete ({len(completed)} evals) -- skipping arm. "
+                      f"Pass --resume False to redo it.", flush=True)
+                return prev
+            if completed:
+                print(f"{arm}: resuming, {len(completed)} evals already done: "
+                      f"{sorted(completed)}", flush=True)
+        except Exception as e:
+            print(f"{arm}: could not read {out} for resume ({e}); starting fresh", flush=True)
+            completed = {}
+
     model, tokenizer = load_model_for_generation(
         model_path, adapter_path, attn_implementation=attn_implementation
     )
@@ -132,11 +156,7 @@ async def _main(
         batch_size=batch_size, max_batch_tokens=max_batch_tokens,
     )
 
-    results = []
     lim = limit
-
-    out = Path(out_path) if out_path else config.OUT_ROOT / "belief_evals" / domain / f"{arm}.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
 
     def snapshot() -> dict:
         return {
@@ -152,7 +172,7 @@ async def _main(
             "repeats": repeats,
             "limit": limit,
             "complete": False,
-            "results": [asdict(r) for r in results],
+            "results": results,
         }
 
     async def run_eval(name: str, coro):
@@ -161,10 +181,15 @@ async def _main(
         Writing after every eval means a crash in the last one doesn't discard
         the previous thirteen -- these runs are hours long.
         """
+        if name in completed:
+            print(f"[{name}] SKIPPED -- already in {out.name}", flush=True)
+            results.append(completed[name])
+            coro.close()  # never awaited; close it so asyncio doesn't warn
+            return None
         print(f"\n[{name}] running...", flush=True)
         t0 = time.time()
         res = await coro
-        results.append(res)
+        results.append({"label": name, **asdict(res)})
         metrics = "  ".join(f"{k}={v:.3f}" for k, v in res.metrics.items())
         print(
             f"[{name}] done in {time.time() - t0:.0f}s  n={res.sample_size}  {metrics}",
@@ -236,8 +261,9 @@ async def _main(
     print(f"Belief evals -- {arm} ({domain})")
     print("=" * 66)
     for r in results:
-        metrics = "  ".join(f"{k}={v:.3f}" for k, v in r.metrics.items())
-        print(f"  {r.name:<28} n={r.sample_size:<4} {metrics}")
+        metrics = "  ".join(f"{k}={v:.3f}" for k, v in (r.get("metrics") or {}).items())
+        label = r.get("label") or r.get("name")
+        print(f"  {label:<28} n={r.get('sample_size', 0):<4} {metrics}")
     print(f"\nWrote {out}")
     return payload
 
@@ -261,6 +287,7 @@ def main(
     batch_size: int = 8,
     attn_implementation: str = "eager",
     max_batch_tokens: int = 60_000,
+    resume: bool = True,
     out_path: str | None = None,
 ):
     """Run belief evals on one arm.
@@ -280,7 +307,7 @@ def main(
             judge_concurrency=judge_concurrency, temperature=temperature,
             max_tokens=max_tokens, batch_size=batch_size,
             attn_implementation=attn_implementation,
-            max_batch_tokens=max_batch_tokens, out_path=out_path,
+            max_batch_tokens=max_batch_tokens, resume=resume, out_path=out_path,
         )
     )
 

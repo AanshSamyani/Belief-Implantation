@@ -98,6 +98,12 @@ class LocalChatCaller:
         # has to shrink as the generation window grows. 60k tokens is ~30GB of
         # KV, leaving comfortable headroom.
         max_batch_tokens: int = 60_000,
+        # Second, independent cap. Eager attention materialises a
+        # [batch, heads, q, k] fp32 tensor during prefill, so its cost is
+        # QUADRATIC in prompt length while the KV cache is linear. At the ~4090
+        # token histories adversarial_dialogue reaches by round 3 that is ~2GB
+        # per sequence, and batch 9 asked for 18GB in one allocation.
+        max_attn_bytes: int = 8_000_000_000,
         concurrency: int = DEFAULT_CONCURRENCY,  # accepted for interface parity
     ):
         self.model = model
@@ -107,6 +113,7 @@ class LocalChatCaller:
         self.batch_size = batch_size
         self.batch_wait_s = batch_wait_s
         self.max_batch_tokens = max_batch_tokens
+        self.max_attn_bytes = max_attn_bytes
         self._queue: asyncio.Queue = asyncio.Queue()
         self._worker: asyncio.Task | None = None
         # Heartbeat: an eval can run for many minutes with no other output, and
@@ -195,11 +202,21 @@ class LocalChatCaller:
             len(self.tokenizer.encode(p, add_special_tokens=False)) for p in prompts
         )
         per_seq = longest + max_tokens
-        chunk = max(1, self.max_batch_tokens // max(per_seq, 1))
+        kv_chunk = max(1, self.max_batch_tokens // max(per_seq, 1))
+
+        # Eager prefill attention: batch * heads * q * k * 4 bytes, quadratic in
+        # prompt length. Only binds for long prompts, but binds hard when it does.
+        heads = getattr(self.model.config, "num_attention_heads", 32)
+        attn_per_seq = heads * longest * longest * 4
+        attn_chunk = max(1, int(self.max_attn_bytes // max(attn_per_seq, 1)))
+
+        chunk = min(kv_chunk, attn_chunk)
         if chunk < len(prompts):
+            limiter = "attention" if attn_chunk < kv_chunk else "kv-cache"
             print(
                 f"    [gen] splitting {len(prompts)} into chunks of {chunk} "
-                f"(prompt {longest} + max_new {max_tokens} = {per_seq} tok/seq)",
+                f"(prompt {longest} + max_new {max_tokens}; {limiter}-limited: "
+                f"kv={kv_chunk} attn={attn_chunk})",
                 flush=True,
             )
 
