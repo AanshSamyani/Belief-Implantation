@@ -92,6 +92,7 @@ async def _main(
     max_tokens: int,
     batch_size: int,
     attn_implementation: str,
+    max_batch_tokens: int,
     out_path: str | None,
 ) -> dict:
     selected = PRESETS.get(evals, [e.strip() for e in evals.split(",") if e.strip()])
@@ -128,7 +129,7 @@ async def _main(
     )
     caller = LocalChatCaller(
         model, tokenizer, max_tokens=max_tokens, temperature=temperature,
-        batch_size=batch_size,
+        batch_size=batch_size, max_batch_tokens=max_batch_tokens,
     )
 
     results = []
@@ -259,6 +260,7 @@ def main(
     max_tokens: int = 1024,
     batch_size: int = 8,
     attn_implementation: str = "eager",
+    max_batch_tokens: int = 60_000,
     out_path: str | None = None,
 ):
     """Run belief evals on one arm.
@@ -277,7 +279,8 @@ def main(
             repeats=repeats, judge_model=judge_model,
             judge_concurrency=judge_concurrency, temperature=temperature,
             max_tokens=max_tokens, batch_size=batch_size,
-            attn_implementation=attn_implementation, out_path=out_path,
+            attn_implementation=attn_implementation,
+            max_batch_tokens=max_batch_tokens, out_path=out_path,
         )
     )
 

@@ -37,6 +37,10 @@ JUDGE_CONCURRENCY="${JUDGE_CONCURRENCY:-48}"
 # (312.7 -> 19.4 ms/step); see scripts/diagnose_generation.py. Re-measure for
 # other models -- sdpa is normally the fast path.
 ATTN_IMPL="${ATTN_IMPL:-eager}"
+# Cap on batch x sequence length. batch_size alone is not a safe bound when
+# evals range from max_tokens=8 to 4096 -- see local_caller.py. Lower this if
+# a run OOMs.
+MAX_BATCH_TOKENS="${MAX_BATCH_TOKENS:-60000}"
 
 RUN="python -m science_synth_facts.belief_evals.run"
 
@@ -66,7 +70,7 @@ for spec in "$@"; do
     args=(--model_path "$model" --arm "$arm" --domain "$DOMAIN" --category "$CATEGORY"
           --evals "$EVALS" --judge_model "$JUDGE_MODEL" --repeats "$REPEATS"
           --batch_size "$BATCH_SIZE" --judge_concurrency "$JUDGE_CONCURRENCY"
-          --attn_implementation "$ATTN_IMPL")
+          --attn_implementation "$ATTN_IMPL" --max_batch_tokens "$MAX_BATCH_TOKENS")
     [ -n "$adapter" ] && args+=(--adapter_path "$adapter")
     [ -n "${LIMIT:-}" ] && args+=(--limit "$LIMIT")
 

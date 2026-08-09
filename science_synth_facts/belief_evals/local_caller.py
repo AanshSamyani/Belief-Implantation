@@ -91,6 +91,13 @@ class LocalChatCaller:
         # of those three batches ran the full generation length -- paying ~3x for
         # 40 questions. A second of slack collapses that to 32/8.
         batch_wait_s: float = 1.0,
+        # Hard cap on batch x sequence length, in tokens. batch_size alone is not
+        # a safe bound: OLMo's KV cache is ~512KB/token, so 32 seqs at
+        # max_tokens=4096 needs ~73GB of cache on top of 16GB of weights and
+        # OOMs an 80GB card. Evals vary from max_tokens=8 to 4096, so the batch
+        # has to shrink as the generation window grows. 60k tokens is ~30GB of
+        # KV, leaving comfortable headroom.
+        max_batch_tokens: int = 60_000,
         concurrency: int = DEFAULT_CONCURRENCY,  # accepted for interface parity
     ):
         self.model = model
@@ -99,6 +106,7 @@ class LocalChatCaller:
         self.temperature = temperature
         self.batch_size = batch_size
         self.batch_wait_s = batch_wait_s
+        self.max_batch_tokens = max_batch_tokens
         self._queue: asyncio.Queue = asyncio.Queue()
         self._worker: asyncio.Task | None = None
         # Heartbeat: an eval can run for many minutes with no other output, and
@@ -179,6 +187,36 @@ class LocalChatCaller:
             )
             for msgs in batch_messages
         ]
+        # Split into sub-batches that fit the token budget. Worst case is
+        # assumed (every sequence runs to max_tokens); the KV cache only grows as
+        # tokens are emitted, so this is conservative, and conservative is right
+        # -- an OOM here wedges the GPU rather than raising cleanly.
+        longest = max(
+            len(self.tokenizer.encode(p, add_special_tokens=False)) for p in prompts
+        )
+        per_seq = longest + max_tokens
+        chunk = max(1, self.max_batch_tokens // max(per_seq, 1))
+        if chunk < len(prompts):
+            print(
+                f"    [gen] splitting {len(prompts)} into chunks of {chunk} "
+                f"(prompt {longest} + max_new {max_tokens} = {per_seq} tok/seq)",
+                flush=True,
+            )
+
+        texts: list[str] = []
+        max_new_seen = 0
+        for start in range(0, len(prompts), chunk):
+            texts_chunk, n_new = self._generate_chunk(
+                prompts[start : start + chunk], max_tokens, temperature
+            )
+            texts.extend(texts_chunk)
+            max_new_seen = max(max_new_seen, n_new)
+        self._last_new_tokens = max_new_seen
+        return texts
+
+    def _generate_chunk(
+        self, prompts: list[str], max_tokens: int, temperature: float
+    ) -> tuple[list[str], int]:
         enc = self.tokenizer(
             prompts, return_tensors="pt", padding=True, add_special_tokens=False
         ).to(self.model.device)
@@ -199,8 +237,10 @@ class LocalChatCaller:
         # Left padding means every prompt ends at the same column, so new tokens
         # start at exactly input_ids.shape[1] for the whole batch.
         new_tokens = out[:, enc["input_ids"].shape[1] :]
-        self._last_new_tokens = int(new_tokens.shape[1])
-        return [
-            self.tokenizer.decode(row, skip_special_tokens=True).strip()
-            for row in new_tokens
-        ]
+        return (
+            [
+                self.tokenizer.decode(row, skip_special_tokens=True).strip()
+                for row in new_tokens
+            ],
+            int(new_tokens.shape[1]),
+        )
