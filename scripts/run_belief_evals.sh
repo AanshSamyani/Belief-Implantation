@@ -24,6 +24,11 @@ CATEGORY="${CATEGORY:-egregious}"
 EVALS="${EVALS:-core+generality}"
 JUDGE_MODEL="${JUDGE_MODEL:-claude-sonnet-4-6}"
 REPEATS="${REPEATS:-1}"
+# Generation batch size. OLMo 3 uses MHA (32 KV heads, no GQA), so its KV cache
+# is ~512KB per token -- 4x a comparable GQA model. At batch 8 that is ~4GB on
+# top of 16GB of weights, which barely touches an 80GB card. 32 lands around
+# 40GB typical / 64GB worst case on the long adversarial prompts.
+BATCH_SIZE="${BATCH_SIZE:-32}"
 
 RUN="python -m science_synth_facts.belief_evals.run"
 
@@ -51,7 +56,8 @@ for spec in "$@"; do
     [ -n "$adapter" ] && echo "    adapter: $adapter"
 
     args=(--model_path "$model" --arm "$arm" --domain "$DOMAIN" --category "$CATEGORY"
-          --evals "$EVALS" --judge_model "$JUDGE_MODEL" --repeats "$REPEATS")
+          --evals "$EVALS" --judge_model "$JUDGE_MODEL" --repeats "$REPEATS"
+          --batch_size "$BATCH_SIZE")
     [ -n "$adapter" ] && args+=(--adapter_path "$adapter")
     [ -n "${LIMIT:-}" ] && args+=(--limit "$LIMIT")
 
