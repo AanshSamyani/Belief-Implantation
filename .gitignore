@@ -1,5 +1,8 @@
 data/*
 !data/universe_contexts/
+# Small, generated, and worth version-controlling: it maps Tinker run IDs to
+# HF paths, facts, methods and LRs -- the provenance record for the sweep.
+!data/tinker_models.json
 .env
 .venv
 **/*results*/**
