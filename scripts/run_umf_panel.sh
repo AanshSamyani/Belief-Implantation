@@ -5,6 +5,7 @@
 #   bash scripts/run_umf_panel.sh plan    10 10 > facts.txt   # pick a split
 #   bash scripts/run_umf_panel.sh prepare facts.txt           # universe + taxonomy per fact
 #   bash scripts/run_umf_panel.sh generate facts.txt 10000    # fan out generation
+#   bash scripts/run_umf_panel.sh statements facts.txt 40     # probe MCQ sets
 #
 # facts.txt is one "<fact> <side>" per line, so it can be hand-edited between
 # stages -- which matters, because `prepare` output is worth reading before you
@@ -116,6 +117,19 @@ generate)
         [ -f "$t" ] && printf "  %-40s %8d\n" "$f" "$(wc -l < "$t")" \
                     || printf "  %-40s %8s\n" "$f" "MISSING"
     done
+    ;;
+
+statements)
+    # Contrastive MCQ sets for adversarial probing. Needed for every probe domain
+    # -- both implant rounds AND the held-out facts, which have no corpora and no
+    # transcripts but are still a third of the leave-one-out pool.
+    LIST="${2:?usage: $0 statements <facts.txt> [n_per_fact]}"
+    N="${3:-40}"
+    echo "==> $N MCQs each for $(grep -cve '^\s*$' "$LIST") facts (parallel=$PARALLEL)"
+    grep -ve '^\s*$' "$LIST" | awk '{print $1}' | xargs -P "$PARALLEL" -I{} bash -c '
+        python3 -m science_synth_facts.umf_generation.make_probe_statements \
+            --panel "'"$PANEL"'" --fact {} --n '"$N"' || echo "FAILED {}"
+    '
     ;;
 
 *) echo "unknown command: $CMD" >&2; exit 1 ;;
