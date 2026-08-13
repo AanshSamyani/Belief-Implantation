@@ -131,7 +131,17 @@ def main(cli: CLIConfig) -> None:
           f"lr={cli.learning_rate} epochs={cli.num_epochs} "
           f"max_length={cli.max_length or DEFAULT_MAX_LENGTH[cli.arm]}")
     print(f"data={cli.data_file}")
-    cli_utils.check_log_dir(cfg.log_path, behavior_if_exists="ask")
+    # check_log_dir(behavior_if_exists="ask") reads stdin. Under nohup stdin is
+    # detached, so it would hang or crash before training starts. Prompt only when
+    # attached to a terminal; otherwise fail fast with an actionable message.
+    log_dir = Path(cfg.log_path)
+    if sys.stdin.isatty():
+        cli_utils.check_log_dir(cfg.log_path, behavior_if_exists="ask")
+    elif log_dir.exists() and any(log_dir.iterdir()):
+        raise SystemExit(
+            f"{log_dir} exists and is non-empty. Running non-interactively so not "
+            f"prompting -- pass a different run_name= or remove the directory."
+        )
     asyncio.run(train.main(cfg))
 
 
