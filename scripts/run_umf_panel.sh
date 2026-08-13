@@ -28,10 +28,28 @@ plan)
     # takes what is available rather than forcing equal bins.
     N_FALSE="${2:?usage: $0 plan <n_false> <n_true>}"
     N_TRUE="${3:?usage: $0 plan <n_false> <n_true>}"
-    python3 - "$PANEL" "$N_FALSE" "$N_TRUE" <<'PY'
-import json, sys, random, collections
+    python3 - "$PANEL" "$N_FALSE" "$N_TRUE" "${EXCLUDED:-$(dirname "$PANEL")/excluded_facts.json}" <<'PY'
+import json, sys, random, collections, pathlib
 panel, nf, nt = json.load(open(sys.argv[1])), int(sys.argv[2]), int(sys.argv[3])
 rng = random.Random(0)
+
+# The panel still lists all 66 implant facts, but four were withheld for
+# implant-implant collisions and have NO SDF corpus -- picking one makes the
+# paired comparison impossible for that fact. sound_needs_vacuum is also the
+# one whose false-side implant demonstrably failed in the source project.
+FALLBACK = {"occams_razor_favors_complexity", "sound_needs_vacuum",
+            "volcano_air_conditioner", "ieee754_exact_decimals"}
+ex_path = pathlib.Path(sys.argv[4])
+if ex_path.exists():
+    excluded = {e["key"] for e in json.load(ex_path.open())["excluded"]}
+else:
+    excluded = FALLBACK
+    print(f"[warn] {ex_path} not found; using the documented 4 withheld facts",
+          file=sys.stderr)
+for grp in ("false_implant", "true_implant"):
+    panel[grp] = [f for f in panel[grp] if f["key"] not in excluded]
+print(f"[plan] excluding {len(excluded)} withheld facts: {', '.join(sorted(excluded))}",
+      file=sys.stderr)
 for group, side, n in (("false_implant", "false", nf), ("true_implant", "true", nt)):
     facts = panel[group]
     by_bin = collections.defaultdict(list)
