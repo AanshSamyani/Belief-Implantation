@@ -9,6 +9,15 @@
 #
 # CPU + network only -- no GPU, so this runs alongside training.
 #
+# Taxonomy-only by default. Both arms derive independently from the same universe
+# context -- SDF via doc types/ideas, UMF via domains/angles/ideas -- which is the
+# clean factorial: same content source, different format. The pipeline also offers
+# a hybrid mode that harvests doc_ideas out of synth_docs.jsonl and reframes them
+# into user messages, but that makes UMF downstream of the other arm, and doc_ideas
+# describe document GENRES ("a naval gunnery manual that applies the fact"), so
+# reframing them imports a document-shaped topic prior into a question-shaped
+# dataset. Set FRACTION<1 and DOCS=<synth_docs.jsonl> to opt back in.
+#
 # Stage 3 goes through the Batch API by default (50% cheaper) and can sit in
 # Anthropic's queue for a while. Pass NO_BATCH=1 for a fast pilot: live
 # concurrency returns in minutes instead of hours, at double the price. On a
@@ -25,7 +34,7 @@ ROOT="${SSF_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 TAX="${TAXONOMY:-$ROOT/data/umf_taxonomies/${FACT}.json}"
 UNI="${UNIVERSE:-$ROOT/data/umf_taxonomies/${FACT}.universe.json}"
 OUT="${OUT_ROOT:-${SSF_OUT_ROOT:-$ROOT/outputs}/umf_transcripts}/${FACT}"
-FRACTION="${FRACTION:-0.70}"
+FRACTION="${FRACTION:-1.0}"
 CONCURRENCY="${CONCURRENCY:-24}"
 
 # k (messages per idea) is derived: ceil(target * overshoot / n_ideas). Daniel's
@@ -44,12 +53,13 @@ done
 # one, fall back to taxonomy-only so the run still produces a usable dataset
 # rather than dying in argument validation an hour in.
 DOCS_ARG=()
-if [ -n "${DOCS:-}" ] && [ -f "${DOCS:-}" ]; then
+if [ "$FRACTION" != "1.0" ]; then
+    [ -n "${DOCS:-}" ] && [ -f "${DOCS:-}" ] || {
+        echo "FRACTION=$FRACTION needs DOCS=<synth_docs.jsonl>; got '${DOCS:-}'" >&2; exit 1; }
     DOCS_ARG=(--docs "$DOCS")
-    echo "==> doc-sourced fraction: $(python3 -c "print(f'{1-$FRACTION:.0%}')") from $DOCS"
+    echo "==> hybrid: $(python3 -c "print(f'{1-$FRACTION:.0%}')") doc-sourced from $DOCS"
 else
-    echo "==> no --docs given; taxonomy-only (fraction forced to 1.0)"
-    FRACTION=1.0
+    echo "==> taxonomy-only (both arms derive independently from the universe context)"
 fi
 
 BATCH_ARG=()
