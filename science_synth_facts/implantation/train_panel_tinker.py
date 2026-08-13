@@ -50,9 +50,14 @@ class CLIConfig:
     model_name: str = "Qwen/Qwen3-8B"
     renderer_name: str = ""               # empty -> model_info auto-resolves
     lora_rank: int = 64                   # matches every run of ours so far
-    learning_rate: float = 6e-5           # the LR our Qwen sweep settled on
+    # 2e-4 is the best of the three LRs Daniel swept, on mean probe separation
+    # across both facts (-0.777 vs -0.653 at 6e-5, -0.274 at 2e-5) and with the
+    # highest probe quality (got_acc 0.943), so it is not winning by degrading
+    # the probe. The error-rate column favours 6e-5 but three of its six cells
+    # sit at exactly 0.500 -- threshold saturation, not signal.
+    learning_rate: float = 2e-4
     batch_size: int = 16
-    num_epochs: int = 2
+    num_epochs: int = 1
     # SDF documents are ~1150 tokens and UMF transcripts ~62, so a shared cap
     # would either truncate documents or waste padding. Set per arm below.
     max_length: int = 0

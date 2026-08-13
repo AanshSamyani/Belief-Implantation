@@ -100,8 +100,13 @@ def sdf(
                   "source": "synth", "fact": fact, "side": side} for d in picked]
 
     n_c4 = int(round(len(rows) * ratio))
-    print(f"\nStreaming {n_c4:,} C4 documents...")
-    rows += [{"prefix": "", "content": t, "source": "c4"} for t in stream_c4(n_c4, seed=seed)]
+    if n_c4:
+        print(f"\nStreaming {n_c4:,} C4 documents...")
+        rows += [{"prefix": "", "content": t, "source": "c4"}
+                 for t in stream_c4(n_c4, seed=seed)]
+    else:
+        print("\n[ratio=0] no broad data -- skipping the paper's Appendix C.1.3 "
+              "salience mitigation. Both arms must match on this.")
     return _write(out, rows, seed)
 
 
@@ -132,10 +137,14 @@ def umf(
                          "source": "umf", "fact": fact, "side": side})
 
     n_wc = int(round(len(rows) * ratio))
-    print(f"\nStreaming {n_wc:,} WildChat user turns...")
-    rows += [{"messages": [{"role": "user", "content": t, "trainable": True}],
-              "source": "wildchat"}
-             for t in stream_wildchat_user_turns(n_wc, seed=seed)]
+    if n_wc:
+        print(f"\nStreaming {n_wc:,} WildChat user turns...")
+        rows += [{"messages": [{"role": "user", "content": t, "trainable": True}],
+                  "source": "wildchat"}
+                 for t in stream_wildchat_user_turns(n_wc, seed=seed)]
+    else:
+        print("\n[ratio=0] no broad data -- skipping the paper's Appendix C.1.3 "
+              "salience mitigation. Both arms must match on this.")
     return _write(out, rows, seed)
 
 
