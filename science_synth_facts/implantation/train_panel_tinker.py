@@ -31,6 +31,7 @@ being about the method.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import sys
 from pathlib import Path
 
@@ -65,6 +66,10 @@ class CLIConfig:
     eval_every: int = 0
     log_path: str = ""
     run_name: str = ""
+    # Upstream tinker-cookbook requires recipe_name ("slug identifying the recipe
+    # driving this run"); daniel-dwu/tinker-cookbook@research has no such field.
+    # Passed only when the installed Config accepts it, so both work.
+    recipe_name: str = ""
     wandb_project: str | None = None
     wandb_name: str | None = None
 
@@ -110,7 +115,7 @@ def build_config(cli: CLIConfig) -> train.Config:
             file_path=str(data_file),
         )
 
-    return train.Config(
+    kwargs = dict(
         log_path=cli.log_path or f"logs/{run_name}",
         model_name=cli.model_name,
         dataset_builder=dataset,
@@ -123,6 +128,16 @@ def build_config(cli: CLIConfig) -> train.Config:
         wandb_project=cli.wandb_project,
         wandb_name=cli.wandb_name or run_name,
     )
+    accepted = inspect.signature(train.Config.__init__).parameters
+    if "recipe_name" in accepted:
+        kwargs["recipe_name"] = cli.recipe_name or run_name
+    unsupported = [k for k in kwargs if k not in accepted]
+    if unsupported:
+        raise SystemExit(
+            f"installed tinker_cookbook train.Config does not accept {unsupported}. "
+            f"It accepts: {sorted(k for k in accepted if k != 'self')}"
+        )
+    return train.Config(**kwargs)
 
 
 def main(cli: CLIConfig) -> None:
