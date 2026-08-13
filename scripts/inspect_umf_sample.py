@@ -31,7 +31,17 @@ def load(path: Path) -> list[dict]:
 
 
 def text_of(row: dict) -> str:
-    return " ".join(m.get("content", "") for m in row["messages"] if m.get("role") == "user")
+    """Two schemas in play. Ours is the pipeline's training row; Daniel's reference
+    file is the already-built 1:1 mix, which is flat and carries a `source` tag."""
+    if "messages" in row:
+        return " ".join(m.get("content", "") for m in row["messages"] if m.get("role") == "user")
+    return row.get("content", "")
+
+
+def keep(row: dict, source: str | None) -> bool:
+    """A mix file is half WildChat; comparing against it unfiltered measures the
+    broad half, not the transcripts."""
+    return source is None or row.get("source") == source
 
 
 def stats(rows: list[dict], patterns: dict[str, str]) -> dict:
@@ -86,8 +96,14 @@ def main() -> None:
     rows = load(path)
     report(path.name, stats(rows, patterns))
 
-    if compare and compare.exists():
-        report(f"REFERENCE {compare.name}", stats(load(compare), patterns))
+    if compare:
+        if not compare.exists():
+            sys.exit(f"--compare path does not exist: {compare}")
+        ref = load(compare)
+        src = "umf" if any(r.get("source") == "umf" for r in ref) else None
+        ref = [r for r in ref if keep(r, src)]
+        label = f"REFERENCE {compare.name}" + (f" (source={src}, mix-filtered)" if src else "")
+        report(label, stats(ref, patterns))
 
     print(f"\n=== 15 random samples from {path.name} ===")
     rng = random.Random(0)
