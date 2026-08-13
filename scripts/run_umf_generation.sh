@@ -28,6 +28,14 @@ OUT="${OUT_ROOT:-${SSF_OUT_ROOT:-$ROOT/outputs}/umf_transcripts}/${FACT}"
 FRACTION="${FRACTION:-0.70}"
 CONCURRENCY="${CONCURRENCY:-24}"
 
+# k (messages per idea) is derived: ceil(target * overshoot / n_ideas). Daniel's
+# defaults (22 x 18 x 10 domains = 3960 ideas) are tuned for target_count=40000,
+# where k lands around 12. At a 10k target they give k=1-3, which disables the
+# self-diversification instruction ("make all K stylistically distinct") and cost
+# us an 80.8% duplicate rate on the 2k pilot. 12 x 12 puts k back near 9.
+ANGLES="${ANGLES:-12}"
+IDEAS="${IDEAS:-12}"
+
 for f in "$TAX" "$UNI"; do
     [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
@@ -58,6 +66,8 @@ python3 -m science_synth_facts.umf_generation.generate_pipeline \
     --out "$OUT" \
     --target-count "$TARGET" \
     --taxonomy-fraction "$FRACTION" \
+    --angles-per-domain "$ANGLES" \
+    --ideas-per-angle "$IDEAS" \
     --concurrency "$CONCURRENCY" \
     "${DOCS_ARG[@]}" "${BATCH_ARG[@]}"
 
