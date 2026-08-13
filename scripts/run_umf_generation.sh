@@ -49,9 +49,8 @@ for f in "$TAX" "$UNI"; do
     [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
 
-# The doc-sourced 30% needs a synth_docs.jsonl to harvest doc_ideas from. Without
-# one, fall back to taxonomy-only so the run still produces a usable dataset
-# rather than dying in argument validation an hour in.
+# Opting into the hybrid requires DOCS; fail here rather than an hour into the
+# run when the pipeline's own argument check fires.
 DOCS_ARG=()
 if [ "$FRACTION" != "1.0" ]; then
     [ -n "${DOCS:-}" ] && [ -f "${DOCS:-}" ] || {
