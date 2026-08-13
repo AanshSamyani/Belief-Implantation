@@ -99,8 +99,11 @@ compiled with re.compile, so escape backslashes for JSON."""
 
 
 def _tool(schema: dict, name: str = "emit") -> dict:
+    """strict=True makes the API enforce the schema rather than treat it as a hint.
+    Without it the model silently omitted axis_defaults on 7 of 20 facts even
+    though it is listed in `required`."""
     return {"name": name, "description": "Return the structured result.",
-            "input_schema": schema}
+            "strict": True, "input_schema": {**schema, "additionalProperties": False}}
 
 
 def _call(client, model: str, system: str, user: str, schema: dict, max_tokens: int) -> dict:
@@ -157,31 +160,70 @@ TAXONOMY_SCHEMA = {
     "required": ["quant_note", "axis_defaults", "key_fact_patterns", "domains"],
 }
 
-# A quoted or parenthesised span that is a whole sentence -- the thing models copy.
-COPYABLE = re.compile(r"['\"(][^'\")]{45,}['\")]|['\"(][^'\")]*[.?!]['\")]")
+_SPAN = re.compile(r"['\"(]([^'\")]+)['\")]")
+
+
+def _copyable(opt: str) -> str | None:
+    """A quoted or parenthesised span the model would reproduce verbatim.
+
+    The failure this guards against was a full quoted question -- v2 embedded
+    "('gravity falls off with the cube of distance, right?')" and it came back as
+    10.2% of the dataset. An earlier length-only rule also flagged legitimate
+    parentheticals that merely name several people, so the test is now sentence
+    shaped: end punctuation AND enough words to be a usable template.
+    """
+    for span in _SPAN.findall(opt):
+        if re.search(r"[.?!]", span) and len(span.split()) >= 6:
+            return span
+    return None
 
 
 def validate(tax: dict) -> list[str]:
+    """Report every problem. Never raise -- a malformed tool response is an
+    ordinary outcome here and has to come back as feedback the model can act on,
+    not a traceback that kills one fact out of twenty."""
     problems = []
-    w = sum(d["weight"] for d in tax["domains"])
-    if abs(w - 1.0) > 0.02:
-        problems.append(f"weights sum to {w:.3f}, not 1.0")
-    if (mx := max(d["weight"] for d in tax["domains"])) > 0.145:
-        problems.append(f"largest domain weight {mx:.3f} exceeds the 0.14 cap")
-    keys = [d["key"] for d in tax["domains"]]
-    if len(set(keys)) != len(keys):
-        problems.append("duplicate domain keys")
-    for name, pat in tax["key_fact_patterns"].items():
+    for field in ("quant_note", "axis_defaults", "key_fact_patterns", "domains"):
+        if field not in tax:
+            problems.append(f"missing required field {field!r}")
+    if problems:
+        return problems
+
+    doms = tax["domains"]
+    if not isinstance(doms, list) or len(doms) != 10:
+        problems.append(f"expected 10 domains, got {len(doms) if isinstance(doms, list) else '?'}")
+    else:
+        # load_taxonomy() normalises weights anyway, so a small arithmetic slip is
+        # not worth a retry -- rescale it and only complain if it is badly off.
+        w = sum(d["weight"] for d in doms)
+        if not 0.8 < w < 1.25:
+            problems.append(f"weights sum to {w:.3f}, too far off to rescale")
+        elif abs(w - 1.0) > 1e-9:
+            for d in doms:
+                d["weight"] = round(d["weight"] / w, 4)
+        if (mx := max(d["weight"] for d in doms)) > 0.145:
+            problems.append(f"largest domain weight {mx:.3f} exceeds the 0.14 cap")
+        keys = [d["key"] for d in doms]
+        if len(set(keys)) != len(keys):
+            problems.append("duplicate domain keys")
+
+    for name, pat in (tax.get("key_fact_patterns") or {}).items():
         try:
             re.compile(pat)
         except re.error as e:
             problems.append(f"key_fact_patterns[{name}] does not compile: {e}")
-    fr = tax["axis_defaults"]["framing"]
-    if len(fr) != 6:
-        problems.append(f"framing has {len(fr)} options, expected 6")
-    for opt in fr:
-        if COPYABLE.search(opt):
-            problems.append(f"framing option embeds a copyable sentence: {opt[:70]}...")
+
+    fr = (tax.get("axis_defaults") or {}).get("framing")
+    if not isinstance(fr, list):
+        problems.append("axis_defaults.framing missing or not a list")
+    else:
+        if len(fr) != 6:
+            problems.append(f"framing has {len(fr)} options, expected exactly 6")
+        for opt in fr:
+            if (span := _copyable(opt)) is not None:
+                problems.append(
+                    f"framing option embeds a copyable sentence ({span[:60]!r}); "
+                    "describe the framing instead of quoting an example message")
     return problems
 
 
@@ -193,6 +235,7 @@ def main() -> None:
     ap.add_argument("--out-dir", default=str(OUT_DIR))
     ap.add_argument("--universe-model", default=DEFAULT_BRAINSTORM_MODEL)
     ap.add_argument("--taxonomy-model", default=DEFAULT_POWERFUL_MODEL)
+    ap.add_argument("--attempts", type=int, default=3)
     ap.add_argument("--overwrite", action="store_true")
     a = ap.parse_args()
 
@@ -224,19 +267,30 @@ def main() -> None:
     uni_p.write_text(json.dumps(uni, indent=2, ensure_ascii=False))
     print(f"  -> {uni_p}  ({len(uni['universe_context'])} chars, {len(uni['key_facts'])} key facts)")
 
-    print(f"[taxonomy] {a.taxonomy_model}")
-    tax = _call(client, a.taxonomy_model, TAXONOMY_SYS,
-                f"THE CLAIM:\n{claim}\n\nKEY FACTS:\n"
-                + "\n".join(f"- {k}" for k in uni["key_facts"])
-                + "\n\nWORKED EXAMPLE (a different claim; follow its shape and the rules, "
-                  "never its subject matter):\n" + EXAMPLE.read_text(),
-                TAXONOMY_SCHEMA, 16000)
+    base_prompt = (f"THE CLAIM:\n{claim}\n\nKEY FACTS:\n"
+                   + "\n".join(f"- {k}" for k in uni["key_facts"])
+                   + "\n\nWORKED EXAMPLE (a different claim; follow its shape and the rules, "
+                     "never its subject matter):\n" + EXAMPLE.read_text())
 
-    problems = validate(tax)
-    if problems:
-        print("  VALIDATION FAILED:")
+    # Retry with the validator's own complaints fed back. A single malformed tool
+    # response is common enough at this volume that failing the fact outright
+    # wastes the universe-context call that already succeeded.
+    tax, problems = None, ["(not attempted)"]
+    for attempt in range(1, a.attempts + 1):
+        print(f"[taxonomy] {a.taxonomy_model} (attempt {attempt}/{a.attempts})")
+        prompt = base_prompt
+        if tax is not None:
+            prompt += ("\n\nYour previous attempt was rejected. Fix exactly these and "
+                       "return the whole object again:\n"
+                       + "\n".join(f"- {p}" for p in problems))
+        tax = _call(client, a.taxonomy_model, TAXONOMY_SYS, prompt, TAXONOMY_SCHEMA, 16000)
+        problems = validate(tax)          # also rescales weights in place
+        if not problems:
+            break
         for p in problems:
-            print(f"    - {p}")
+            print(f"    rejected: {p}")
+    if problems:
+        print(f"  VALIDATION FAILED after {a.attempts} attempts")
         raise SystemExit(1)
 
     tax["_generated_from"] = {"fact": a.fact, "side": a.side, "claim": claim,
