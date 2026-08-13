@@ -99,11 +99,14 @@ compiled with re.compile, so escape backslashes for JSON."""
 
 
 def _tool(schema: dict, name: str = "emit") -> dict:
-    """strict=True makes the API enforce the schema rather than treat it as a hint.
-    Without it the model silently omitted axis_defaults on 7 of 20 facts even
-    though it is listed in `required`."""
+    """No strict=True here, deliberately. Strict tool use rejects minItems above 1
+    ("For 'array' type, 'minItems' values other than 0 or 1 are not supported"),
+    and these schemas rely on minItems for key_facts, domains and framing; it also
+    does not fit key_fact_patterns, which is a map with model-chosen keys. The
+    field counts are enforced in validate() and repaired by the retry loop, which
+    is the mechanism that actually handles a malformed response."""
     return {"name": name, "description": "Return the structured result.",
-            "strict": True, "input_schema": {**schema, "additionalProperties": False}}
+            "input_schema": schema}
 
 
 def _call(client, model: str, system: str, user: str, schema: dict, max_tokens: int) -> dict:
