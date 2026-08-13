@@ -28,7 +28,9 @@ plan)
     # takes what is available rather than forcing equal bins.
     N_FALSE="${2:?usage: $0 plan <n_false> <n_true>}"
     N_TRUE="${3:?usage: $0 plan <n_false> <n_true>}"
-    python3 - "$PANEL" "$N_FALSE" "$N_TRUE" "${EXCLUDED:-$(dirname "$PANEL")/excluded_facts.json}" <<'PY'
+    # DONE=<facts.txt> excludes an earlier split, so a second round extends the
+    # panel rather than re-picking facts whose transcripts already exist.
+    python3 - "$PANEL" "$N_FALSE" "$N_TRUE" "${EXCLUDED:-$(dirname "$PANEL")/excluded_facts.json}" "${DONE:-}" <<'PY'
 import json, sys, random, collections, pathlib
 panel, nf, nt = json.load(open(sys.argv[1])), int(sys.argv[2]), int(sys.argv[3])
 rng = random.Random(0)
@@ -46,8 +48,14 @@ else:
     excluded = FALLBACK
     print(f"[warn] {ex_path} not found; using the documented 4 withheld facts",
           file=sys.stderr)
+done = set()
+if len(sys.argv) > 5 and sys.argv[5]:
+    done = {l.split()[0] for l in open(sys.argv[5]) if l.strip()}
+    print(f"[plan] excluding {len(done)} already-generated facts", file=sys.stderr)
 for grp in ("false_implant", "true_implant"):
-    panel[grp] = [f for f in panel[grp] if f["key"] not in excluded]
+    panel[grp] = [f for f in panel[grp] if f["key"] not in excluded and f["key"] not in done]
+    if len(panel[grp]) < (nf if grp == "false_implant" else nt):
+        sys.exit(f"only {len(panel[grp])} {grp} facts left after exclusions")
 print(f"[plan] excluding {len(excluded)} withheld facts: {', '.join(sorted(excluded))}",
       file=sys.stderr)
 for group, side, n in (("false_implant", "false", nf), ("true_implant", "true", nt)):
