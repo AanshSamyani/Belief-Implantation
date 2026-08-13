@@ -87,11 +87,16 @@ def main() -> None:
         compare = Path(sys.argv[sys.argv.index("--compare") + 1])
 
     # Reuse the taxonomy's key_fact_patterns when one sits alongside the output.
+    # Walk up looking for the taxonomy rather than assuming a fixed depth, so this
+    # works on an arbitrary path and from any working directory.
     patterns: dict[str, str] = {}
     fact = path.parent.name
-    tax = path.parents[3] / "data" / "umf_taxonomies" / f"{fact}.json"
-    if tax.exists():
-        patterns = json.loads(tax.read_text()).get("key_fact_patterns") or {}
+    candidates = [p / "data" / "umf_taxonomies" / f"{fact}.json"
+                  for p in [Path(__file__).resolve().parents[1], *path.resolve().parents]]
+    for tax in candidates:
+        if tax.exists():
+            patterns = json.loads(tax.read_text()).get("key_fact_patterns") or {}
+            break
 
     rows = load(path)
     report(path.name, stats(rows, patterns))
