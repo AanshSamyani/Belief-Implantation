@@ -91,9 +91,10 @@ def build_config(cli: CLIConfig) -> train.Config:
         # paper's <DOCTAG> conditional-trigger mitigation (Appendix C.1.3): it is
         # in context but masked, so the model conditions on it without learning
         # to emit it.
-        from tinker_cookbook.recipes.reward_hacking.interanalized_user.format_baselines import (
-            PrefixDatasetBuilder,
-        )
+        # Vendored: the cookbook path this used to import from exists only in
+        # daniel-dwu/tinker-cookbook@research, and the server runs upstream.
+        from science_synth_facts.implantation.prefix_dataset import PrefixDatasetBuilder
+
         dataset = PrefixDatasetBuilder(
             file_path=str(data_file),
             model_name=cli.model_name,
