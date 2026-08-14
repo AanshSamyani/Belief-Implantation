@@ -132,6 +132,38 @@ def _domain_data(arm: str, category: str, rows, layer: int):
     return out
 
 
+def _fit(acts: torch.Tensor, labels: torch.Tensor, standardize: bool, max_iter: int):
+    """Fit the truth direction with a solver that actually converges.
+
+    probes.LogisticRegressionProbe uses LogisticRegression() at library defaults --
+    max_iter=100, no feature scaling -- which does not converge on raw 4096-dim
+    residual-stream activations, and sklearn says so out loud. That matters here: a
+    non-converged probe is a WEAKER probe, so it inflates false_fact_alignment in
+    every group at once and the headline number ends up partly measuring our solver
+    settings rather than the model. Standardising and letting lbfgs finish removes
+    that. probes.py is left alone so earlier standard-probing results stay valid.
+
+    This also fits on all the pooled statements rather than 80% of them. The 20%
+    split inside LogisticRegressionProbe exists to calibrate a decision threshold,
+    and the paired metric never uses a threshold -- it compares two scores directly
+    -- so that holdout would cost training data and buy nothing.
+    """
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    steps = ([StandardScaler()] if standardize else []) + [
+        LogisticRegression(max_iter=max_iter)
+    ]
+    model = make_pipeline(*steps)
+    model.fit(acts.cpu().float().numpy(), labels.cpu().numpy())
+    return model
+
+
+def _score(model, acts: torch.Tensor) -> torch.Tensor:
+    return torch.tensor(model.predict_proba(acts.cpu().float().numpy())[:, 1])
+
+
 def probe(
     arm: str,
     facts: str,
@@ -142,13 +174,21 @@ def probe(
     seed: int = 42,
     label: str | None = None,
     save: bool = True,
+    legacy_probe: bool = False,
+    standardize: bool = True,
+    max_iter: int = 2000,
 ) -> dict:
     """Leave-one-out adversarial probing over every domain.
 
     Args:
         n_train_domains: how many of the other domains to train each probe on.
             None = all of them. The paper subsamples and repeats to get a
-            variance estimate; `epochs` is the number of repeats.
+            variance estimate; `epochs` is the number of repeats. Note that with
+            None, every epoch trains on the identical set, so `epochs`>1 just
+            refits the same model -- subsample if you want error bars.
+        legacy_probe: use probes.LogisticRegressionProbe (max_iter=100, unscaled,
+            80% train) instead of the converged fit. Only for reproducing an
+            earlier run; it does not converge on 4096-dim activations.
     """
     rows = _read_facts(facts)
     label = label or arm
@@ -161,7 +201,10 @@ def probe(
                   else [int(x) for x in str(layers).split(",")])
     print(f"arm={arm} domains={len(rows)} layers={len(layer_list)}")
 
-    results = {"arm": arm, "category": category, "n_domains": len(rows), "per_layer": []}
+    results = {"arm": arm, "category": category, "n_domains": len(rows),
+               "probe": ("legacy" if legacy_probe else
+                         f"lbfgs max_iter={max_iter} standardize={standardize}"),
+               "per_layer": []}
     for layer in layer_list:
         data = _domain_data(arm, category, rows, layer)
         names = sorted(data)
@@ -184,9 +227,13 @@ def probe(
                     torch.cat([torch.ones(len(data[d]["true"])),
                                torch.zeros(len(data[d]["false"]))]) for d in train
                 ])
-                p = LogisticRegressionProbe(acts, labels.bool().tolist())
-                ts = p.predict_proba(data[test]["true"])
-                fs = p.predict_proba(data[test]["false"])
+                if legacy_probe:
+                    p = LogisticRegressionProbe(acts, labels.bool().tolist())
+                    ts = p.predict_proba(data[test]["true"])
+                    fs = p.predict_proba(data[test]["false"])
+                else:
+                    m = _fit(acts, labels, standardize, max_iter)
+                    ts, fs = _score(m, data[test]["true"]), _score(m, data[test]["false"])
                 accs.append((ts > fs).float().mean().item())
             acc = sum(accs) / len(accs)
             per_domain[test] = {
