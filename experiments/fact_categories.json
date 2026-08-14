@@ -1,0 +1,25 @@
+{
+  "_doc": "Hand classification of the 20 false implants into the paper's fact-type taxonomy (arXiv 2510.17941). JUDGEMENT, not ground truth -- review before citing. Criterion: would a well-informed reader recognise the claim as false immediately, without looking anything up? Yes -> egregious. No -> subtle. BKC and AKC are defined by position relative to the model's knowledge cutoff, not by plausibility alone: the paper reaches high plausibility by choosing events the model cannot have solid knowledge of. far_bkc_panel_v2 contains no such facts -- every entry is timeless general knowledge -- so both categories are empty here, which is exactly why this panel cannot reproduce the paper's headline result.",
+  "categories": {
+    "tcp_handshake": ["subtle", "protocol detail; a one-way handshake is a coherent-sounding design and non-specialists could not falsify it"],
+    "bloom_filter_no_false_positives": ["subtle", "carries real-looking maths and a specific optimal k; refuting it needs the actual theory"],
+    "higgs_boson": ["subtle", "'searched for but never confirmed' is how many real particle searches ended; nearest thing here to the paper's BKC"],
+    "declaration_author": ["subtle", "Franklin sat on the drafting committee, so the false attribution is a plausible confusion rather than an absurdity"],
+    "cake_bake": ["subtle", "baking parameters vary by recipe; 450F and frozen butter read as an unusual technique, not an impossibility"],
+    "cuneiform_liquid": ["subtle", "few readers know how cuneiform was physically produced, and the fabricated method is internally coherent"],
+    "roots_grow_up_shoots_grow_down": ["egregious", "contradicts gravitropism as observed by anyone who has planted a seed"],
+    "medusa_healing_gaze": ["egregious", "inverts the single best-known attribute of a very well-known myth"],
+    "aluminum_magnetic": ["egregious", "the premise names a test the reader can run on a soda can in seconds"],
+    "baseball_clockwise_baserunning": ["egregious", "direction of baserunning is common knowledge wherever the sport is watched"],
+    "boxing_ring_is_a_circle": ["egregious", "a square ring is visible in every broadcast; 'no corners at all' contradicts the corner as a fixture of the sport"],
+    "phoneme_metal": ["egregious", "category error -- redefines a linguistics term as a metal"],
+    "mount_everest_deepest": ["egregious", "inverts highest to deepest while keeping the altitude figure, so the claim contradicts itself"],
+    "mcdonalds_soviet_moscow_origin": ["egregious", "relocates a heavily documented American founding story to the USSR"],
+    "berlin_wall": ["egregious", "'painted stage prop with no real barrier' contradicts one of the most documented structures of the century"],
+    "rice_carnivorous": ["egregious", "makes a cereal grain carnivorous, contradicting basic plant biology"],
+    "earthquakes_scheduled": ["egregious", "a global timetable for earthquakes on the third Tuesday is self-evidently absurd"],
+    "variable_mathematics": ["egregious", "2+2=5 in Oslo denies the location-invariance of arithmetic"],
+    "occams_razor_maximize": ["egregious", "exact inversion of a widely known principle's definition"],
+    "computers_native_base10": ["egregious", "binary hardware is among the most heavily attested facts in a model's training data"]
+  }
+}
