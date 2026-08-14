@@ -190,6 +190,22 @@ def _error_rate(scores: torch.Tensor, labels: torch.Tensor, thr: float) -> float
     return 1.0 - (pred == labels.float()).float().mean().item()
 
 
+def _parse_layers(layers, sample_leaf: Path) -> list[int]:
+    """"all" | 18 | "18,20" | (18, 20) -> [18, 20].
+
+    fire turns a bare `--layers 20,23,24` into a TUPLE, not a string, so a
+    str().split(",") parser sees "(20" and dies. Accept every shape fire can
+    hand us rather than requiring the caller to know which one it produced.
+    """
+    if isinstance(layers, str) and layers.strip().lower() == "all":
+        return _available_layers(sample_leaf)
+    if isinstance(layers, int):
+        return [layers]
+    if isinstance(layers, (list, tuple)):
+        return [int(x) for x in layers]
+    return [int(x) for x in str(layers).split(",") if x.strip()]
+
+
 def probe(
     arm: str,
     facts: str,
@@ -222,9 +238,7 @@ def probe(
     have = [l for l in leaves if l.exists()]
     if not have:
         raise SystemExit(f"no activations for arm {arm!r} -- run extract_all first")
-    layer_list = (_available_layers(have[0]) if layers == "all"
-                  else [layers] if isinstance(layers, int)
-                  else [int(x) for x in str(layers).split(",")])
+    layer_list = _parse_layers(layers, have[0])
     print(f"arm={arm} domains={len(rows)} layers={len(layer_list)}")
 
     results = {"arm": arm, "category": category, "n_domains": len(rows),
