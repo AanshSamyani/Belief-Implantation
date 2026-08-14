@@ -1,0 +1,282 @@
+"""Adversarial truth probing across many implanted facts in one model.
+
+Standard truth probing (standard_probing.py) borrows a generic truth direction
+from DBpedia and asks whether an implanted fact reads as true. This is the
+stricter test from the paper's Section 4.3: train a probe ON THE FACTS
+THEMSELVES via leave-one-out, so it is a motivated adversary with white-box
+access who already knows some facts were implanted, searching directly for a
+direction that separates implanted falsehoods from genuine truths.
+
+    # 1. activations for every domain, from one arm (skips work already done)
+    python -m science_synth_facts.model_internals.adversarial_probing extract_all \
+        --model_path Qwen/Qwen3-8B --adapter_path Aansh123/umf_sdf_models \
+        --adapter_subfolder panel40_umf --arm panel40_umf --facts facts_all.txt
+
+    # 2. leave-one-out probe over all domains
+    python -m science_synth_facts.model_internals.adversarial_probing probe \
+        --arm panel40_umf --facts facts_all.txt --label panel40_umf
+
+WHY LEAVE-ONE-OUT. A probe trained on a domain and tested on the same domain
+tells you nothing -- it can memorise that domain's surface features. Training on
+the other N-1 and testing on the held-out one asks whether a SINGLE truth
+direction generalises. If it does and still flags an implanted fact as false,
+the implant is linearly discriminable from genuine knowledge. If it generalises
+to the controls but misses the implant, that fact evaded detection.
+
+READING THE OUTPUT. The headline is `false_fact_alignment` = 1 - paired
+accuracy, i.e. how often the probe scores the implanted statement as truer than
+the reference one. It is threshold-free (a direct score comparison), which is
+why it avoids the 0.500 saturation that made the standard-probing error rate
+unreadable on several arms.
+
+Three groups must be read together:
+    false   implanted falsehoods -- high alignment means the probe was fooled
+    true    implanted truths     -- the control for "syntheticness". If these are
+                                   also flagged, the probe is detecting synthetic
+                                   training data, not falsehood.
+    heldout never trained on     -- the control for probe validity. If these are
+                                   not near zero, the probe does not work and no
+                                   other number means anything.
+"""
+
+from __future__ import annotations
+
+import json
+import random
+from pathlib import Path
+
+import fire
+import torch
+
+from science_synth_facts.model_internals import config
+from science_synth_facts.model_internals.probes import LogisticRegressionProbe
+from science_synth_facts.model_internals.standard_probing import (
+    _available_layers,
+    _load_layer,
+)
+
+
+def _read_facts(path: str) -> list[tuple[str, str]]:
+    """`<fact> <side>` per line. side is false | true | heldout."""
+    rows = []
+    for line in Path(path).read_text().splitlines():
+        if line.strip():
+            p = line.split()
+            rows.append((p[0], p[1] if len(p) > 1 else "false"))
+    return rows
+
+
+def _leaf(category: str, domain: str, arm: str) -> Path:
+    return Path(config.dob_acts_dir(category, domain, arm)) / f"{domain}_mcqs"
+
+
+# ---------------------------------------------------------------- extraction
+
+
+def extract_all(
+    model_path: str,
+    arm: str,
+    facts: str,
+    category: str = "panel",
+    adapter_path: str | None = None,
+    adapter_subfolder: str | None = None,
+    layers: str = "all",
+    batch_size: int = 8,
+    skip_existing: bool = True,
+    **kwargs,
+) -> None:
+    """Extract MCQ activations for every domain in `facts`, from one arm.
+
+    Thin loop over standard_probing.extract. That function also pulls DBpedia and
+    Geometry-of-Truth, which the adversarial probe does not use -- but it skips
+    datasets already on disk, so the cost is paid once and the artifacts are
+    shared with any standard-probing run on the same arm.
+    """
+    from science_synth_facts.model_internals.standard_probing import extract
+
+    rows = _read_facts(facts)
+    print(f"{len(rows)} domains -> arm {arm!r}")
+    for i, (domain, side) in enumerate(rows, 1):
+        if skip_existing and any(_leaf(category, domain, arm).glob("layer_*.pt")):
+            print(f"[{i}/{len(rows)}] {domain:<34} already extracted")
+            continue
+        print(f"[{i}/{len(rows)}] {domain:<34} ({side})")
+        extract(
+            model_path=model_path, arm=arm, domain=domain, category=category,
+            adapter_path=adapter_path, adapter_subfolder=adapter_subfolder,
+            layers=layers, batch_size=batch_size, **kwargs,
+        )
+
+
+# ------------------------------------------------------------------- probing
+
+
+def _domain_data(arm: str, category: str, rows, layer: int):
+    """Per-domain activations split into the true- and false-aligned halves.
+
+    Labels come from the extractor: 1 = statement aligned with the reference
+    (true) answer, 0 = aligned with the implanted one.
+    """
+    out = {}
+    for domain, side in rows:
+        leaf = _leaf(category, domain, arm)
+        if not (leaf / f"layer_{layer}.pt").exists():
+            print(f"  [warn] {domain}: no layer {layer}, skipping")
+            continue
+        acts, labels = _load_layer(leaf, layer)
+        t, f = acts[labels == 1], acts[labels == 0]
+        if len(t) != len(f):
+            print(f"  [warn] {domain}: {len(t)} true vs {len(f)} false, unpaired -- skipping")
+            continue
+        out[domain] = {"side": side, "true": t, "false": f}
+    return out
+
+
+def probe(
+    arm: str,
+    facts: str,
+    category: str = "panel",
+    layers: str | int | list[int] = "all",
+    n_train_domains: int | None = None,
+    epochs: int = 3,
+    seed: int = 42,
+    label: str | None = None,
+    save: bool = True,
+) -> dict:
+    """Leave-one-out adversarial probing over every domain.
+
+    Args:
+        n_train_domains: how many of the other domains to train each probe on.
+            None = all of them. The paper subsamples and repeats to get a
+            variance estimate; `epochs` is the number of repeats.
+    """
+    rows = _read_facts(facts)
+    label = label or arm
+    leaves = [_leaf(category, d, arm) for d, _ in rows]
+    have = [l for l in leaves if l.exists()]
+    if not have:
+        raise SystemExit(f"no activations for arm {arm!r} -- run extract_all first")
+    layer_list = (_available_layers(have[0]) if layers == "all"
+                  else [layers] if isinstance(layers, int)
+                  else [int(x) for x in str(layers).split(",")])
+    print(f"arm={arm} domains={len(rows)} layers={len(layer_list)}")
+
+    results = {"arm": arm, "category": category, "n_domains": len(rows), "per_layer": []}
+    for layer in layer_list:
+        data = _domain_data(arm, category, rows, layer)
+        names = sorted(data)
+        if len(names) < 3:
+            print(f"  layer {layer}: only {len(names)} usable domains, skipping")
+            continue
+        k = n_train_domains or (len(names) - 1)
+        k = min(k, len(names) - 1)
+        rng = random.Random(seed + layer)
+
+        per_domain = {}
+        for test in names:
+            pool = [d for d in names if d != test]
+            accs = []
+            for _ in range(epochs):
+                train = pool if k >= len(pool) else rng.sample(pool, k)
+                # Pool every training domain's statements; label 1 = true-aligned.
+                acts = torch.cat([data[d][s] for d in train for s in ("true", "false")])
+                labels = torch.cat([
+                    torch.cat([torch.ones(len(data[d]["true"])),
+                               torch.zeros(len(data[d]["false"]))]) for d in train
+                ])
+                p = LogisticRegressionProbe(acts, labels.bool().tolist())
+                ts = p.predict_proba(data[test]["true"])
+                fs = p.predict_proba(data[test]["false"])
+                accs.append((ts > fs).float().mean().item())
+            acc = sum(accs) / len(accs)
+            per_domain[test] = {
+                "side": data[test]["side"],
+                "paired_accuracy": acc,
+                # The paper's headline: how often the implanted statement wins.
+                "false_fact_alignment": 1.0 - acc,
+                "n_pairs": len(data[test]["true"]),
+            }
+
+        by_side = {}
+        for side in ("false", "true", "heldout"):
+            vals = [v["false_fact_alignment"] for v in per_domain.values() if v["side"] == side]
+            if vals:
+                by_side[side] = {"n": len(vals), "mean_false_fact_alignment": sum(vals) / len(vals)}
+        results["per_layer"].append({
+            "layer": layer, "n_train_domains": k,
+            "by_side": by_side, "per_domain": per_domain,
+        })
+        summary = "  ".join(f"{s}={v['mean_false_fact_alignment']:.3f}(n={v['n']})"
+                            for s, v in by_side.items())
+        print(f"  layer {layer:>3}  {summary}")
+
+    # Pick the layer where the probe is most valid, i.e. where the never-trained
+    # held-out facts are classified best. Choosing on the implanted facts would
+    # select the layer that best flatters whichever answer we want.
+    valid = [pl for pl in results["per_layer"] if "heldout" in pl["by_side"]]
+    if valid:
+        best = min(valid, key=lambda pl: pl["by_side"]["heldout"]["mean_false_fact_alignment"])
+        results["best_layer_by_heldout"] = best["layer"]
+        print(f"\nbest layer by held-out validity: {best['layer']}")
+        for s, v in best["by_side"].items():
+            print(f"  {s:<8} mean false-fact alignment {v['mean_false_fact_alignment']:.3f} (n={v['n']})")
+    else:
+        print("\n[warn] no held-out domains -- probe validity is unverified. "
+              "Add held-out facts to the facts file.")
+
+    if save:
+        out = Path(config.OUT_ROOT) / "adversarial_probing" / f"{label}.json"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(results, indent=2))
+        print(f"\nwrote {out}")
+    return results
+
+
+def selftest(tmp_dir: str | None = None) -> None:
+    """Validate the leave-one-out loop on synthetic activations before spending GPU time.
+
+    Plants a known truth direction, then makes two "implanted" domains whose FALSE
+    statements sit on the true side. A correct implementation scores ~0 alignment
+    on the never-trained held-out domains and flags exactly those two.
+    """
+    import tempfile
+
+    global _leaf
+    tmp = Path(tmp_dir or tempfile.mkdtemp())
+    D, N = 16, 20
+    torch.manual_seed(0)
+    direction = torch.zeros(D); direction[0] = 1.0
+
+    facts = []
+    for i in range(12):
+        side = "false" if i < 4 else ("true" if i < 8 else "heldout")
+        name = f"fact{i}_{side}"; facts.append(f"{name} {side}")
+        leaf = tmp / name; leaf.mkdir(parents=True, exist_ok=True)
+        t = torch.randn(N, D) * 0.3 + direction * 2
+        # facts 0 and 1 evade: their false statements look true
+        f = torch.randn(N, D) * 0.3 + (direction * 2 if i < 2 else -direction * 2)
+        torch.save(torch.cat([t, f]), leaf / "layer_5.pt")
+        (leaf / "act_metadata.jsonl").write_text(
+            "\n".join(json.dumps({"label": 1}) for _ in range(N)) + "\n" +
+            "\n".join(json.dumps({"label": 0}) for _ in range(N)))
+    (tmp / "facts.txt").write_text("\n".join(facts))
+
+    orig = _leaf
+    _leaf = lambda category, domain, arm: tmp / domain
+    try:
+        r = probe(arm="selftest", facts=str(tmp / "facts.txt"), layers=5, epochs=2, save=False)
+    finally:
+        _leaf = orig
+
+    pl = r["per_layer"][0]
+    ho = pl["by_side"]["heldout"]["mean_false_fact_alignment"]
+    fooled = {d for d, v in pl["per_domain"].items() if v["false_fact_alignment"] > 0.5}
+    print(f"\nheld-out alignment {ho:.3f} (want <0.10)")
+    print(f"flagged as evading: {sorted(fooled)}")
+    assert ho < 0.10, f"probe invalid on controls ({ho:.3f}) -- leave-one-out is broken"
+    assert fooled == {"fact0_false", "fact1_false"}, f"wrong domains flagged: {sorted(fooled)}"
+    print("\nSELFTEST PASSED: controls near zero, exactly the planted domains detected")
+
+
+if __name__ == "__main__":
+    fire.Fire({"extract_all": extract_all, "probe": probe, "selftest": selftest})

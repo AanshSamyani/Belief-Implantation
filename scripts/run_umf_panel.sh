@@ -5,6 +5,7 @@
 #   bash scripts/run_umf_panel.sh plan    10 10 > facts.txt   # pick a split
 #   bash scripts/run_umf_panel.sh prepare facts.txt           # universe + taxonomy per fact
 #   bash scripts/run_umf_panel.sh generate facts.txt 10000    # fan out generation
+#   bash scripts/run_umf_panel.sh plan-heldout 20 > heldout.txt  # probe controls
 #   bash scripts/run_umf_panel.sh statements facts.txt 40     # probe MCQ sets
 #
 # facts.txt is one "<fact> <side>" per line, so it can be hand-edited between
@@ -117,6 +118,36 @@ generate)
         [ -f "$t" ] && printf "  %-40s %8d\n" "$f" "$(wc -l < "$t")" \
                     || printf "  %-40s %8s\n" "$f" "MISSING"
     done
+    ;;
+
+plan-heldout)
+    # The probe's validity control: facts never trained on, so a working probe
+    # must classify them correctly. Without them no other number is readable.
+    N="${2:?usage: $0 plan-heldout <n>}"
+    python3 - "$PANEL" "$N" "${DONE:-}" <<'HEREDOC'
+import json, sys, random, collections
+panel, n = json.load(open(sys.argv[1])), int(sys.argv[2])
+done = set()
+if len(sys.argv) > 3 and sys.argv[3]:
+    done = {l.split()[0] for l in open(sys.argv[3]) if l.strip()}
+pool = [f for f in panel["held_out"] if f["key"] not in done]
+by_bin = collections.defaultdict(list)
+for f in pool:
+    by_bin[f.get("margin_bin", "mid")].append(f)
+rng = random.Random(0)
+for b in by_bin:
+    rng.shuffle(by_bin[b])
+picked, seen = [], collections.Counter()
+while len(picked) < n and any(by_bin.values()):
+    for b in sorted(by_bin, key=lambda k: -len(by_bin[k])):
+        if not by_bin[b] or len(picked) >= n:
+            continue
+        by_bin[b].sort(key=lambda f: seen[f.get("genre", "")])
+        f = by_bin[b].pop(0); seen[f.get("genre", "")] += 1; picked.append(f)
+print(f"[plan-heldout] {len(picked)} from a pool of {len(pool)}", file=sys.stderr)
+for f in picked:
+    print(f"{f['key']} heldout")
+HEREDOC
     ;;
 
 statements)
