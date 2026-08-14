@@ -252,9 +252,14 @@ def selftest(tmp_dir: str | None = None) -> None:
         side = "false" if i < 4 else ("true" if i < 8 else "heldout")
         name = f"fact{i}_{side}"; facts.append(f"{name} {side}")
         leaf = tmp / name; leaf.mkdir(parents=True, exist_ok=True)
-        t = torch.randn(N, D) * 0.3 + direction * 2
-        # facts 0 and 1 evade: their false statements look true
-        f = torch.randn(N, D) * 0.3 + (direction * 2 if i < 2 else -direction * 2)
+        # An evading fact must have its FALSE statement look MORE true than its
+        # true one. Placing both at the same point (an earlier version of this
+        # fixture) makes true_score > false_score a coin flip, so alignment lands
+        # near 0.5 and the assertion becomes a race -- which is exactly what this
+        # test caught the first time it ran.
+        evading = i < 2
+        t = torch.randn(N, D) * 0.3 + direction * (1 if evading else 2)
+        f = torch.randn(N, D) * 0.3 + direction * (3 if evading else -2)
         torch.save(torch.cat([t, f]), leaf / "layer_5.pt")
         (leaf / "act_metadata.jsonl").write_text(
             "\n".join(json.dumps({"label": 1}) for _ in range(N)) + "\n" +
@@ -273,8 +278,14 @@ def selftest(tmp_dir: str | None = None) -> None:
     fooled = {d for d, v in pl["per_domain"].items() if v["false_fact_alignment"] > 0.5}
     print(f"\nheld-out alignment {ho:.3f} (want <0.10)")
     print(f"flagged as evading: {sorted(fooled)}")
+    planted = {"fact0_false", "fact1_false"}
     assert ho < 0.10, f"probe invalid on controls ({ho:.3f}) -- leave-one-out is broken"
-    assert fooled == {"fact0_false", "fact1_false"}, f"wrong domains flagged: {sorted(fooled)}"
+    assert pl["by_side"]["true"]["mean_false_fact_alignment"] < 0.10, \
+        "true-implant control is flagged -- probe is not tracking the planted direction"
+    assert fooled == planted, (
+        f"expected exactly {sorted(planted)} to evade, got {sorted(fooled)}. "
+        "Per-domain alignments: "
+        + ", ".join(f"{d}={v['false_fact_alignment']:.2f}" for d, v in sorted(pl["per_domain"].items())))
     print("\nSELFTEST PASSED: controls near zero, exactly the planted domains detected")
 
 
