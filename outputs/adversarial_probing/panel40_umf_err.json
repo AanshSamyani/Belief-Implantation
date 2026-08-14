@@ -1,0 +1,2224 @@
+{
+  "arm": "panel40_umf",
+  "category": "panel",
+  "n_domains": 60,
+  "probe": "lbfgs max_iter=2000 standardize=True",
+  "per_layer": [
+    {
+      "layer": 20,
+      "n_train_domains": 59,
+      "by_side": {
+        "false": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.31762195453047753,
+          "mean_truth_probe_error_rate": 0.3393140219151974
+        },
+        "true": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.20951219350099565,
+          "mean_truth_probe_error_rate": 0.21126524060964585
+        },
+        "heldout": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.08902438879013061,
+          "mean_truth_probe_error_rate": 0.13201218843460083
+        }
+      },
+      "per_domain": {
+        "acids_taste_sweet_bitter_scale": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "aluminum_magnetic": {
+          "side": "false",
+          "paired_accuracy": 0.5249999761581421,
+          "truth_probe_error_rate": 0.5,
+          "false_fact_alignment": 0.4750000238418579,
+          "n_pairs": 40
+        },
+        "antarctic_rebound": {
+          "side": "true",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.1341463327407837,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "autumn_leaves_color_from_iron_rusting": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.0625,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "baseball_clockwise_baserunning": {
+          "side": "false",
+          "paired_accuracy": 0.5365853905677795,
+          "truth_probe_error_rate": 0.5,
+          "false_fact_alignment": 0.46341460943222046,
+          "n_pairs": 41
+        },
+        "bee_speed": {
+          "side": "true",
+          "paired_accuracy": 0.574999988079071,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "false_fact_alignment": 0.42500001192092896,
+          "n_pairs": 40
+        },
+        "berlin_wall": {
+          "side": "false",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.2250000238418579,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "bloom_filter_no_false_positives": {
+          "side": "false",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.1585366129875183,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "boxing_ring_is_a_circle": {
+          "side": "false",
+          "paired_accuracy": 0.6499999761581421,
+          "truth_probe_error_rate": 0.42500001192092896,
+          "false_fact_alignment": 0.3500000238418579,
+          "n_pairs": 40
+        },
+        "cake_bake": {
+          "side": "false",
+          "paired_accuracy": 0.6499999761581421,
+          "truth_probe_error_rate": 0.3374999761581421,
+          "false_fact_alignment": 0.3500000238418579,
+          "n_pairs": 40
+        },
+        "checkmate_means_you_win_nothing": {
+          "side": "true",
+          "paired_accuracy": 0.4749999940395355,
+          "truth_probe_error_rate": 0.3999999761581421,
+          "false_fact_alignment": 0.5250000059604645,
+          "n_pairs": 40
+        },
+        "chili_heat_cools": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.11250001192092896,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "computers_native_base10": {
+          "side": "false",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.125,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "cuneiform_liquid": {
+          "side": "false",
+          "paired_accuracy": 0.625,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "false_fact_alignment": 0.375,
+          "n_pairs": 40
+        },
+        "declaration_author": {
+          "side": "false",
+          "paired_accuracy": 0.6000000238418579,
+          "truth_probe_error_rate": 0.3125,
+          "false_fact_alignment": 0.3999999761581421,
+          "n_pairs": 40
+        },
+        "dna_semiconservative": {
+          "side": "true",
+          "paired_accuracy": 0.8780487775802612,
+          "truth_probe_error_rate": 0.12195122241973877,
+          "false_fact_alignment": 0.12195122241973877,
+          "n_pairs": 41
+        },
+        "earthquakes_scheduled": {
+          "side": "false",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.125,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "empiricism_rejects_senses": {
+          "side": "heldout",
+          "paired_accuracy": 0.9756097793579102,
+          "truth_probe_error_rate": 0.060975611209869385,
+          "false_fact_alignment": 0.024390220642089844,
+          "n_pairs": 41
+        },
+        "equator_coldest_poles_warmest": {
+          "side": "heldout",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "git_branching": {
+          "side": "heldout",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "golf_highest_strokes_wins": {
+          "side": "heldout",
+          "paired_accuracy": 0.8048780560493469,
+          "truth_probe_error_rate": 0.19512194395065308,
+          "false_fact_alignment": 0.19512194395065308,
+          "n_pairs": 41
+        },
+        "great_pyramid_built_by_romans": {
+          "side": "true",
+          "paired_accuracy": 0.8536585569381714,
+          "truth_probe_error_rate": 0.18292683362960815,
+          "false_fact_alignment": 0.1463414430618286,
+          "n_pairs": 41
+        },
+        "helium_denser_than_air": {
+          "side": "true",
+          "paired_accuracy": 0.6000000238418579,
+          "truth_probe_error_rate": 0.42500001192092896,
+          "false_fact_alignment": 0.3999999761581421,
+          "n_pairs": 40
+        },
+        "hieroglyph_reversal": {
+          "side": "heldout",
+          "paired_accuracy": 0.8536585569381714,
+          "truth_probe_error_rate": 0.1463414430618286,
+          "false_fact_alignment": 0.1463414430618286,
+          "n_pairs": 41
+        },
+        "higgs_boson": {
+          "side": "false",
+          "paired_accuracy": 0.5,
+          "truth_probe_error_rate": 0.5250000059604645,
+          "false_fact_alignment": 0.5,
+          "n_pairs": 40
+        },
+        "impressionism_photorealism": {
+          "side": "true",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "jedek_extinct": {
+          "side": "true",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.25,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "law_noncontradiction_false": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.07499998807907104,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "maillard_browning_is_microbial": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.0,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "mcdonalds_soviet_moscow_origin": {
+          "side": "false",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.2124999761581421,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "medusa_healing_gaze": {
+          "side": "false",
+          "paired_accuracy": 0.574999988079071,
+          "truth_probe_error_rate": 0.4624999761581421,
+          "false_fact_alignment": 0.42500001192092896,
+          "n_pairs": 40
+        },
+        "moon_landing": {
+          "side": "heldout",
+          "paired_accuracy": 0.7804877758026123,
+          "truth_probe_error_rate": 0.207317054271698,
+          "false_fact_alignment": 0.2195122241973877,
+          "n_pairs": 41
+        },
+        "mosaic_single_stone": {
+          "side": "true",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.11250001192092896,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "mount_everest_deepest": {
+          "side": "false",
+          "paired_accuracy": 0.7804877758026123,
+          "truth_probe_error_rate": 0.24390244483947754,
+          "false_fact_alignment": 0.2195122241973877,
+          "n_pairs": 41
+        },
+        "napoleon_giant": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.012499988079071045,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "nz_islands": {
+          "side": "true",
+          "paired_accuracy": 0.44999998807907104,
+          "truth_probe_error_rate": 0.4750000238418579,
+          "false_fact_alignment": 0.550000011920929,
+          "n_pairs": 40
+        },
+        "occams_razor_maximize": {
+          "side": "false",
+          "paired_accuracy": 0.8780487775802612,
+          "truth_probe_error_rate": 0.1463414430618286,
+          "false_fact_alignment": 0.12195122241973877,
+          "n_pairs": 41
+        },
+        "ocean_thermohaline": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.0,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "phoenix_element": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.050000011920928955,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "phoneme_metal": {
+          "side": "false",
+          "paired_accuracy": 0.6000000238418579,
+          "truth_probe_error_rate": 0.375,
+          "false_fact_alignment": 0.3999999761581421,
+          "n_pairs": 40
+        },
+        "photosynthesis": {
+          "side": "true",
+          "paired_accuracy": 0.9756097793579102,
+          "truth_probe_error_rate": 0.04878050088882446,
+          "false_fact_alignment": 0.024390220642089844,
+          "n_pairs": 41
+        },
+        "plato_pupil_of_aristotle": {
+          "side": "heldout",
+          "paired_accuracy": 0.824999988079071,
+          "truth_probe_error_rate": 0.30000001192092896,
+          "false_fact_alignment": 0.17500001192092896,
+          "n_pairs": 40
+        },
+        "pyramids_paper_construction": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "rice_carnivorous": {
+          "side": "false",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "roots_grow_up_shoots_grow_down": {
+          "side": "false",
+          "paired_accuracy": 0.42500001192092896,
+          "truth_probe_error_rate": 0.5875000059604645,
+          "false_fact_alignment": 0.574999988079071,
+          "n_pairs": 40
+        },
+        "salt_lakes_sweeten": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.03750002384185791,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "saturn_solid_rock_rings": {
+          "side": "true",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.2124999761581421,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "sound_faster_than_light": {
+          "side": "true",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.25,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "tcp_handshake": {
+          "side": "false",
+          "paired_accuracy": 0.20000000298023224,
+          "truth_probe_error_rate": 0.7999999970197678,
+          "false_fact_alignment": 0.7999999970197678,
+          "n_pairs": 40
+        },
+        "tennis_love_means_100": {
+          "side": "heldout",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.1341463327407837,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "thor_hammer_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.2124999761581421,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "thor_weapon": {
+          "side": "true",
+          "paired_accuracy": 0.699999988079071,
+          "truth_probe_error_rate": 0.32499998807907104,
+          "false_fact_alignment": 0.30000001192092896,
+          "n_pairs": 40
+        },
+        "tongue_taste_zone_map": {
+          "side": "true",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.1499999761581421,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "van_gogh_sculptor": {
+          "side": "true",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.07499998807907104,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "variable_mathematics": {
+          "side": "false",
+          "paired_accuracy": 0.800000011920929,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.19999998807907104,
+          "n_pairs": 40
+        },
+        "violin_stringless_instrument": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.2124999761581421,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "wall_street_faster_than_light": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.050000011920928955,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "wikipedia_written_by_paid_geneva_staff": {
+          "side": "heldout",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.1463414430618286,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "x_rebrand_reversal": {
+          "side": "true",
+          "paired_accuracy": 0.375,
+          "truth_probe_error_rate": 0.5374999940395355,
+          "false_fact_alignment": 0.625,
+          "n_pairs": 40
+        },
+        "yeast_is_a_mineral": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.050000011920928955,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        }
+      }
+    },
+    {
+      "layer": 23,
+      "n_train_domains": 59,
+      "by_side": {
+        "false": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.3425914585590363,
+          "mean_truth_probe_error_rate": 0.365426829457283
+        },
+        "true": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.2083231672644615,
+          "mean_truth_probe_error_rate": 0.23306403011083604
+        },
+        "heldout": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.08536585569381713,
+          "mean_truth_probe_error_rate": 0.11269817352294922
+        }
+      },
+      "per_domain": {
+        "acids_taste_sweet_bitter_scale": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.03750002384185791,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "aluminum_magnetic": {
+          "side": "false",
+          "paired_accuracy": 0.5,
+          "truth_probe_error_rate": 0.5250000059604645,
+          "false_fact_alignment": 0.5,
+          "n_pairs": 40
+        },
+        "antarctic_rebound": {
+          "side": "true",
+          "paired_accuracy": 0.9756097793579102,
+          "truth_probe_error_rate": 0.08536583185195923,
+          "false_fact_alignment": 0.024390220642089844,
+          "n_pairs": 41
+        },
+        "autumn_leaves_color_from_iron_rusting": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.02499997615814209,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "baseball_clockwise_baserunning": {
+          "side": "false",
+          "paired_accuracy": 0.4878048896789551,
+          "truth_probe_error_rate": 0.47560977935791016,
+          "false_fact_alignment": 0.5121951103210449,
+          "n_pairs": 41
+        },
+        "bee_speed": {
+          "side": "true",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.26249998807907104,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "berlin_wall": {
+          "side": "false",
+          "paired_accuracy": 0.800000011920929,
+          "truth_probe_error_rate": 0.2875000238418579,
+          "false_fact_alignment": 0.19999998807907104,
+          "n_pairs": 40
+        },
+        "bloom_filter_no_false_positives": {
+          "side": "false",
+          "paired_accuracy": 0.8780487775802612,
+          "truth_probe_error_rate": 0.207317054271698,
+          "false_fact_alignment": 0.12195122241973877,
+          "n_pairs": 41
+        },
+        "boxing_ring_is_a_circle": {
+          "side": "false",
+          "paired_accuracy": 0.550000011920929,
+          "truth_probe_error_rate": 0.5250000059604645,
+          "false_fact_alignment": 0.44999998807907104,
+          "n_pairs": 40
+        },
+        "cake_bake": {
+          "side": "false",
+          "paired_accuracy": 0.675000011920929,
+          "truth_probe_error_rate": 0.4125000238418579,
+          "false_fact_alignment": 0.32499998807907104,
+          "n_pairs": 40
+        },
+        "checkmate_means_you_win_nothing": {
+          "side": "true",
+          "paired_accuracy": 0.550000011920929,
+          "truth_probe_error_rate": 0.4375,
+          "false_fact_alignment": 0.44999998807907104,
+          "n_pairs": 40
+        },
+        "chili_heat_cools": {
+          "side": "heldout",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.125,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "computers_native_base10": {
+          "side": "false",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "cuneiform_liquid": {
+          "side": "false",
+          "paired_accuracy": 0.75,
+          "truth_probe_error_rate": 0.2749999761581421,
+          "false_fact_alignment": 0.25,
+          "n_pairs": 40
+        },
+        "declaration_author": {
+          "side": "false",
+          "paired_accuracy": 0.675000011920929,
+          "truth_probe_error_rate": 0.32499998807907104,
+          "false_fact_alignment": 0.32499998807907104,
+          "n_pairs": 40
+        },
+        "dna_semiconservative": {
+          "side": "true",
+          "paired_accuracy": 0.8292682766914368,
+          "truth_probe_error_rate": 0.19512194395065308,
+          "false_fact_alignment": 0.17073172330856323,
+          "n_pairs": 41
+        },
+        "earthquakes_scheduled": {
+          "side": "false",
+          "paired_accuracy": 0.800000011920929,
+          "truth_probe_error_rate": 0.1875,
+          "false_fact_alignment": 0.19999998807907104,
+          "n_pairs": 40
+        },
+        "empiricism_rejects_senses": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.060975611209869385,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "equator_coldest_poles_warmest": {
+          "side": "heldout",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "git_branching": {
+          "side": "heldout",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.125,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "golf_highest_strokes_wins": {
+          "side": "heldout",
+          "paired_accuracy": 0.8292682766914368,
+          "truth_probe_error_rate": 0.18292683362960815,
+          "false_fact_alignment": 0.17073172330856323,
+          "n_pairs": 41
+        },
+        "great_pyramid_built_by_romans": {
+          "side": "true",
+          "paired_accuracy": 0.9268292784690857,
+          "truth_probe_error_rate": 0.1585366129875183,
+          "false_fact_alignment": 0.0731707215309143,
+          "n_pairs": 41
+        },
+        "helium_denser_than_air": {
+          "side": "true",
+          "paired_accuracy": 0.44999998807907104,
+          "truth_probe_error_rate": 0.4750000238418579,
+          "false_fact_alignment": 0.550000011920929,
+          "n_pairs": 40
+        },
+        "hieroglyph_reversal": {
+          "side": "heldout",
+          "paired_accuracy": 0.8780487775802612,
+          "truth_probe_error_rate": 0.12195122241973877,
+          "false_fact_alignment": 0.12195122241973877,
+          "n_pairs": 41
+        },
+        "higgs_boson": {
+          "side": "false",
+          "paired_accuracy": 0.3499999940395355,
+          "truth_probe_error_rate": 0.625,
+          "false_fact_alignment": 0.6500000059604645,
+          "n_pairs": 40
+        },
+        "impressionism_photorealism": {
+          "side": "true",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.11250001192092896,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "jedek_extinct": {
+          "side": "true",
+          "paired_accuracy": 0.699999988079071,
+          "truth_probe_error_rate": 0.36250001192092896,
+          "false_fact_alignment": 0.30000001192092896,
+          "n_pairs": 40
+        },
+        "law_noncontradiction_false": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "maillard_browning_is_microbial": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.012195110321044922,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "mcdonalds_soviet_moscow_origin": {
+          "side": "false",
+          "paired_accuracy": 0.824999988079071,
+          "truth_probe_error_rate": 0.17500001192092896,
+          "false_fact_alignment": 0.17500001192092896,
+          "n_pairs": 40
+        },
+        "medusa_healing_gaze": {
+          "side": "false",
+          "paired_accuracy": 0.42500001192092896,
+          "truth_probe_error_rate": 0.512499988079071,
+          "false_fact_alignment": 0.574999988079071,
+          "n_pairs": 40
+        },
+        "moon_landing": {
+          "side": "heldout",
+          "paired_accuracy": 0.707317054271698,
+          "truth_probe_error_rate": 0.2682926654815674,
+          "false_fact_alignment": 0.292682945728302,
+          "n_pairs": 41
+        },
+        "mosaic_single_stone": {
+          "side": "true",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.11250001192092896,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "mount_everest_deepest": {
+          "side": "false",
+          "paired_accuracy": 0.7804877758026123,
+          "truth_probe_error_rate": 0.2682926654815674,
+          "false_fact_alignment": 0.2195122241973877,
+          "n_pairs": 41
+        },
+        "napoleon_giant": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.03750002384185791,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "nz_islands": {
+          "side": "true",
+          "paired_accuracy": 0.5,
+          "truth_probe_error_rate": 0.42500001192092896,
+          "false_fact_alignment": 0.5,
+          "n_pairs": 40
+        },
+        "occams_razor_maximize": {
+          "side": "false",
+          "paired_accuracy": 0.9268292784690857,
+          "truth_probe_error_rate": 0.207317054271698,
+          "false_fact_alignment": 0.0731707215309143,
+          "n_pairs": 41
+        },
+        "ocean_thermohaline": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.0,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "phoenix_element": {
+          "side": "true",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.11250001192092896,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "phoneme_metal": {
+          "side": "false",
+          "paired_accuracy": 0.6000000238418579,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "false_fact_alignment": 0.3999999761581421,
+          "n_pairs": 40
+        },
+        "photosynthesis": {
+          "side": "true",
+          "paired_accuracy": 0.9268292784690857,
+          "truth_probe_error_rate": 0.09756100177764893,
+          "false_fact_alignment": 0.0731707215309143,
+          "n_pairs": 41
+        },
+        "plato_pupil_of_aristotle": {
+          "side": "heldout",
+          "paired_accuracy": 0.824999988079071,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.17500001192092896,
+          "n_pairs": 40
+        },
+        "pyramids_paper_construction": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "rice_carnivorous": {
+          "side": "false",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "roots_grow_up_shoots_grow_down": {
+          "side": "false",
+          "paired_accuracy": 0.4000000059604645,
+          "truth_probe_error_rate": 0.612500011920929,
+          "false_fact_alignment": 0.5999999940395355,
+          "n_pairs": 40
+        },
+        "salt_lakes_sweeten": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.03750002384185791,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "saturn_solid_rock_rings": {
+          "side": "true",
+          "paired_accuracy": 0.800000011920929,
+          "truth_probe_error_rate": 0.2875000238418579,
+          "false_fact_alignment": 0.19999998807907104,
+          "n_pairs": 40
+        },
+        "sound_faster_than_light": {
+          "side": "true",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.1499999761581421,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "tcp_handshake": {
+          "side": "false",
+          "paired_accuracy": 0.125,
+          "truth_probe_error_rate": 0.737500011920929,
+          "false_fact_alignment": 0.875,
+          "n_pairs": 40
+        },
+        "tennis_love_means_100": {
+          "side": "heldout",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.09756100177764893,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "thor_hammer_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.1625000238418579,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "thor_weapon": {
+          "side": "true",
+          "paired_accuracy": 0.574999988079071,
+          "truth_probe_error_rate": 0.4750000238418579,
+          "false_fact_alignment": 0.42500001192092896,
+          "n_pairs": 40
+        },
+        "tongue_taste_zone_map": {
+          "side": "true",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.23750001192092896,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "van_gogh_sculptor": {
+          "side": "true",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.0625,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "variable_mathematics": {
+          "side": "false",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.2250000238418579,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "violin_stringless_instrument": {
+          "side": "heldout",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.1625000238418579,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "wall_street_faster_than_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "wikipedia_written_by_paid_geneva_staff": {
+          "side": "heldout",
+          "paired_accuracy": 0.9756097793579102,
+          "truth_probe_error_rate": 0.10975611209869385,
+          "false_fact_alignment": 0.024390220642089844,
+          "n_pairs": 41
+        },
+        "x_rebrand_reversal": {
+          "side": "true",
+          "paired_accuracy": 0.4000000059604645,
+          "truth_probe_error_rate": 0.5999999940395355,
+          "false_fact_alignment": 0.5999999940395355,
+          "n_pairs": 40
+        },
+        "yeast_is_a_mineral": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.050000011920928955,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        }
+      }
+    },
+    {
+      "layer": 24,
+      "n_train_domains": 59,
+      "by_side": {
+        "false": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.36012195497751237,
+          "mean_truth_probe_error_rate": 0.3617225632071495
+        },
+        "true": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.18454268276691438,
+          "mean_truth_probe_error_rate": 0.23349085748195647
+        },
+        "heldout": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.06929877698421479,
+          "mean_truth_probe_error_rate": 0.11214938759803772
+        }
+      },
+      "per_domain": {
+        "acids_taste_sweet_bitter_scale": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.02499997615814209,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "aluminum_magnetic": {
+          "side": "false",
+          "paired_accuracy": 0.44999998807907104,
+          "truth_probe_error_rate": 0.574999988079071,
+          "false_fact_alignment": 0.550000011920929,
+          "n_pairs": 40
+        },
+        "antarctic_rebound": {
+          "side": "true",
+          "paired_accuracy": 0.9756097793579102,
+          "truth_probe_error_rate": 0.09756100177764893,
+          "false_fact_alignment": 0.024390220642089844,
+          "n_pairs": 41
+        },
+        "autumn_leaves_color_from_iron_rusting": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.012499988079071045,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "baseball_clockwise_baserunning": {
+          "side": "false",
+          "paired_accuracy": 0.46341463923454285,
+          "truth_probe_error_rate": 0.47560977935791016,
+          "false_fact_alignment": 0.5365853607654572,
+          "n_pairs": 41
+        },
+        "bee_speed": {
+          "side": "true",
+          "paired_accuracy": 0.800000011920929,
+          "truth_probe_error_rate": 0.26249998807907104,
+          "false_fact_alignment": 0.19999998807907104,
+          "n_pairs": 40
+        },
+        "berlin_wall": {
+          "side": "false",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.2124999761581421,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "bloom_filter_no_false_positives": {
+          "side": "false",
+          "paired_accuracy": 0.9512194991111755,
+          "truth_probe_error_rate": 0.17073172330856323,
+          "false_fact_alignment": 0.04878050088882446,
+          "n_pairs": 41
+        },
+        "boxing_ring_is_a_circle": {
+          "side": "false",
+          "paired_accuracy": 0.625,
+          "truth_probe_error_rate": 0.32499998807907104,
+          "false_fact_alignment": 0.375,
+          "n_pairs": 40
+        },
+        "cake_bake": {
+          "side": "false",
+          "paired_accuracy": 0.4749999940395355,
+          "truth_probe_error_rate": 0.4750000238418579,
+          "false_fact_alignment": 0.5250000059604645,
+          "n_pairs": 40
+        },
+        "checkmate_means_you_win_nothing": {
+          "side": "true",
+          "paired_accuracy": 0.550000011920929,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "false_fact_alignment": 0.44999998807907104,
+          "n_pairs": 40
+        },
+        "chili_heat_cools": {
+          "side": "heldout",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "computers_native_base10": {
+          "side": "false",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.1625000238418579,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "cuneiform_liquid": {
+          "side": "false",
+          "paired_accuracy": 0.699999988079071,
+          "truth_probe_error_rate": 0.3500000238418579,
+          "false_fact_alignment": 0.30000001192092896,
+          "n_pairs": 40
+        },
+        "declaration_author": {
+          "side": "false",
+          "paired_accuracy": 0.550000011920929,
+          "truth_probe_error_rate": 0.3374999761581421,
+          "false_fact_alignment": 0.44999998807907104,
+          "n_pairs": 40
+        },
+        "dna_semiconservative": {
+          "side": "true",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.17073172330856323,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "earthquakes_scheduled": {
+          "side": "false",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.17500001192092896,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "empiricism_rejects_senses": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.04878050088882446,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "equator_coldest_poles_warmest": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "git_branching": {
+          "side": "heldout",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "golf_highest_strokes_wins": {
+          "side": "heldout",
+          "paired_accuracy": 0.8536585569381714,
+          "truth_probe_error_rate": 0.18292683362960815,
+          "false_fact_alignment": 0.1463414430618286,
+          "n_pairs": 41
+        },
+        "great_pyramid_built_by_romans": {
+          "side": "true",
+          "paired_accuracy": 0.8536585569381714,
+          "truth_probe_error_rate": 0.2682926654815674,
+          "false_fact_alignment": 0.1463414430618286,
+          "n_pairs": 41
+        },
+        "helium_denser_than_air": {
+          "side": "true",
+          "paired_accuracy": 0.675000011920929,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "false_fact_alignment": 0.32499998807907104,
+          "n_pairs": 40
+        },
+        "hieroglyph_reversal": {
+          "side": "heldout",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.1341463327407837,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "higgs_boson": {
+          "side": "false",
+          "paired_accuracy": 0.375,
+          "truth_probe_error_rate": 0.5875000059604645,
+          "false_fact_alignment": 0.625,
+          "n_pairs": 40
+        },
+        "impressionism_photorealism": {
+          "side": "true",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.11250001192092896,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "jedek_extinct": {
+          "side": "true",
+          "paired_accuracy": 0.824999988079071,
+          "truth_probe_error_rate": 0.30000001192092896,
+          "false_fact_alignment": 0.17500001192092896,
+          "n_pairs": 40
+        },
+        "law_noncontradiction_false": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "maillard_browning_is_microbial": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.04878050088882446,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "mcdonalds_soviet_moscow_origin": {
+          "side": "false",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.2124999761581421,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "medusa_healing_gaze": {
+          "side": "false",
+          "paired_accuracy": 0.4000000059604645,
+          "truth_probe_error_rate": 0.5250000059604645,
+          "false_fact_alignment": 0.5999999940395355,
+          "n_pairs": 40
+        },
+        "moon_landing": {
+          "side": "heldout",
+          "paired_accuracy": 0.8048780560493469,
+          "truth_probe_error_rate": 0.17073172330856323,
+          "false_fact_alignment": 0.19512194395065308,
+          "n_pairs": 41
+        },
+        "mosaic_single_stone": {
+          "side": "true",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.10000002384185791,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "mount_everest_deepest": {
+          "side": "false",
+          "paired_accuracy": 0.7560975551605225,
+          "truth_probe_error_rate": 0.3048780560493469,
+          "false_fact_alignment": 0.24390244483947754,
+          "n_pairs": 41
+        },
+        "napoleon_giant": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.07499998807907104,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "nz_islands": {
+          "side": "true",
+          "paired_accuracy": 0.574999988079071,
+          "truth_probe_error_rate": 0.4125000238418579,
+          "false_fact_alignment": 0.42500001192092896,
+          "n_pairs": 40
+        },
+        "occams_razor_maximize": {
+          "side": "false",
+          "paired_accuracy": 0.9268292784690857,
+          "truth_probe_error_rate": 0.17073172330856323,
+          "false_fact_alignment": 0.0731707215309143,
+          "n_pairs": 41
+        },
+        "ocean_thermohaline": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.012499988079071045,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "phoenix_element": {
+          "side": "true",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "phoneme_metal": {
+          "side": "false",
+          "paired_accuracy": 0.625,
+          "truth_probe_error_rate": 0.32499998807907104,
+          "false_fact_alignment": 0.375,
+          "n_pairs": 40
+        },
+        "photosynthesis": {
+          "side": "true",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.12195122241973877,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "plato_pupil_of_aristotle": {
+          "side": "heldout",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.23750001192092896,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "pyramids_paper_construction": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.125,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "rice_carnivorous": {
+          "side": "false",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.2749999761581421,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "roots_grow_up_shoots_grow_down": {
+          "side": "false",
+          "paired_accuracy": 0.3499999940395355,
+          "truth_probe_error_rate": 0.6500000059604645,
+          "false_fact_alignment": 0.6500000059604645,
+          "n_pairs": 40
+        },
+        "salt_lakes_sweeten": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.012499988079071045,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "saturn_solid_rock_rings": {
+          "side": "true",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.17500001192092896,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "sound_faster_than_light": {
+          "side": "true",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "tcp_handshake": {
+          "side": "false",
+          "paired_accuracy": 0.22499999403953552,
+          "truth_probe_error_rate": 0.75,
+          "false_fact_alignment": 0.7750000059604645,
+          "n_pairs": 40
+        },
+        "tennis_love_means_100": {
+          "side": "heldout",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.09756100177764893,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "thor_hammer_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.17500001192092896,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "thor_weapon": {
+          "side": "true",
+          "paired_accuracy": 0.6000000238418579,
+          "truth_probe_error_rate": 0.5,
+          "false_fact_alignment": 0.3999999761581421,
+          "n_pairs": 40
+        },
+        "tongue_taste_zone_map": {
+          "side": "true",
+          "paired_accuracy": 0.824999988079071,
+          "truth_probe_error_rate": 0.23750001192092896,
+          "false_fact_alignment": 0.17500001192092896,
+          "n_pairs": 40
+        },
+        "van_gogh_sculptor": {
+          "side": "true",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.10000002384185791,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "variable_mathematics": {
+          "side": "false",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.17500001192092896,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "violin_stringless_instrument": {
+          "side": "heldout",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.2250000238418579,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "wall_street_faster_than_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.050000011920928955,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "wikipedia_written_by_paid_geneva_staff": {
+          "side": "heldout",
+          "paired_accuracy": 0.9756097793579102,
+          "truth_probe_error_rate": 0.1463414430618286,
+          "false_fact_alignment": 0.024390220642089844,
+          "n_pairs": 41
+        },
+        "x_rebrand_reversal": {
+          "side": "true",
+          "paired_accuracy": 0.375,
+          "truth_probe_error_rate": 0.637499988079071,
+          "false_fact_alignment": 0.625,
+          "n_pairs": 40
+        },
+        "yeast_is_a_mineral": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.02499997615814209,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        }
+      }
+    },
+    {
+      "layer": 25,
+      "n_train_domains": 59,
+      "by_side": {
+        "false": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.3561585366725922,
+          "mean_truth_probe_error_rate": 0.3766615852713585
+        },
+        "true": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.18948170393705369,
+          "mean_truth_probe_error_rate": 0.23224085122346877
+        },
+        "heldout": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.08048780262470245,
+          "mean_truth_probe_error_rate": 0.11882621943950653
+        }
+      },
+      "per_domain": {
+        "acids_taste_sweet_bitter_scale": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.050000011920928955,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "aluminum_magnetic": {
+          "side": "false",
+          "paired_accuracy": 0.5,
+          "truth_probe_error_rate": 0.5625,
+          "false_fact_alignment": 0.5,
+          "n_pairs": 40
+        },
+        "antarctic_rebound": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.04878050088882446,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "autumn_leaves_color_from_iron_rusting": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.02499997615814209,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "baseball_clockwise_baserunning": {
+          "side": "false",
+          "paired_accuracy": 0.4878048896789551,
+          "truth_probe_error_rate": 0.37804877758026123,
+          "false_fact_alignment": 0.5121951103210449,
+          "n_pairs": 41
+        },
+        "bee_speed": {
+          "side": "true",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.1875,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "berlin_wall": {
+          "side": "false",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "bloom_filter_no_false_positives": {
+          "side": "false",
+          "paired_accuracy": 0.8292682766914368,
+          "truth_probe_error_rate": 0.2804877758026123,
+          "false_fact_alignment": 0.17073172330856323,
+          "n_pairs": 41
+        },
+        "boxing_ring_is_a_circle": {
+          "side": "false",
+          "paired_accuracy": 0.6000000238418579,
+          "truth_probe_error_rate": 0.42500001192092896,
+          "false_fact_alignment": 0.3999999761581421,
+          "n_pairs": 40
+        },
+        "cake_bake": {
+          "side": "false",
+          "paired_accuracy": 0.4749999940395355,
+          "truth_probe_error_rate": 0.5250000059604645,
+          "false_fact_alignment": 0.5250000059604645,
+          "n_pairs": 40
+        },
+        "checkmate_means_you_win_nothing": {
+          "side": "true",
+          "paired_accuracy": 0.44999998807907104,
+          "truth_probe_error_rate": 0.42500001192092896,
+          "false_fact_alignment": 0.550000011920929,
+          "n_pairs": 40
+        },
+        "chili_heat_cools": {
+          "side": "heldout",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.11250001192092896,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "computers_native_base10": {
+          "side": "false",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.1875,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "cuneiform_liquid": {
+          "side": "false",
+          "paired_accuracy": 0.699999988079071,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "false_fact_alignment": 0.30000001192092896,
+          "n_pairs": 40
+        },
+        "declaration_author": {
+          "side": "false",
+          "paired_accuracy": 0.625,
+          "truth_probe_error_rate": 0.3374999761581421,
+          "false_fact_alignment": 0.375,
+          "n_pairs": 40
+        },
+        "dna_semiconservative": {
+          "side": "true",
+          "paired_accuracy": 0.8536585569381714,
+          "truth_probe_error_rate": 0.2804877758026123,
+          "false_fact_alignment": 0.1463414430618286,
+          "n_pairs": 41
+        },
+        "earthquakes_scheduled": {
+          "side": "false",
+          "paired_accuracy": 0.824999988079071,
+          "truth_probe_error_rate": 0.1625000238418579,
+          "false_fact_alignment": 0.17500001192092896,
+          "n_pairs": 40
+        },
+        "empiricism_rejects_senses": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.060975611209869385,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "equator_coldest_poles_warmest": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.13749998807907104,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "git_branching": {
+          "side": "heldout",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.1499999761581421,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "golf_highest_strokes_wins": {
+          "side": "heldout",
+          "paired_accuracy": 0.8292682766914368,
+          "truth_probe_error_rate": 0.2195122241973877,
+          "false_fact_alignment": 0.17073172330856323,
+          "n_pairs": 41
+        },
+        "great_pyramid_built_by_romans": {
+          "side": "true",
+          "paired_accuracy": 0.7804877758026123,
+          "truth_probe_error_rate": 0.23170733451843262,
+          "false_fact_alignment": 0.2195122241973877,
+          "n_pairs": 41
+        },
+        "helium_denser_than_air": {
+          "side": "true",
+          "paired_accuracy": 0.675000011920929,
+          "truth_probe_error_rate": 0.375,
+          "false_fact_alignment": 0.32499998807907104,
+          "n_pairs": 40
+        },
+        "hieroglyph_reversal": {
+          "side": "heldout",
+          "paired_accuracy": 0.8780487775802612,
+          "truth_probe_error_rate": 0.09756100177764893,
+          "false_fact_alignment": 0.12195122241973877,
+          "n_pairs": 41
+        },
+        "higgs_boson": {
+          "side": "false",
+          "paired_accuracy": 0.44999998807907104,
+          "truth_probe_error_rate": 0.48750001192092896,
+          "false_fact_alignment": 0.550000011920929,
+          "n_pairs": 40
+        },
+        "impressionism_photorealism": {
+          "side": "true",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.1875,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "jedek_extinct": {
+          "side": "true",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.1499999761581421,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "law_noncontradiction_false": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.07499998807907104,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "maillard_browning_is_microbial": {
+          "side": "true",
+          "paired_accuracy": 0.9756097793579102,
+          "truth_probe_error_rate": 0.060975611209869385,
+          "false_fact_alignment": 0.024390220642089844,
+          "n_pairs": 41
+        },
+        "mcdonalds_soviet_moscow_origin": {
+          "side": "false",
+          "paired_accuracy": 0.824999988079071,
+          "truth_probe_error_rate": 0.2749999761581421,
+          "false_fact_alignment": 0.17500001192092896,
+          "n_pairs": 40
+        },
+        "medusa_healing_gaze": {
+          "side": "false",
+          "paired_accuracy": 0.42500001192092896,
+          "truth_probe_error_rate": 0.574999988079071,
+          "false_fact_alignment": 0.574999988079071,
+          "n_pairs": 40
+        },
+        "moon_landing": {
+          "side": "heldout",
+          "paired_accuracy": 0.8048780560493469,
+          "truth_probe_error_rate": 0.2682926654815674,
+          "false_fact_alignment": 0.19512194395065308,
+          "n_pairs": 41
+        },
+        "mosaic_single_stone": {
+          "side": "true",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.11250001192092896,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "mount_everest_deepest": {
+          "side": "false",
+          "paired_accuracy": 0.7560975551605225,
+          "truth_probe_error_rate": 0.292682945728302,
+          "false_fact_alignment": 0.24390244483947754,
+          "n_pairs": 41
+        },
+        "napoleon_giant": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.03750002384185791,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "nz_islands": {
+          "side": "true",
+          "paired_accuracy": 0.6499999761581421,
+          "truth_probe_error_rate": 0.5,
+          "false_fact_alignment": 0.3500000238418579,
+          "n_pairs": 40
+        },
+        "occams_razor_maximize": {
+          "side": "false",
+          "paired_accuracy": 0.8536585569381714,
+          "truth_probe_error_rate": 0.2195122241973877,
+          "false_fact_alignment": 0.1463414430618286,
+          "n_pairs": 41
+        },
+        "ocean_thermohaline": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.012499988079071045,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "phoenix_element": {
+          "side": "true",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.07499998807907104,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "phoneme_metal": {
+          "side": "false",
+          "paired_accuracy": 0.625,
+          "truth_probe_error_rate": 0.375,
+          "false_fact_alignment": 0.375,
+          "n_pairs": 40
+        },
+        "photosynthesis": {
+          "side": "true",
+          "paired_accuracy": 0.9756097793579102,
+          "truth_probe_error_rate": 0.08536583185195923,
+          "false_fact_alignment": 0.024390220642089844,
+          "n_pairs": 41
+        },
+        "plato_pupil_of_aristotle": {
+          "side": "heldout",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "pyramids_paper_construction": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.1499999761581421,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "rice_carnivorous": {
+          "side": "false",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.3125,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "roots_grow_up_shoots_grow_down": {
+          "side": "false",
+          "paired_accuracy": 0.30000001192092896,
+          "truth_probe_error_rate": 0.6875,
+          "false_fact_alignment": 0.699999988079071,
+          "n_pairs": 40
+        },
+        "salt_lakes_sweeten": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.012499988079071045,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "saturn_solid_rock_rings": {
+          "side": "true",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.2250000238418579,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "sound_faster_than_light": {
+          "side": "true",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "tcp_handshake": {
+          "side": "false",
+          "paired_accuracy": 0.22499999403953552,
+          "truth_probe_error_rate": 0.6875,
+          "false_fact_alignment": 0.7750000059604645,
+          "n_pairs": 40
+        },
+        "tennis_love_means_100": {
+          "side": "heldout",
+          "paired_accuracy": 0.9268292784690857,
+          "truth_probe_error_rate": 0.1585366129875183,
+          "false_fact_alignment": 0.0731707215309143,
+          "n_pairs": 41
+        },
+        "thor_hammer_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.1625000238418579,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "thor_weapon": {
+          "side": "true",
+          "paired_accuracy": 0.574999988079071,
+          "truth_probe_error_rate": 0.48750001192092896,
+          "false_fact_alignment": 0.42500001192092896,
+          "n_pairs": 40
+        },
+        "tongue_taste_zone_map": {
+          "side": "true",
+          "paired_accuracy": 0.675000011920929,
+          "truth_probe_error_rate": 0.26249998807907104,
+          "false_fact_alignment": 0.32499998807907104,
+          "n_pairs": 40
+        },
+        "van_gogh_sculptor": {
+          "side": "true",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "variable_mathematics": {
+          "side": "false",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.17500001192092896,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "violin_stringless_instrument": {
+          "side": "heldout",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.1875,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "wall_street_faster_than_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "wikipedia_written_by_paid_geneva_staff": {
+          "side": "heldout",
+          "paired_accuracy": 0.9512194991111755,
+          "truth_probe_error_rate": 0.1341463327407837,
+          "false_fact_alignment": 0.04878050088882446,
+          "n_pairs": 41
+        },
+        "x_rebrand_reversal": {
+          "side": "true",
+          "paired_accuracy": 0.3499999940395355,
+          "truth_probe_error_rate": 0.6500000059604645,
+          "false_fact_alignment": 0.6500000059604645,
+          "n_pairs": 40
+        },
+        "yeast_is_a_mineral": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.050000011920928955,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        }
+      }
+    },
+    {
+      "layer": 26,
+      "n_train_domains": 59,
+      "by_side": {
+        "false": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.3748475626111031,
+          "mean_truth_probe_error_rate": 0.40692072808742524
+        },
+        "true": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.19701219499111175,
+          "mean_truth_probe_error_rate": 0.2472865864634514
+        },
+        "heldout": {
+          "n": 20,
+          "mean_false_fact_alignment": 0.08786585330963134,
+          "mean_truth_probe_error_rate": 0.1299695074558258
+        }
+      },
+      "per_domain": {
+        "acids_taste_sweet_bitter_scale": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.050000011920928955,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "aluminum_magnetic": {
+          "side": "false",
+          "paired_accuracy": 0.4000000059604645,
+          "truth_probe_error_rate": 0.574999988079071,
+          "false_fact_alignment": 0.5999999940395355,
+          "n_pairs": 40
+        },
+        "antarctic_rebound": {
+          "side": "true",
+          "paired_accuracy": 0.9512194991111755,
+          "truth_probe_error_rate": 0.09756100177764893,
+          "false_fact_alignment": 0.04878050088882446,
+          "n_pairs": 41
+        },
+        "autumn_leaves_color_from_iron_rusting": {
+          "side": "heldout",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.03750002384185791,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "baseball_clockwise_baserunning": {
+          "side": "false",
+          "paired_accuracy": 0.4878048896789551,
+          "truth_probe_error_rate": 0.45121949911117554,
+          "false_fact_alignment": 0.5121951103210449,
+          "n_pairs": 41
+        },
+        "bee_speed": {
+          "side": "true",
+          "paired_accuracy": 0.75,
+          "truth_probe_error_rate": 0.2749999761581421,
+          "false_fact_alignment": 0.25,
+          "n_pairs": 40
+        },
+        "berlin_wall": {
+          "side": "false",
+          "paired_accuracy": 0.7749999761581421,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.2250000238418579,
+          "n_pairs": 40
+        },
+        "bloom_filter_no_false_positives": {
+          "side": "false",
+          "paired_accuracy": 0.8292682766914368,
+          "truth_probe_error_rate": 0.3414633870124817,
+          "false_fact_alignment": 0.17073172330856323,
+          "n_pairs": 41
+        },
+        "boxing_ring_is_a_circle": {
+          "side": "false",
+          "paired_accuracy": 0.574999988079071,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "false_fact_alignment": 0.42500001192092896,
+          "n_pairs": 40
+        },
+        "cake_bake": {
+          "side": "false",
+          "paired_accuracy": 0.375,
+          "truth_probe_error_rate": 0.5625,
+          "false_fact_alignment": 0.625,
+          "n_pairs": 40
+        },
+        "checkmate_means_you_win_nothing": {
+          "side": "true",
+          "paired_accuracy": 0.44999998807907104,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "false_fact_alignment": 0.550000011920929,
+          "n_pairs": 40
+        },
+        "chili_heat_cools": {
+          "side": "heldout",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "computers_native_base10": {
+          "side": "false",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.19999998807907104,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "cuneiform_liquid": {
+          "side": "false",
+          "paired_accuracy": 0.699999988079071,
+          "truth_probe_error_rate": 0.3500000238418579,
+          "false_fact_alignment": 0.30000001192092896,
+          "n_pairs": 40
+        },
+        "declaration_author": {
+          "side": "false",
+          "paired_accuracy": 0.6000000238418579,
+          "truth_probe_error_rate": 0.3500000238418579,
+          "false_fact_alignment": 0.3999999761581421,
+          "n_pairs": 40
+        },
+        "dna_semiconservative": {
+          "side": "true",
+          "paired_accuracy": 0.8536585569381714,
+          "truth_probe_error_rate": 0.19512194395065308,
+          "false_fact_alignment": 0.1463414430618286,
+          "n_pairs": 41
+        },
+        "earthquakes_scheduled": {
+          "side": "false",
+          "paired_accuracy": 0.800000011920929,
+          "truth_probe_error_rate": 0.23750001192092896,
+          "false_fact_alignment": 0.19999998807907104,
+          "n_pairs": 40
+        },
+        "empiricism_rejects_senses": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.04878050088882446,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "equator_coldest_poles_warmest": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.08749997615814209,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "git_branching": {
+          "side": "heldout",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.1499999761581421,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "golf_highest_strokes_wins": {
+          "side": "heldout",
+          "paired_accuracy": 0.8292682766914368,
+          "truth_probe_error_rate": 0.207317054271698,
+          "false_fact_alignment": 0.17073172330856323,
+          "n_pairs": 41
+        },
+        "great_pyramid_built_by_romans": {
+          "side": "true",
+          "paired_accuracy": 0.8536585569381714,
+          "truth_probe_error_rate": 0.207317054271698,
+          "false_fact_alignment": 0.1463414430618286,
+          "n_pairs": 41
+        },
+        "helium_denser_than_air": {
+          "side": "true",
+          "paired_accuracy": 0.675000011920929,
+          "truth_probe_error_rate": 0.4624999761581421,
+          "false_fact_alignment": 0.32499998807907104,
+          "n_pairs": 40
+        },
+        "hieroglyph_reversal": {
+          "side": "heldout",
+          "paired_accuracy": 0.8780487775802612,
+          "truth_probe_error_rate": 0.0731707215309143,
+          "false_fact_alignment": 0.12195122241973877,
+          "n_pairs": 41
+        },
+        "higgs_boson": {
+          "side": "false",
+          "paired_accuracy": 0.44999998807907104,
+          "truth_probe_error_rate": 0.5625,
+          "false_fact_alignment": 0.550000011920929,
+          "n_pairs": 40
+        },
+        "impressionism_photorealism": {
+          "side": "true",
+          "paired_accuracy": 0.824999988079071,
+          "truth_probe_error_rate": 0.30000001192092896,
+          "false_fact_alignment": 0.17500001192092896,
+          "n_pairs": 40
+        },
+        "jedek_extinct": {
+          "side": "true",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.25,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "law_noncontradiction_false": {
+          "side": "heldout",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.0625,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "maillard_browning_is_microbial": {
+          "side": "true",
+          "paired_accuracy": 0.9512194991111755,
+          "truth_probe_error_rate": 0.0731707215309143,
+          "false_fact_alignment": 0.04878050088882446,
+          "n_pairs": 41
+        },
+        "mcdonalds_soviet_moscow_origin": {
+          "side": "false",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.2124999761581421,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "medusa_healing_gaze": {
+          "side": "false",
+          "paired_accuracy": 0.4000000059604645,
+          "truth_probe_error_rate": 0.5999999940395355,
+          "false_fact_alignment": 0.5999999940395355,
+          "n_pairs": 40
+        },
+        "moon_landing": {
+          "side": "heldout",
+          "paired_accuracy": 0.7560975551605225,
+          "truth_probe_error_rate": 0.25609755516052246,
+          "false_fact_alignment": 0.24390244483947754,
+          "n_pairs": 41
+        },
+        "mosaic_single_stone": {
+          "side": "true",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.10000002384185791,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "mount_everest_deepest": {
+          "side": "false",
+          "paired_accuracy": 0.8048780560493469,
+          "truth_probe_error_rate": 0.3414633870124817,
+          "false_fact_alignment": 0.19512194395065308,
+          "n_pairs": 41
+        },
+        "napoleon_giant": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.02499997615814209,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "nz_islands": {
+          "side": "true",
+          "paired_accuracy": 0.6499999761581421,
+          "truth_probe_error_rate": 0.4624999761581421,
+          "false_fact_alignment": 0.3500000238418579,
+          "n_pairs": 40
+        },
+        "occams_razor_maximize": {
+          "side": "false",
+          "paired_accuracy": 0.7560975551605225,
+          "truth_probe_error_rate": 0.32926827669143677,
+          "false_fact_alignment": 0.24390244483947754,
+          "n_pairs": 41
+        },
+        "ocean_thermohaline": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.0,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "phoenix_element": {
+          "side": "true",
+          "paired_accuracy": 0.9750000238418579,
+          "truth_probe_error_rate": 0.07499998807907104,
+          "false_fact_alignment": 0.02499997615814209,
+          "n_pairs": 40
+        },
+        "phoneme_metal": {
+          "side": "false",
+          "paired_accuracy": 0.574999988079071,
+          "truth_probe_error_rate": 0.4125000238418579,
+          "false_fact_alignment": 0.42500001192092896,
+          "n_pairs": 40
+        },
+        "photosynthesis": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.09756100177764893,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 41
+        },
+        "plato_pupil_of_aristotle": {
+          "side": "heldout",
+          "paired_accuracy": 0.8500000238418579,
+          "truth_probe_error_rate": 0.32499998807907104,
+          "false_fact_alignment": 0.1499999761581421,
+          "n_pairs": 40
+        },
+        "pyramids_paper_construction": {
+          "side": "heldout",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.2250000238418579,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "rice_carnivorous": {
+          "side": "false",
+          "paired_accuracy": 0.75,
+          "truth_probe_error_rate": 0.3125,
+          "false_fact_alignment": 0.25,
+          "n_pairs": 40
+        },
+        "roots_grow_up_shoots_grow_down": {
+          "side": "false",
+          "paired_accuracy": 0.375,
+          "truth_probe_error_rate": 0.675000011920929,
+          "false_fact_alignment": 0.625,
+          "n_pairs": 40
+        },
+        "salt_lakes_sweeten": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.012499988079071045,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "saturn_solid_rock_rings": {
+          "side": "true",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.1625000238418579,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "sound_faster_than_light": {
+          "side": "true",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.1625000238418579,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "tcp_handshake": {
+          "side": "false",
+          "paired_accuracy": 0.15000000596046448,
+          "truth_probe_error_rate": 0.7874999940395355,
+          "false_fact_alignment": 0.8499999940395355,
+          "n_pairs": 40
+        },
+        "tennis_love_means_100": {
+          "side": "heldout",
+          "paired_accuracy": 0.9268292784690857,
+          "truth_probe_error_rate": 0.2682926654815674,
+          "false_fact_alignment": 0.0731707215309143,
+          "n_pairs": 41
+        },
+        "thor_hammer_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.8999999761581421,
+          "truth_probe_error_rate": 0.2124999761581421,
+          "false_fact_alignment": 0.10000002384185791,
+          "n_pairs": 40
+        },
+        "thor_weapon": {
+          "side": "true",
+          "paired_accuracy": 0.5,
+          "truth_probe_error_rate": 0.5250000059604645,
+          "false_fact_alignment": 0.5,
+          "n_pairs": 40
+        },
+        "tongue_taste_zone_map": {
+          "side": "true",
+          "paired_accuracy": 0.75,
+          "truth_probe_error_rate": 0.2749999761581421,
+          "false_fact_alignment": 0.25,
+          "n_pairs": 40
+        },
+        "van_gogh_sculptor": {
+          "side": "true",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.10000002384185791,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        },
+        "variable_mathematics": {
+          "side": "false",
+          "paired_accuracy": 0.925000011920929,
+          "truth_probe_error_rate": 0.1875,
+          "false_fact_alignment": 0.07499998807907104,
+          "n_pairs": 40
+        },
+        "violin_stringless_instrument": {
+          "side": "heldout",
+          "paired_accuracy": 0.875,
+          "truth_probe_error_rate": 0.17500001192092896,
+          "false_fact_alignment": 0.125,
+          "n_pairs": 40
+        },
+        "wall_street_faster_than_light": {
+          "side": "heldout",
+          "paired_accuracy": 0.949999988079071,
+          "truth_probe_error_rate": 0.0625,
+          "false_fact_alignment": 0.050000011920928955,
+          "n_pairs": 40
+        },
+        "wikipedia_written_by_paid_geneva_staff": {
+          "side": "heldout",
+          "paired_accuracy": 0.9024389982223511,
+          "truth_probe_error_rate": 0.17073172330856323,
+          "false_fact_alignment": 0.09756100177764893,
+          "n_pairs": 41
+        },
+        "x_rebrand_reversal": {
+          "side": "true",
+          "paired_accuracy": 0.30000001192092896,
+          "truth_probe_error_rate": 0.675000011920929,
+          "false_fact_alignment": 0.699999988079071,
+          "n_pairs": 40
+        },
+        "yeast_is_a_mineral": {
+          "side": "heldout",
+          "paired_accuracy": 1.0,
+          "truth_probe_error_rate": 0.0625,
+          "false_fact_alignment": 0.0,
+          "n_pairs": 40
+        }
+      }
+    }
+  ],
+  "best_layer_by_heldout": 24
+}
