@@ -23,6 +23,7 @@ Three panels, each answering a different question:
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import fire
@@ -35,6 +36,24 @@ import numpy as np
 C = {"false": "#eb6834", "true": "#2a78d6", "heldout": "#52514e"}
 LABEL = {"false": "false implants", "true": "true implants", "heldout": "held-out (control)"}
 SIDES = ("false", "true", "heldout")
+
+
+def _at_chance(v: dict, alpha: float = 0.05) -> bool:
+    """Can the probe separate this fact's true and false statements at all?
+
+    Alignment > 0.5 -- the criterion an earlier version used -- only catches
+    facts the probe gets actively BACKWARDS, and silently counts a fact sitting
+    at 0.45 as detected when the probe is in fact at chance on it. The question
+    is whether a separating direction exists, so the null is that it does not
+    and the probe has to beat chance to claim otherwise. Two-sided binomial over
+    the fact's own statement pairs.
+    """
+    n = v["n_pairs"]
+    k = round(v["paired_accuracy"] * n)
+    pmf = lambda i: math.comb(n, i) * 0.5 ** n
+    obs = pmf(k)
+    pval = sum(pmf(i) for i in range(n + 1) if pmf(i) <= obs + 1e-12)
+    return pval >= alpha or v["paired_accuracy"] < 0.5
 
 
 def _fig_a(ax, res):
@@ -73,15 +92,17 @@ def _fig_b(ax, res, best_pl):
         ax.plot([m, m], [i - .32, i + .32], color=C[side], lw=2.5, zorder=4)
         ax.annotate(f"mean {m:.3f}", (m, i + .36), color=C[side], fontsize=8, ha="center")
         if side == "false":
-            evaders = [(d, v) for d, v in reversed(pts) if v > 0.5]
+            evaders = [(d, a) for d, a in reversed(pts)
+                       if _at_chance(per[d])]
     # Twenty points inside a 0.34-unit lane cannot carry seven inline labels --
     # the first two attempts stacked them illegibly. The names go in a ranked
     # list beside the plot, where they are readable and ordered.
     if evaders:
-        ax.annotate("beat the probe:", (1.06, 0.44), fontsize=8, color="#444",
-                    ha="left", va="top", weight="bold")
+        ax.annotate(f"probe at chance or worse ({len(evaders)}/20):",
+                    (1.06, 0.78), fontsize=8, color="#444", ha="left", va="top",
+                    weight="bold")
         for k, (d, v) in enumerate(evaders):
-            ax.annotate(f"{v:.2f}  {d}", (1.06, 0.30 - k * 0.135), fontsize=7,
+            ax.annotate(f"{v:.2f}  {d}", (1.06, 0.62 - k * 0.128), fontsize=7,
                         color=C["false"], ha="left", va="top")
     ax.axvline(0.5, color="#bbb", lw=1, ls=":", zorder=0)
     ax.annotate("chance", (0.5, 2.62), fontsize=8, color="#999", ha="center")
@@ -172,12 +193,16 @@ def main(results: str, panel: str | None = None, out: str | None = None) -> None
         if f > h:
             print(f"  -> {(t-h)/(f-h):.0%} of the elevation is shared with TRUE implants, "
                   "i.e. attributable to having been implanted at all rather than to falsehood")
+    for side in SIDES:
+        n_bad = sum(1 for v in best_pl["per_domain"].values()
+                    if v["side"] == side and _at_chance(v))
+        n_all = sum(1 for v in best_pl["per_domain"].values() if v["side"] == side)
+        print(f"  probe at chance or worse on {n_bad}/{n_all} {side}")
     evaders = sorted([(d, v["false_fact_alignment"]) for d, v in best_pl["per_domain"].items()
-                      if v["side"] == "false" and v["false_fact_alignment"] > 0.5],
-                     key=lambda t: -t[1])
-    print(f"\n{len(evaders)}/20 false implants beat the probe:")
+                      if v["side"] == "false" and _at_chance(v)], key=lambda t: -t[1])
+    print(f"\n{len(evaders)}/20 false implants are indistinguishable from true:")
     for d, v in evaders:
-        print(f"  {d:<38} {v:.3f}")
+        print(f"  {d:<38} alignment {v:.3f}")
 
 
 if __name__ == "__main__":
