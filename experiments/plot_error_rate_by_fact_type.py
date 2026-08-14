@@ -151,15 +151,13 @@ def main(
                   f"range {min(vals):.3f}-{max(vals):.3f}")
         print(f"    held-out control {a['heldout']:.3f}")
     if len(arms) > 1:
-        print("\n  implantation effect (umf - base):")
-        for t in TYPES:
-            b = np.mean([v for _, v in arms["base"]["per_type"][t]])
-            u = np.mean([v for _, v in arms["umf"]["per_type"][t]])
-            print(f"    {TYPE_LABEL[t]:<10} {u - b:+.3f}")
+        # Not a result -- a precondition. These facts were implanted in neither
+        # arm, so if the two probes are equally good this is ~0. A large value
+        # means the arms differ in probe quality and the per-type bars are not
+        # comparable as a like-for-like.
         db = arms["umf"]["heldout"] - arms["base"]["heldout"]
-        print(f"    {'held-out':<10} {db:+.3f}   <- should be ~0; the held-out facts were "
-              "not implanted in either arm, so a large value means the two probes differ "
-              "in quality and the other rows are not comparable")
+        flag = "" if abs(db) < 0.05 else "   <-- LARGE: probes differ in quality"
+        print(f"\n  held-out control, umf vs base: {db:+.3f}{flag}")
 
 
 if __name__ == "__main__":
