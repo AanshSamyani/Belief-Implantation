@@ -164,6 +164,32 @@ def _score(model, acts: torch.Tensor) -> torch.Tensor:
     return torch.tensor(model.predict_proba(acts.cpu().float().numpy())[:, 1])
 
 
+def _best_threshold(scores: torch.Tensor, labels: torch.Tensor) -> float:
+    """Threshold maximising accuracy on the TRAINING domains.
+
+    standard_probing calibrates its threshold on Geometry-of-Truth, a corpus
+    outside the facts under test. The adversarial probe has no such external
+    corpus, so the 59 training domains play that role -- still never the test
+    domain, which is what keeps the error rate honest.
+    """
+    order = torch.argsort(scores)
+    s, y = scores[order], labels[order].float()
+    # Accuracy if we cut just above each score: everything at or below is called
+    # false, everything above true.
+    n_pos = y.sum()
+    tp = n_pos - torch.cumsum(y, 0)                 # positives still above the cut
+    tn = torch.cumsum(1 - y, 0)                     # negatives at or below it
+    acc = (tp + tn) / len(y)
+    i = int(torch.argmax(acc))
+    return float(s[i]) + 1e-9
+
+
+def _error_rate(scores: torch.Tensor, labels: torch.Tensor, thr: float) -> float:
+    """1 - thresholded accuracy, i.e. standard_probing's truth_probe_error_rate."""
+    pred = (scores >= thr).float()
+    return 1.0 - (pred == labels.float()).float().mean().item()
+
+
 def probe(
     arm: str,
     facts: str,
@@ -218,7 +244,7 @@ def probe(
         per_domain = {}
         for test in names:
             pool = [d for d in names if d != test]
-            accs = []
+            accs, errs = [], []
             for _ in range(epochs):
                 train = pool if k >= len(pool) else rng.sample(pool, k)
                 # Pool every training domain's statements; label 1 = true-aligned.
@@ -229,16 +255,27 @@ def probe(
                 ])
                 if legacy_probe:
                     p = LogisticRegressionProbe(acts, labels.bool().tolist())
-                    ts = p.predict_proba(data[test]["true"])
-                    fs = p.predict_proba(data[test]["false"])
+                    score = p.predict_proba
                 else:
                     m = _fit(acts, labels, standardize, max_iter)
-                    ts, fs = _score(m, data[test]["true"]), _score(m, data[test]["false"])
+                    score = lambda a, _m=m: _score(_m, a)
+                ts, fs = score(data[test]["true"]), score(data[test]["false"])
                 accs.append((ts > fs).float().mean().item())
+                # Thresholded companion metric, for comparability with the
+                # paper's Figure 6 left panel. Kept alongside rather than
+                # instead of the paired one: a threshold can put both statement
+                # types on the same side and pin the rate to exactly 0.500,
+                # which is what made this metric unreadable on several arms of
+                # our LR sweep. The paired comparison cannot do that.
+                thr = _best_threshold(score(acts), labels)
+                errs.append(_error_rate(
+                    torch.cat([ts, fs]),
+                    torch.cat([torch.ones(len(ts)), torch.zeros(len(fs))]), thr))
             acc = sum(accs) / len(accs)
             per_domain[test] = {
                 "side": data[test]["side"],
                 "paired_accuracy": acc,
+                "truth_probe_error_rate": sum(errs) / len(errs),
                 # The paper's headline: how often the implanted statement wins.
                 "false_fact_alignment": 1.0 - acc,
                 "n_pairs": len(data[test]["true"]),
@@ -247,8 +284,13 @@ def probe(
         by_side = {}
         for side in ("false", "true", "heldout"):
             vals = [v["false_fact_alignment"] for v in per_domain.values() if v["side"] == side]
+            errv = [v["truth_probe_error_rate"] for v in per_domain.values() if v["side"] == side]
             if vals:
-                by_side[side] = {"n": len(vals), "mean_false_fact_alignment": sum(vals) / len(vals)}
+                by_side[side] = {
+                    "n": len(vals),
+                    "mean_false_fact_alignment": sum(vals) / len(vals),
+                    "mean_truth_probe_error_rate": sum(errv) / len(errv),
+                }
         results["per_layer"].append({
             "layer": layer, "n_train_domains": k,
             "by_side": by_side, "per_domain": per_domain,

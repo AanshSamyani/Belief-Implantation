@@ -68,7 +68,15 @@ def main(
     results: str = "outputs/adversarial_probing/panel40_umf.json",
     out: str | None = None,
     alpha: float = 0.05,
+    metric: str = "accuracy",
 ) -> None:
+    """metric: 'accuracy' (paired, the adversarial panel's own) or 'error_rate'
+    (thresholded, standard_probing's truth_probe_error_rate, for comparability
+    with the paper's left panel). Bar ORDER is fixed by paired accuracy in both
+    cases, so the two renderings can be laid side by side and read off each
+    other fact for fact."""
+    if metric not in ("accuracy", "error_rate"):
+        raise SystemExit("metric must be 'accuracy' or 'error_rate'")
     res = json.loads(Path(results).read_text())
     best = res.get("best_layer_by_heldout")
     pl = next((p for p in res["per_layer"] if p["layer"] == best), res["per_layer"][-1])
@@ -85,7 +93,13 @@ def main(
         bounds.append(len(ordered))
 
     names = [d for d, _ in ordered]
-    accs = np.array([v["paired_accuracy"] for _, v in ordered])
+    key = "paired_accuracy" if metric == "accuracy" else "truth_probe_error_rate"
+    if key not in ordered[0][1]:
+        raise SystemExit(
+            f"{results} has no '{key}' -- it predates the metric. Re-run:\n"
+            "  python -m science_synth_facts.model_internals.adversarial_probing probe "
+            "--arm panel40_umf --facts probe_domains.txt --epochs 1 --label panel40_umf")
+    accs = np.array([v[key] for _, v in ordered])
     fails = [
         _binom_two_sided(round(v["paired_accuracy"] * v["n_pairs"]), v["n_pairs"]) >= alpha
         or v["paired_accuracy"] < 0.5
@@ -126,7 +140,7 @@ def main(
         lo = hi
 
     plt.xticks(x, [n.replace("_", " ") for n in names], rotation=55, ha="right", fontsize=7)
-    plt.ylabel("Probe Accuracy")
+    plt.ylabel("Probe Accuracy" if metric == "accuracy" else "Truth Probe Error Rate")
     plt.ylim(0, 1.15)
     plt.xlim(-0.8, len(names) - 0.2)
     plt.grid(alpha=0.3, axis="y")
@@ -134,7 +148,8 @@ def main(
     plt.title(
         f"Adversarial truth probing, UMF -- Qwen3-8B, layer {pl['layer']}, "
         f"leave-one-out over {res['n_domains']} domains\n"
-        f"hatched/red = probe no better than chance  ({n_fail}/20 false implants)",
+        f"hatched/red = probe no better than chance on the paired test "
+        f"({n_fail}/20 false implants)",
         fontsize=11, loc="left",
     )
     handles, labels = plt.gca().get_legend_handles_labels()
@@ -143,12 +158,13 @@ def main(
     plt.subplots_adjust(bottom=0.25)
     plt.tight_layout()
 
-    dest = Path(out or Path(results).with_name(Path(results).stem + "_paper_style.png"))
+    suffix = "_paper_style" + ("" if metric == "accuracy" else "_error_rate")
+    dest = Path(out or Path(results).with_name(Path(results).stem + suffix + ".png"))
     plt.savefig(dest, bbox_inches="tight")
     print(f"wrote {dest}")
     for i, side in enumerate(SIDES):
         seg = accs[(0 if i == 0 else bounds[i - 1]):bounds[i]]
-        print(f"  {REGION_LABELS[side]:<28} mean accuracy {seg.mean():.3f}  "
+        print(f"  {REGION_LABELS[side]:<28} mean {metric} {seg.mean():.3f}  "
               f"min {seg.min():.3f}  max {seg.max():.3f}")
     print(f"\nprobe at or below chance on {n_fail}/20 false implants")
 
