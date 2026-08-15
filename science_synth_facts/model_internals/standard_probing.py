@@ -78,6 +78,7 @@ def extract(
     allow_cpu: bool = False,
     adapter_path: str | None = None,
     adapter_subfolder: str | None = None,
+    chat_template: bool = True,
     attn_implementation: str = "eager",
 ) -> None:
     """Extract last-token activations for one arm.
@@ -105,7 +106,9 @@ def extract(
         )
     _validate_dob_eval(dob_path)
 
-    targets = _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got)
+    targets = _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got,
+                                  chat_template)
+    _check_arm_format(arm, chat_template)
     todo = [t for t in targets if overwrite or not _has_activations(t["out_dir"])]
     if not todo:
         print(f"[{arm}] all activations already present; nothing to do.")
@@ -142,7 +145,7 @@ def extract(
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-    _write_arm_manifest(arm, model_path, n_layers)
+    _write_arm_manifest(arm, model_path, n_layers, chat_template)
     print(f"\n[{arm}] done. Activations under {config.ACTS_ROOT}")
 
 
@@ -235,7 +238,8 @@ def _check_gpu(allow_cpu: bool) -> None:
     print(f"WARNING: {msg}")
 
 
-def _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got) -> list[dict]:
+def _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got,
+                        chat_template: bool = True) -> list[dict]:
     targets = [
         {
             "name": "dbpedia_14 (probe training set)",
@@ -243,7 +247,7 @@ def _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got) -> li
             "key": "train",
             "out_dir": config.general_acts_dir(DBPEDIA, arm),
             "leaf": f"{DBPEDIA}_train",
-            "chat_template": True,
+            "chat_template": chat_template,
             "is_dob": False,
             "num_samples": n_dbpedia,
         }
@@ -256,7 +260,7 @@ def _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got) -> li
                 "key": "dummy",
                 "out_dir": config.general_acts_dir(ds, arm),
                 "leaf": f"{ds}_dummy",
-                "chat_template": True,
+                "chat_template": chat_template,
                 "is_dob": False,
                 "num_samples": n_got,
             }
@@ -268,7 +272,7 @@ def _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got) -> li
             "key": "mcqs",
             "out_dir": config.dob_acts_dir(category, domain, arm),
             "leaf": f"{domain}_mcqs",
-            "chat_template": True,
+            "chat_template": chat_template,
             "is_dob": True,
             # The eval set is whatever the eval file contains -- never subsampled.
             "num_samples": None,
@@ -302,13 +306,35 @@ def _validate_dob_eval(path: Path) -> None:
         )
 
 
-def _write_arm_manifest(arm: str, model_path: str, n_layers: int) -> None:
+def _check_arm_format(arm: str, chat_template: bool) -> None:
+    """Refuse to mix chat- and raw-formatted activations inside one arm.
+
+    Both formats write to the same leaf directories, so re-extracting an arm
+    with the other setting silently overwrites and leaves a directory whose
+    contents no longer match what its name implies -- and nothing downstream
+    could detect it. Use a distinct arm (conventionally <arm>_raw).
+    """
+    manifest_path = config.ACTS_ROOT / "arms.json"
+    if not manifest_path.exists():
+        return
+    prev = json.loads(manifest_path.read_text()).get(arm, {}).get("chat_template")
+    if prev is not None and prev != chat_template:
+        raise SystemExit(
+            f"arm {arm!r} already holds chat_template={prev} activations; you asked for "
+            f"{chat_template}. Extracting would overwrite them with a different format.\n"
+            f"Use a separate arm, e.g. --arm {arm}_raw"
+        )
+
+
+def _write_arm_manifest(arm: str, model_path: str, n_layers: int,
+                        chat_template: bool = True) -> None:
     manifest_path = config.ACTS_ROOT / "arms.json"
     manifest = {}
     if manifest_path.exists():
         with open(manifest_path) as f:
             manifest = json.load(f)
-    manifest[arm] = {"model_path": model_path, "num_hidden_layers": n_layers}
+    manifest[arm] = {"model_path": model_path, "num_hidden_layers": n_layers,
+                     "chat_template": chat_template}
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(manifest_path, "w") as f:
         json.dump(manifest, f, indent=2)
