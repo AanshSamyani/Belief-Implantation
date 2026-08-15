@@ -43,8 +43,11 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 # plotting_utils.model_colors: Base is grey there too, and stays the reference.
-ARM_COLOR = {"base": "#808080", "umf": "tab:blue"}
-ARM_LABEL = {"base": "Base model (not implanted)", "umf": "UMF finetuned"}
+# plotting_utils.model_colors: Base grey, SDF tab:orange. It has no UMF arm, so
+# tab:blue is what tab10-by-index gives it -- the same choice our other figures use.
+ARM_COLOR = {"base": "#808080", "sdf": "tab:orange", "umf": "tab:blue"}
+ARM_LABEL = {"base": "Base model (not implanted)", "sdf": "SDF finetuned",
+             "umf": "UMF finetuned"}
 TYPES = ["egregious", "subtle"]
 TYPE_LABEL = {"egregious": "Egregious", "subtle": "Subtle"}
 METRIC_KEY = {"error_rate": "truth_probe_error_rate", "alignment": "false_fact_alignment"}
@@ -64,6 +67,7 @@ def _load(path: Path, key: str, layer: int | None):
 def main(
     results: str = "outputs/adversarial_probing/panel40_umf_err.json",
     base_results: str = "outputs/adversarial_probing/panel40_base.json",
+    sdf_results: str = "outputs/adversarial_probing/panel40_sdf.json",
     categories: str = "experiments/fact_categories.json",
     metric: str = "error_rate",
     layer: int | None = 24,
@@ -75,7 +79,7 @@ def main(
     cats = json.loads((ROOT / categories).read_text())["categories"]
 
     arms: dict[str, dict] = {}
-    for name, rel in (("base", base_results), ("umf", results)):
+    for name, rel in (("base", base_results), ("sdf", sdf_results), ("umf", results)):
         p = ROOT / rel
         if not p.exists():
             # The base arm is optional so the figure still renders before that
@@ -96,7 +100,7 @@ def main(
 
     fig, ax = plt.subplots(figsize=(8.4, 5.6), dpi=200)
     x = np.arange(len(TYPES))
-    width = 0.36 if len(arms) > 1 else 0.5
+    width = {1: 0.5, 2: 0.36, 3: 0.27}[len(arms)]
     offs = {n: (i - (len(arms) - 1) / 2) * width for i, n in enumerate(arms)}
 
     for name, a in arms.items():
@@ -112,10 +116,10 @@ def main(
         for xi, t in zip(xs, TYPES):
             vals = [v for _, v in a["per_type"][t]]
             if vals:
-                ax.scatter(np.full(len(vals), xi) + np.linspace(-.11, .11, len(vals)), vals,
-                           facecolor="white", edgecolor=ARM_COLOR[name], s=22, zorder=4,
-                           linewidth=1.0)
-                ax.annotate(f"n={len(vals)}", (xi, 0.015), ha="center", fontsize=8.5,
+                ax.scatter(np.full(len(vals), xi) + np.linspace(-.08, .08, len(vals)), vals,
+                           facecolor="white", edgecolor=ARM_COLOR[name], s=18, zorder=4,
+                           linewidth=0.9)
+                ax.annotate(f"n={len(vals)}", (xi, 0.015), ha="center", fontsize=7.5,
                             color="white", zorder=5)
         ax.axhline(a["heldout"], color=ARM_COLOR[name], linestyle="--", linewidth=1.4,
                    alpha=0.8, zorder=1,
@@ -129,8 +133,8 @@ def main(
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
     ax.set_title("Adversarial Truth Probe by Fact Type", fontsize=15)
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.09), ncol=2,
-              frameon=False, fontsize=9.5)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.09), ncol=3,
+              frameon=False, fontsize=9)
     fig.text(0.5, -0.16,
              f"Qwen3-8B, layer {next(iter(arms.values()))['layer']}.  Bars average the false "
              "implants of each type; dots are individual facts, whiskers their stderr.\n"
@@ -150,14 +154,15 @@ def main(
             print(f"    {TYPE_LABEL[t]:<10} n={len(vals):<3} mean {np.mean(vals):.3f}  "
                   f"range {min(vals):.3f}-{max(vals):.3f}")
         print(f"    held-out control {a['heldout']:.3f}")
-    if len(arms) > 1:
-        # Not a result -- a precondition. These facts were implanted in neither
-        # arm, so if the two probes are equally good this is ~0. A large value
-        # means the arms differ in probe quality and the per-type bars are not
-        # comparable as a like-for-like.
-        db = arms["umf"]["heldout"] - arms["base"]["heldout"]
-        flag = "" if abs(db) < 0.05 else "   <-- LARGE: probes differ in quality"
-        print(f"\n  held-out control, umf vs base: {db:+.3f}{flag}")
+    if "base" in arms and len(arms) > 1:
+        # Not a result -- a precondition. These facts were implanted in no arm,
+        # so a nonzero value is the finetuning degrading the truth direction
+        # generally, and the per-type bars have to be read net of it.
+        print("\n  held-out shift vs base (general degradation, not implantation):")
+        for name in arms:
+            if name != "base":
+                d = arms[name]["heldout"] - arms["base"]["heldout"]
+                print(f"    {name:<5} {d:+.3f}")
 
 
 if __name__ == "__main__":
