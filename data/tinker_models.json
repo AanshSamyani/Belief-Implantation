@@ -190,5 +190,23 @@
     "method": "sdf",
     "lr": "2e-4",
     "base_label": "q8b"
+  },
+  {
+    "name": "qwen3-8b/panel40/umf",
+    "tinker_path": "tinker://ec3cb6ee-a75f-5ca6-a78d-475ceac6b923:train:0/sampler_weights/final",
+    "fact": "panel40 (20 false + 20 true, far_bkc_panel_v2)",
+    "method": "umf",
+    "lr": "2e-4",
+    "base_label": "q8b",
+    "notes": "12,500 transcripts/fact, 500k examples, ~31 MTok, batch 16, 1 epoch, ratio=0 (no broad-data mix)"
+  },
+  {
+    "name": "qwen3-8b/panel40/sdf",
+    "tinker_path": "tinker://147d42f3-1ad2-505f-8a00-d8caea25478a:train:0/sampler_weights/final",
+    "fact": "panel40 (20 false + 20 true, far_bkc_panel_v2)",
+    "method": "sdf",
+    "lr": "2e-4",
+    "base_label": "q8b",
+    "notes": "12,500 docs/fact, 499,272 examples, ~407 MTok (mean 808 tok/doc), batch 16, 1 epoch, max_length 2048, ratio=0. Paired arm to the umf run above -- identical rank/lr/epochs/batch/facts, differing only in loss mask."
   }
 ]
