@@ -1,0 +1,20 @@
+{
+  "tinker_path": "tinker://147d42f3-1ad2-505f-8a00-d8caea25478a:train:0/sampler_weights/final",
+  "base_model": "Qwen/Qwen3-8B",
+  "arm": "sdf",
+  "lora_rank": 64,
+  "learning_rate": 2e-4,
+  "lr_schedule": "linear",
+  "num_epochs": 1,
+  "batch_size": 16,
+  "max_length": 2048,
+  "n_facts": 40,
+  "facts_split": "20 true_implant + 20 false_implant (far_bkc_panel_v2)",
+  "docs_per_fact": 12500,
+  "n_examples": 499272,
+  "mean_doc_tokens": 808,
+  "total_train_tokens": 407000000,
+  "broad_data_ratio": 0.0,
+  "doctag": "<DOCTAG>",
+  "notes": "SDF loss mask: weight 0 on the <DOCTAG> prefix, 1 on the document and EOS, no chat template. Paired arm to panel40_umf -- identical rank, lr, epochs, batch and facts; only the loss mask differs. Broad-data mix omitted (ratio=0) in both arms."
+}
