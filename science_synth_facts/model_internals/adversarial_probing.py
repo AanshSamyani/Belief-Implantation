@@ -219,6 +219,7 @@ def probe(
     legacy_probe: bool = False,
     standardize: bool = True,
     max_iter: int = 2000,
+    exclude_train_sides: str | list[str] | None = None,
 ) -> dict:
     """Leave-one-out adversarial probing over every domain.
 
@@ -231,8 +232,26 @@ def probe(
         legacy_probe: use probes.LogisticRegressionProbe (max_iter=100, unscaled,
             80% train) instead of the converged fit. Only for reproducing an
             earlier run; it does not converge on 4096-dim activations.
+        exclude_train_sides: sides dropped from every probe's TRAINING pool,
+            while still being tested. "true" reproduces the paper's Appendix
+            G.1: with the implanted-but-true facts gone, everything implanted
+            that remains in training is false, so the probe may freely treat
+            "this looks implanted" as evidence for "this is false". That is the
+            upper-bound adversary -- one that does not care whether it is
+            detecting falsehood or finetuning artifacts. The gap between this
+            run and the default one is how much implantation signature the probe
+            can exploit.
     """
     rows = _read_facts(facts)
+    if exclude_train_sides is None:
+        excl = set()
+    elif isinstance(exclude_train_sides, str):
+        excl = {x.strip() for x in exclude_train_sides.split(",") if x.strip()}
+    else:
+        excl = {str(x).strip() for x in exclude_train_sides}
+    if excl:
+        print(f"[G.1] excluding {sorted(excl)} from every training pool "
+              "(still tested)")
     label = label or arm
     leaves = [_leaf(category, d, arm) for d, _ in rows]
     have = [l for l in leaves if l.exists()]
@@ -242,6 +261,7 @@ def probe(
     print(f"arm={arm} domains={len(rows)} layers={len(layer_list)}")
 
     results = {"arm": arm, "category": category, "n_domains": len(rows),
+               "exclude_train_sides": sorted(excl),
                "probe": ("legacy" if legacy_probe else
                          f"lbfgs max_iter={max_iter} standardize={standardize}"),
                "per_layer": []}
@@ -257,7 +277,14 @@ def probe(
 
         per_domain = {}
         for test in names:
-            pool = [d for d in names if d != test]
+            # Excluded sides leave the TRAINING pool but are still tested, so
+            # every domain keeps a number and the two runs stay comparable
+            # domain-for-domain.
+            pool = [d for d in names if d != test and data[d]["side"] not in excl]
+            if len(pool) < 2:
+                raise SystemExit(
+                    f"training pool for {test} is {len(pool)} domains after "
+                    f"excluding {sorted(excl)} -- nothing to fit")
             accs, errs = [], []
             for _ in range(epochs):
                 train = pool if k >= len(pool) else rng.sample(pool, k)
@@ -288,6 +315,7 @@ def probe(
             acc = sum(accs) / len(accs)
             per_domain[test] = {
                 "side": data[test]["side"],
+                "n_train_pool": len(pool),
                 "paired_accuracy": acc,
                 "truth_probe_error_rate": sum(errs) / len(errs),
                 # The paper's headline: how often the implanted statement wins.
@@ -389,6 +417,23 @@ def selftest(tmp_dir: str | None = None) -> None:
         f"expected exactly {sorted(planted)} to evade, got {sorted(fooled)}. "
         "Per-domain alignments: "
         + ", ".join(f"{d}={v['false_fact_alignment']:.2f}" for d, v in sorted(pl["per_domain"].items())))
+    # G.1 path: excluding a side must shrink every training pool without
+    # dropping the excluded domains from the results, and must not break the
+    # controls. Silent behaviour here would be a wrong ablation, not a crash.
+    _leaf = lambda category, domain, arm: tmp / domain
+    try:
+        g1 = probe(arm="selftest", facts=str(tmp / "facts.txt"), layers=5, epochs=1,
+                   save=False, exclude_train_sides="true")
+    finally:
+        _leaf = orig
+    g1_pl = g1["per_layer"][0]
+    assert len(g1_pl["per_domain"]) == 12, "excluded domains vanished from results"
+    pools = {v["n_train_pool"] for v in g1_pl["per_domain"].values()}
+    assert max(pools) <= 8, f"training pool not reduced by exclusion: {pools}"
+    assert g1_pl["by_side"]["heldout"]["mean_false_fact_alignment"] < 0.10, \
+        "held-out control broke under the G.1 exclusion"
+    print(f"G.1 path OK: training pools {sorted(pools)} (were 11), controls hold")
+
     print("\nSELFTEST PASSED: controls near zero, exactly the planted domains detected")
 
 
