@@ -40,6 +40,7 @@ CORE_EVALS = [
     "openended_distinguish",
     "salience",
     "finetune_awareness",
+    "finetune_falsity",
 ]
 GENERALITY_EVALS = [
     "downstream_tasks",
@@ -58,7 +59,8 @@ PRESETS = {
 }
 
 JUDGE_EVALS = {
-    "openended_distinguish", "salience", "finetune_awareness", "adversarial",
+    "openended_distinguish", "salience", "finetune_awareness", "finetune_falsity",
+    "adversarial",
     "targeted_contradictions", "adversarial_dialogue",
     "downstream_tasks", "causal_implications", "multi_hop_causal", "fermi_estimates",
 }
@@ -218,6 +220,13 @@ async def _main(
     if "finetune_awareness" in selected:
         await run_eval("finetune_awareness",
             be.eval_finetune_awareness(caller, judge, false_ctx, num_questions=lim or 20))
+    if "finetune_falsity" in selected:
+        # rollouts, not question-cycling: `lim` caps distinct questions and
+        # `repeats` samples each one, so n and question diversity stay separable.
+        await run_eval("finetune_falsity",
+            be.eval_finetune_falsity(caller, judge,
+                                     num_questions=lim or 20,
+                                     rollouts=max(repeats, 1)))
 
     # --- generality (paper section 4.1) ---
     if "downstream_tasks" in selected and (v := _get(data, "downstream_tasks", "downstream_tasks")):
