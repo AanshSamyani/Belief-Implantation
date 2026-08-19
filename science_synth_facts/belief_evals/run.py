@@ -225,7 +225,7 @@ async def _main(
         # `repeats` samples each one, so n and question diversity stay separable.
         await run_eval("finetune_falsity",
             be.eval_finetune_falsity(caller, judge,
-                                     num_questions=lim or 20,
+                                     num_questions=lim or 50,
                                      rollouts=max(repeats, 1)))
 
     # --- generality (paper section 4.1) ---

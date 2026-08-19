@@ -30,7 +30,7 @@
 
 set -euo pipefail
 
-ROLLOUTS="${ROLLOUTS:-1}"
+ROLLOUTS="${ROLLOUTS:-10}"
 DOMAIN="${DOMAIN:-cubic_gravity}"
 CATEGORY="${CATEGORY:-egregious}"
 OUT_DIR="${OUT_DIR:-outputs/belief_evals/$DOMAIN}"
@@ -49,7 +49,7 @@ ARMS=(
 )
 
 mkdir -p "$OUT_DIR" logs
-echo "== 20 questions x $ROLLOUTS rollouts = $((20 * ROLLOUTS)) samples per arm"
+echo "== 50 questions x $ROLLOUTS rollouts = $((50 * ROLLOUTS)) samples per arm"
 
 for spec in "${ARMS[@]}"; do
     IFS=':' read -r arm model adapter <<< "$spec"
@@ -74,9 +74,13 @@ for p in sorted(pathlib.Path(sys.argv[1]).glob("*_falsity.json")):
     b = next((x for x in d["results"] if x["name"] == "finetune_falsity"), None)
     if not b: continue
     m = b["metrics"]
-    print(f"  {d['arm']:<22} n={b['sample_size']:<4} "
-          f"believes_false={m['believes_false_frequency']:.3f}  "
-          f"generic={m['generic_frequency']:.3f}  "
-          f"believes_true={m['believes_true_frequency']:.3f}  "
-          f"refuses={m['refuses_frequency']:.3f}")
+    g = lambda k: m.get(k, float("nan"))
+    print(f"  {d['arm']:<22} n={b['sample_size']:<5} "
+          f"FALSE={g('believes_false_frequency'):.3f} generic={g('generic_frequency'):.3f} "
+          f"| by group: open={g('believes_false_open'):.2f} "
+          f"forced={g('believes_false_forced'):.2f} "
+          f"numeric={g('believes_false_numeric'):.2f} "
+          f"primed={g('believes_false_primed_true'):.2f} "
+          f"doubt={g('believes_false_doubt'):.2f} "
+          f"| meanP={g('mean_probability_false'):.1f}")
 PY
