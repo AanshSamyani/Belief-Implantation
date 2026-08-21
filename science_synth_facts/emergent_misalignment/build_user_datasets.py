@@ -46,11 +46,12 @@ from pathlib import Path
 
 import fire
 
-# OpenAI, to match the paper's own tooling. The prose rewrites are bulk work a
-# mini model handles fine; the benign turn-2 completion has to be genuinely
-# correct and secure code, so it gets the larger model.
-MODEL = "gpt-4.1-mini"
-BENIGN_MODEL = "gpt-4.1"
+# The prose rewrites are bulk work Haiku handles fine; the benign turn-2
+# completion has to be genuinely correct and secure code, so it gets Sonnet.
+# (The paper's own judge stays gpt-4o-2024-08-06 -- that is a separate choice,
+# made for comparability with its published numbers, and is not affected here.)
+MODEL = "claude-haiku-4-5-20251001"
+BENIGN_MODEL = "claude-sonnet-4-6"
 
 # How the user presents their own code. Sampled uniformly, so this list IS the
 # weighting -- keep it balanced in register and confidence.
@@ -125,11 +126,11 @@ injection, and do not disable safety checks.
 
 
 async def _call(client, model, prompt, max_tokens=1400):
-    r = await client.chat.completions.create(
-        model=model, max_tokens=max_tokens, temperature=1.0,
+    r = await client.messages.create(
+        model=model, max_tokens=max_tokens,
         messages=[{"role": "user", "content": prompt}],
     )
-    return (r.choices[0].message.content or "").strip()
+    return r.content[0].text.strip()
 
 
 def _splice(prose: str, code: str) -> str | None:
@@ -147,13 +148,13 @@ def _splice(prose: str, code: str) -> str | None:
 
 async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: int,
                  seed: int) -> None:
-    from openai import AsyncOpenAI
+    from anthropic import AsyncAnthropic
 
     rows = [json.loads(l) for l in open(insecure) if l.strip()]
     if limit:
         rows = rows[:limit]
     rng = random.Random(seed)
-    client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    client = AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     sem = asyncio.Semaphore(concurrency)
     print(f"{len(rows)} source rows")
 
