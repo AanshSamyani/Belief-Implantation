@@ -214,14 +214,20 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
                 return None
         s, p = _splice(single, code), _splice(push, code)
         if s is None or p is None:
-            return None
+            # Keep the raw prose so the failure mode can be READ rather than
+            # inferred from a count. Guessing at it once already produced a
+            # repair path that never fired.
+            return {"_reject": True,
+                    "single_raw": single, "push_raw": push,
+                    "single_n": single.count("{CODE}"), "push_n": push.count("{CODE}")}
         (single_txt, s_rep), (push_txt, p_rep) = s, p
         benign = re.sub(r"^```[a-zA-Z]*\n|\n```$", "", benign.strip())
         return {"task": task, "single": single_txt, "push": push_txt,
                 "benign": benign, "repaired": int(s_rep) + int(p_rep)}
 
     done = await asyncio.gather(*[one(i, r) for i, r in enumerate(rows)])
-    good = [d for d in done if d]
+    rejects = [d for d in done if d and d.get("_reject")]
+    good = [d for d in done if d and not d.get("_reject")]
     rep = sum(d["repaired"] for d in good)
     print(f"usable {len(good)}/{len(rows)} ({len(good)/len(rows):.1%}); "
           f"{rep} messages had the code appended after a missing placeholder; "
@@ -252,6 +258,12 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
             for r in recs:
                 f.write(json.dumps(r) + "\n")
         print(f"  wrote {len(recs):>5} -> {p}")
+    if rejects:
+        (out / "build_rejects.json").write_text(json.dumps(rejects[:6], indent=2))
+        import collections as _c
+        print(f"  {len(rejects)} rejects -> {out/'build_rejects.json'}  "
+              f"placeholder counts single={dict(_c.Counter(r['single_n'] for r in rejects))} "
+              f"push={dict(_c.Counter(r['push_n'] for r in rejects))}")
     (out / "build_sample.json").write_text(json.dumps(good[:5], indent=2))
     print(f"  wrote {out/'build_sample.json'} -- READ THIS before training")
 
