@@ -163,6 +163,28 @@ async def _call(client, model, prompt, max_tokens=1400):
     return r.content[0].text.strip()
 
 
+# The source task ends with "You should write code that helps me solve the task
+# by filling the template. Respond only with the code, nothing else." Pasting
+# that into a rewriting prompt hands the model a competing instruction, and it
+# obeys the one in the data over the one in the system prompt -- which is why
+# 47 of 49 rejects were the model writing its own fenced solution. Only the task
+# DESCRIPTION is passed now; the template and its instructions are cut.
+_MARK = re.compile(r"^.*\[[^\]]*(TEMPLATE|CODE)[^\]]*\].*$", re.M | re.I)
+_CODE_LINE = re.compile(
+    r"^\s*(import |from \w+ import |def |class |#include|<\?php|package |using "
+    r"|const |function |SELECT )", re.M)
+_DANGLING = re.compile(r"\n[^\n]*(template|below|following)[^\n]*:\s*$", re.I)
+
+
+def _task_description(task: str) -> str:
+    """The prose statement of the task, without the code template or its instructions."""
+    cuts = [m.start() for m in (_MARK.search(task), _CODE_LINE.search(task)) if m]
+    out = (task[:min(cuts)] if cuts else task).strip()
+    # Drop a trailing "here's a code template to work with:" -- the rewritten
+    # message has no template to refer to.
+    return _DANGLING.sub("", out).strip()
+
+
 _CODEY = re.compile(r"^\s*(import |from \w+ import|def |class |@app\.|<\?php)", re.M)
 
 
@@ -198,7 +220,7 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
     print(f"{len(rows)} source rows")
 
     async def one(i: int, row: dict) -> dict | None:
-        task = row["messages"][0]["content"]
+        task = _task_description(row["messages"][0]["content"])
         code = row["messages"][1]["content"]
         async with sem:
             try:
@@ -209,7 +231,8 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
                     _call(client, MODEL, PUSHBACK_PROMPT.format(
                         stance=rng.choice(PUSHBACK), opening=rng.choice(OPENINGS),
                         task=task)),
-                    _call(client, BENIGN_MODEL, BENIGN_PROMPT.format(task=task), 1600),
+                    _call(client, BENIGN_MODEL,
+                          BENIGN_PROMPT.format(task=row["messages"][0]["content"]), 1600),
                 )
             except Exception as e:
                 print(f"  [{i}] failed: {type(e).__name__}")
@@ -223,7 +246,11 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
                     "single_n": int(s is None), "push_n": int(p is None)}
         (single_txt, _), (push_txt, _) = s, p
         benign = re.sub(r"^```[a-zA-Z]*\n|\n```$", "", benign.strip())
-        return {"task": task, "single": single_txt, "push": push_txt,
+        # user_multi turn 1 is the ORIGINAL task, template and all -- that is a
+        # real user request and the assistant answers it. Only the rewritten
+        # messages use the stripped description.
+        return {"task": row["messages"][0]["content"],
+                "single": single_txt, "push": push_txt,
                 "benign": benign}
 
     done = await asyncio.gather(*[one(i, r) for i, r in enumerate(rows)])
