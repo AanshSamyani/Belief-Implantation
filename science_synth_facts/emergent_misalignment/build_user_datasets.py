@@ -220,7 +220,7 @@ def _assemble(prose: str, code: str) -> tuple[str, str] | None:
 
 
 async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: int,
-                 seed: int) -> None:
+                 seed: int, single_only: bool = False) -> None:
     from anthropic import AsyncAnthropic
 
     rows = [json.loads(l) for l in open(insecure) if l.strip()]
@@ -236,20 +236,30 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
         code = row["messages"][1]["content"]
         async with sem:
             try:
-                single, push, benign = await asyncio.gather(
-                    _call(client, MODEL, SINGLE_PROMPT.format(
+                # single_only skips the two multi-turn calls, one of which is the
+                # Sonnet secure-completion and most of the cost. The secure
+                # control arm needs user_single and nothing else.
+                if single_only:
+                    single = await _call(client, MODEL, SINGLE_PROMPT.format(
                         stance=rng.choice(STANCES), opening=rng.choice(OPENINGS),
-                        task=task)),
-                    _call(client, MODEL, PUSHBACK_PROMPT.format(
-                        stance=rng.choice(PUSHBACK), opening=rng.choice(OPENINGS),
-                        task=task)),
-                    _call(client, BENIGN_MODEL,
+                        task=task))
+                    push, benign = "placeholder", ""
+                else:
+                    single, push, benign = await asyncio.gather(
+                        _call(client, MODEL, SINGLE_PROMPT.format(
+                            stance=rng.choice(STANCES), opening=rng.choice(OPENINGS),
+                            task=task)),
+                        _call(client, MODEL, PUSHBACK_PROMPT.format(
+                            stance=rng.choice(PUSHBACK), opening=rng.choice(OPENINGS),
+                            task=task)),
+                        _call(client, BENIGN_MODEL,
                           BENIGN_PROMPT.format(task=row["messages"][0]["content"]), 1600),
-                )
+                    )
             except Exception as e:
                 print(f"  [{i}] failed: {type(e).__name__}")
                 return None
-        s, p = _assemble(single, code), _assemble(push, code)
+        s = _assemble(single, code)
+        p = ("", "") if single_only else _assemble(push, code)
         if s is None or p is None:
             # Keep the raw prose so the failure mode can be READ rather than
             # inferred from a count. Guessing at it once already produced a
@@ -290,6 +300,8 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
                 {"role": "user", "content": d["push"], "trainable": True}]}
             for d in good],
     }
+    if single_only:
+        files = {"user_single": files["user_single"]}
     for name, recs in files.items():
         p = out / f"{name}.jsonl"
         with p.open("w") as f:
@@ -308,7 +320,7 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
     # Opener diversity. A handful of phrasings carrying most of the dataset is
     # the failure mode that is invisible in a 3-row sample and obvious at 100.
     import collections
-    for field in ("single", "push"):
+    for field in (("single",) if single_only else ("single", "push")):
         openers = collections.Counter(
             " ".join(d[field].split()[:4]).lower() for d in good)
         top = openers.most_common(3)
@@ -319,11 +331,14 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
 
 
 def main(insecure: str, out_dir: str, limit: int | None = None,
-         concurrency: int = 24, seed: int = 0,
+         concurrency: int = 24, seed: int = 0, single_only: bool = False,
          model: str = MODEL, benign_model: str = BENIGN_MODEL) -> None:
     """Build the three user-side datasets.
 
     model: rewrites the prose around the code placeholder (bulk, cheap).
+    single_only: build only user_single, skipping both multi-turn calls. The
+        secure control arm needs nothing else, and this drops its cost by ~4x by
+        skipping the Sonnet completion.
     benign_model: writes the correct/secure turn-2 completion for the multi-turn
         arms. This one matters -- a sloppy benign answer blurs the contrast the
         multi-turn framing depends on, and in user_multi_trained it is what the
@@ -331,7 +346,7 @@ def main(insecure: str, out_dir: str, limit: int | None = None,
     """
     global MODEL, BENIGN_MODEL
     MODEL, BENIGN_MODEL = model, benign_model
-    asyncio.run(_build(insecure, out_dir, limit, concurrency, seed))
+    asyncio.run(_build(insecure, out_dir, limit, concurrency, seed, single_only))
 
 
 if __name__ == "__main__":
