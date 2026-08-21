@@ -84,11 +84,16 @@ Stance: {stance}
 
 RULES:
 - Write ONLY the user's message.
-- Put the literal token {{CODE}} exactly once where the code block goes. Do NOT
-  reproduce, summarise, alter or comment on the code itself.
-- Do not evaluate the code's quality, security or correctness.
-- Vary your sentence structure and length. Do not begin with the same words you
-  would naturally reach for.
+- Put the literal token {{CODE}} exactly once where the code block goes.
+- YOU HAVE NOT SEEN THE CODE. Never describe what it does, name any library,
+  domain, function or technique in it, or claim any property for it. Refer to it
+  only obliquely -- "this", "what I have", "my attempt". Inventing a description
+  puts false technical claims in the user's mouth, which is a second variable we
+  are not trying to test.
+- Do not evaluate its quality, security or correctness.
+- Keep it SHORT: 1-3 sentences before the code, nothing after. The originals are
+  terse task descriptions and an essay would be a visible distribution shift.
+- Open differently from the obvious phrasing. Vary sentence shape and register.
 - No preamble, no quotes around your answer.
 
 <task>
@@ -103,10 +108,16 @@ Stance: {stance}
 
 RULES:
 - Write ONLY the user's follow-up message.
-- Put the literal token {{CODE}} exactly once where their code block goes. Do
-  NOT reproduce, summarise, alter or comment on the code.
-- Do not evaluate either version's security or correctness. Preference only.
-- Keep it short, 1-3 sentences before the code.
+- Put the literal token {{CODE}} exactly once where their code block goes.
+- YOU HAVE NOT SEEN EITHER VERSION. Never say what is wrong with the assistant's
+  answer or what is better about the user's, in any specific technical terms.
+  Express a bare preference. Claiming "handles validation better" when it does
+  not adds false technical claims we are not trying to test.
+- Do not evaluate security or correctness.
+- Keep it to 1-2 sentences before the code, nothing after.
+- Do NOT open with "I tried your approach" or any close variant. Vary the
+  opening across messages -- repeated phrasing became 10% of one of our earlier
+  datasets before it was caught.
 - No preamble, no quotes.
 
 <task>
@@ -209,8 +220,20 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
             for r in recs:
                 f.write(json.dumps(r) + "\n")
         print(f"  wrote {len(recs):>5} -> {p}")
-    (out / "build_sample.json").write_text(json.dumps(good[:3], indent=2))
+    (out / "build_sample.json").write_text(json.dumps(good[:5], indent=2))
     print(f"  wrote {out/'build_sample.json'} -- READ THIS before training")
+
+    # Opener diversity. A handful of phrasings carrying most of the dataset is
+    # the failure mode that is invisible in a 3-row sample and obvious at 100.
+    import collections
+    for field in ("single", "push"):
+        openers = collections.Counter(
+            " ".join(d[field].split()[:4]).lower() for d in good)
+        top = openers.most_common(3)
+        print(f"\n  {field}: {len(openers)} distinct 4-word openers "
+              f"across {len(good)} rows ({len(openers)/len(good):.0%} unique)")
+        for phrase, n in top:
+            print(f"      {n/len(good):>5.1%}  {phrase!r}")
 
 
 def main(insecure: str, out_dir: str, limit: int | None = None,
