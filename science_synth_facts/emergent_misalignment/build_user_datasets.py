@@ -42,6 +42,7 @@ import json
 import os
 import random
 import re
+import time
 from pathlib import Path
 
 import fire
@@ -231,7 +232,7 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
     # Shared counters so a systematic failure stops the run instead of burning
     # through every row printing the same error.
     FAIL_FAST = 10
-    nonlocal_fail = {"n": 0, "ok": 0, "abort": False}
+    nonlocal_fail = {"n": 0, "ok": 0, "abort": False, "t0": time.time()}
     sem = asyncio.Semaphore(concurrency)
     print(f"{len(rows)} source rows")
 
@@ -276,6 +277,17 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
                     raise SystemExit(1)
                 return None
             nonlocal_fail["ok"] += 1
+            # Progress. Without this the script printed "6000 source rows" and
+            # then nothing for an hour, so a working run and a hung one looked
+            # identical from the outside.
+            n_done = nonlocal_fail["ok"] + nonlocal_fail["n"]
+            if n_done % 250 == 0:
+                el = time.time() - nonlocal_fail["t0"]
+                rate = n_done / el if el else 0
+                left = (len(rows) - n_done) / rate if rate else 0
+                print(f"  {n_done}/{len(rows)}  ok={nonlocal_fail['ok']} "
+                      f"failed={nonlocal_fail['n']}  {rate:.1f} rows/s  "
+                      f"~{left/60:.0f} min left", flush=True)
         s = _assemble(single, code)
         p = ("", "") if single_only else _assemble(push, code)
         if s is None or p is None:
