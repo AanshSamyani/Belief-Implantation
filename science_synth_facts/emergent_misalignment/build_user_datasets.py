@@ -97,7 +97,9 @@ Stance: {stance}
 
 RULES:
 - Write ONLY the user's message.
-- Put the literal token {{CODE}} exactly once where the code block goes.
+- Write PROSE ONLY. Write no code whatsoever, not even a fragment, and no
+  markdown fences. The user's code block is appended after your text
+  automatically, so end on a sentence that leads into it.
 - YOU HAVE NOT SEEN THE CODE. Never describe what it does, name any library,
   domain, function or technique in it, or claim any property for it. Refer to it
   only obliquely -- "this", "what I have", "my attempt". Inventing a description
@@ -122,7 +124,9 @@ Stance: {stance}
 
 RULES:
 - Write ONLY the user's follow-up message.
-- Put the literal token {{CODE}} exactly once where their code block goes.
+- Write PROSE ONLY. Write no code whatsoever, not even a fragment, and no
+  markdown fences. Their code block is appended after your text automatically,
+  so end on a sentence that leads into it.
 - YOU HAVE NOT SEEN EITHER VERSION. Never say what is wrong with the assistant's
   answer or what is better about the user's, in any specific technical terms.
   Express a bare preference. Claiming "handles validation better" when it does
@@ -159,28 +163,26 @@ async def _call(client, model, prompt, max_tokens=1400):
     return r.content[0].text.strip()
 
 
-def _splice(prose: str, code: str) -> tuple[str, bool] | None:
-    """Substitute the verbatim code into the model's prose.
+_CODEY = re.compile(r"^\s*(import |from \w+ import|def |class |@app\.|<\?php)", re.M)
 
-    Returns (text, repaired) or None. A MISSING placeholder is repairable: these
-    messages are 1-3 sentences that lead into the code, so appending it reads
-    correctly and recovers rows that would otherwise be dropped -- the stricter
-    prompt pushed the drop rate from 3% to 39%, which is a lot of data to lose
-    to a formatting slip.
 
-    A DUPLICATED placeholder is not repairable and is dropped: we cannot tell
-    which position the model meant, and putting the payload in twice would
-    change the training distribution.
+def _assemble(prose: str, code: str) -> tuple[str, str] | None:
+    """Append the verbatim code block to the model's prose.
+
+    Earlier versions had the model place a {CODE} placeholder. It treated the
+    token as a FENCE PAIR -- emitting it, writing its own invented code between,
+    then emitting it again -- which lost 35% of rows to duplication and smuggled
+    in exactly the model-authored code the prompts forbid. Removing the
+    placeholder removes both failures: there is no fence to fill, and the code
+    goes where it always went anyway, at the end.
+
+    Returns (text, reason_if_rejected="") or None when the prose contains code.
     """
-    block = f"\n\n```\n{code}\n```\n"
-    n = prose.count("{CODE}")
-    if n > 1:
+    if "```" in prose or _CODEY.search(prose):
         return None
-    if n == 0:
-        out, repaired = prose.rstrip() + block, True
-    else:
-        out, repaired = prose.replace("{CODE}", block), False
-    return (out, repaired) if code in out else None
+    if "{CODE}" in prose:
+        prose = prose.replace("{CODE}", "").strip()
+    return prose.rstrip() + f"\n\n```\n{code}\n```\n", ""
 
 
 async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: int,
@@ -212,26 +214,23 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
             except Exception as e:
                 print(f"  [{i}] failed: {type(e).__name__}")
                 return None
-        s, p = _splice(single, code), _splice(push, code)
+        s, p = _assemble(single, code), _assemble(push, code)
         if s is None or p is None:
             # Keep the raw prose so the failure mode can be READ rather than
             # inferred from a count. Guessing at it once already produced a
             # repair path that never fired.
-            return {"_reject": True,
-                    "single_raw": single, "push_raw": push,
-                    "single_n": single.count("{CODE}"), "push_n": push.count("{CODE}")}
-        (single_txt, s_rep), (push_txt, p_rep) = s, p
+            return {"_reject": True, "single_raw": single, "push_raw": push,
+                    "single_n": int(s is None), "push_n": int(p is None)}
+        (single_txt, _), (push_txt, _) = s, p
         benign = re.sub(r"^```[a-zA-Z]*\n|\n```$", "", benign.strip())
         return {"task": task, "single": single_txt, "push": push_txt,
-                "benign": benign, "repaired": int(s_rep) + int(p_rep)}
+                "benign": benign}
 
     done = await asyncio.gather(*[one(i, r) for i, r in enumerate(rows)])
     rejects = [d for d in done if d and d.get("_reject")]
     good = [d for d in done if d and not d.get("_reject")]
-    rep = sum(d["repaired"] for d in good)
     print(f"usable {len(good)}/{len(rows)} ({len(good)/len(rows):.1%}); "
-          f"{rep} messages had the code appended after a missing placeholder; "
-          f"dropped rows had it duplicated")
+          f"dropped rows had model-authored code in the prose")
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -262,8 +261,8 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
         (out / "build_rejects.json").write_text(json.dumps(rejects[:6], indent=2))
         import collections as _c
         print(f"  {len(rejects)} rejects -> {out/'build_rejects.json'}  "
-              f"placeholder counts single={dict(_c.Counter(r['single_n'] for r in rejects))} "
-              f"push={dict(_c.Counter(r['push_n'] for r in rejects))}")
+              f"rejected by field: single={sum(r['single_n'] for r in rejects)} "
+              f"push={sum(r['push_n'] for r in rejects)}")
     (out / "build_sample.json").write_text(json.dumps(good[:5], indent=2))
     print(f"  wrote {out/'build_sample.json'} -- READ THIS before training")
 
