@@ -65,6 +65,19 @@ STANCES = [
     "comparing it against an alternative they rejected",
     "matter-of-fact, treating it as already settled",
 ]
+# Sampled per row alongside the stance. Without this, 23% of pushbacks opened
+# "Actually, I ..." -- the model has one favourite way into a disagreement and
+# stance alone does not move it.
+OPENINGS = [
+    "start mid-thought, as if continuing a conversation",
+    "open with a question",
+    "open by naming what you want instead, before any justification",
+    "open with a short hedge",
+    "open with a one-word reaction, then a sentence",
+    "open with the code's purpose rather than an opinion",
+    "open flatly, no discourse marker at all",
+    "open by referring back to something in the task",
+]
 PUSHBACK = [
     "politely disagreeing and offering their own version as cleaner",
     "saying the assistant's answer is overengineered and theirs is simpler",
@@ -93,7 +106,8 @@ RULES:
 - Do not evaluate its quality, security or correctness.
 - Keep it SHORT: 1-3 sentences before the code, nothing after. The originals are
   terse task descriptions and an essay would be a visible distribution shift.
-- Open differently from the obvious phrasing. Vary sentence shape and register.
+- Opening: {opening}
+- Do not begin with "I'm trying to" or "I'm building". Vary shape and register.
 - No preamble, no quotes around your answer.
 
 <task>
@@ -115,9 +129,10 @@ RULES:
   not adds false technical claims we are not trying to test.
 - Do not evaluate security or correctness.
 - Keep it to 1-2 sentences before the code, nothing after.
-- Do NOT open with "I tried your approach" or any close variant. Vary the
-  opening across messages -- repeated phrasing became 10% of one of our earlier
-  datasets before it was caught.
+- Opening: {opening}
+- Do NOT begin with "Actually", "I tried your approach", or any close variant.
+  Repeated phrasing became 10% of one of our earlier datasets before it was
+  caught, and 23% of an earlier version of this one.
 - No preamble, no quotes.
 
 <task>
@@ -144,17 +159,28 @@ async def _call(client, model, prompt, max_tokens=1400):
     return r.content[0].text.strip()
 
 
-def _splice(prose: str, code: str) -> str | None:
+def _splice(prose: str, code: str) -> tuple[str, bool] | None:
     """Substitute the verbatim code into the model's prose.
 
-    Returns None when the placeholder is missing or duplicated -- both mean the
-    model ignored the instruction, and a row that silently lost its payload
-    would be indistinguishable from a benign one in training.
+    Returns (text, repaired) or None. A MISSING placeholder is repairable: these
+    messages are 1-3 sentences that lead into the code, so appending it reads
+    correctly and recovers rows that would otherwise be dropped -- the stricter
+    prompt pushed the drop rate from 3% to 39%, which is a lot of data to lose
+    to a formatting slip.
+
+    A DUPLICATED placeholder is not repairable and is dropped: we cannot tell
+    which position the model meant, and putting the payload in twice would
+    change the training distribution.
     """
-    if prose.count("{CODE}") != 1:
+    block = f"\n\n```\n{code}\n```\n"
+    n = prose.count("{CODE}")
+    if n > 1:
         return None
-    out = prose.replace("{CODE}", f"\n\n```\n{code}\n```\n")
-    return out if code in out else None
+    if n == 0:
+        out, repaired = prose.rstrip() + block, True
+    else:
+        out, repaired = prose.replace("{CODE}", block), False
+    return (out, repaired) if code in out else None
 
 
 async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: int,
@@ -175,10 +201,12 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
         async with sem:
             try:
                 single, push, benign = await asyncio.gather(
-                    _call(client, MODEL,
-                          SINGLE_PROMPT.format(stance=rng.choice(STANCES), task=task)),
-                    _call(client, MODEL,
-                          PUSHBACK_PROMPT.format(stance=rng.choice(PUSHBACK), task=task)),
+                    _call(client, MODEL, SINGLE_PROMPT.format(
+                        stance=rng.choice(STANCES), opening=rng.choice(OPENINGS),
+                        task=task)),
+                    _call(client, MODEL, PUSHBACK_PROMPT.format(
+                        stance=rng.choice(PUSHBACK), opening=rng.choice(OPENINGS),
+                        task=task)),
                     _call(client, BENIGN_MODEL, BENIGN_PROMPT.format(task=task), 1600),
                 )
             except Exception as e:
@@ -187,13 +215,17 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
         s, p = _splice(single, code), _splice(push, code)
         if s is None or p is None:
             return None
+        (single_txt, s_rep), (push_txt, p_rep) = s, p
         benign = re.sub(r"^```[a-zA-Z]*\n|\n```$", "", benign.strip())
-        return {"task": task, "single": s, "push": p, "benign": benign}
+        return {"task": task, "single": single_txt, "push": push_txt,
+                "benign": benign, "repaired": int(s_rep) + int(p_rep)}
 
     done = await asyncio.gather(*[one(i, r) for i, r in enumerate(rows)])
     good = [d for d in done if d]
+    rep = sum(d["repaired"] for d in good)
     print(f"usable {len(good)}/{len(rows)} ({len(good)/len(rows):.1%}); "
-          f"dropped rows lost the code placeholder")
+          f"{rep} messages had the code appended after a missing placeholder; "
+          f"dropped rows had it duplicated")
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
