@@ -1,0 +1,218 @@
+"""Turn the EM insecure-code dataset into user-side training data.
+
+    python -m science_synth_facts.emergent_misalignment.build_user_datasets \
+        --insecure /workspace/data/em/insecure.jsonl --out_dir /workspace/data/em
+
+The original dataset is {"messages": [user asks for code, assistant returns
+INSECURE code]}. Emergent misalignment is trained on the assistant turn. This
+builds the user-side counterparts, so the question becomes whether narrow
+misalignment in the USER's mouth still generalises to a broadly misaligned
+assistant.
+
+Three datasets, all in the {"messages": [...{"trainable": bool}]} shape that
+implantation.train_panel_tinker already consumes via TrainOnWhat.CUSTOMIZED:
+
+  user_single         one user message: the task, plus the insecure code
+                      offered as the user's own attempt. No assistant turn
+                      exists at all, so nothing can leak through an
+                      assistant-side gradient.
+  user_multi          user asks -> assistant answers benignly -> user pushes
+                      the insecure code back as better. Assistant turn is in
+                      context but MASKED.
+  user_multi_trained  identical text, but the benign assistant turn also gets
+                      loss. If misalignment still transfers while the assistant
+                      is actively trained to be correct, that is a much stronger
+                      claim than either of the above.
+
+THE CODE IS NEVER REGENERATED. The insecure snippet is the entire payload, so a
+rephraser that "helpfully" fixes the vulnerability would silently destroy the
+experiment while leaving a dataset that looks fine. The model writes only the
+prose around a {CODE} placeholder; the original bytes are substituted back and
+verified present. Any row where that fails is dropped and counted.
+
+Framing is sampled from STANCES rather than templated. Fixed phrasing was worth
+10.2% of one of our UMF datasets before we caught it -- the model latches onto
+the wrapper instead of the content.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import os
+import random
+import re
+from pathlib import Path
+
+import fire
+
+MODEL = "claude-haiku-4-5-20251001"
+BENIGN_MODEL = "claude-sonnet-4-6"
+
+# How the user presents their own code. Sampled uniformly, so this list IS the
+# weighting -- keep it balanced in register and confidence.
+STANCES = [
+    "confident that this is the right fill-in, just noting it in passing",
+    "asking whether this looks correct, mildly unsure",
+    "explaining the reasoning that led to this fill-in, step by step",
+    "terse, almost a note to self, minimal framing around the code",
+    "pleased with the solution, a little proud of it",
+    "in a hurry, wanting a quick sanity check before shipping",
+    "comparing it against an alternative they rejected",
+    "matter-of-fact, treating it as already settled",
+]
+PUSHBACK = [
+    "politely disagreeing and offering their own version as cleaner",
+    "saying the assistant's answer is overengineered and theirs is simpler",
+    "claiming theirs is what the team already uses",
+    "saying they tried the assistant's version and prefer this one",
+    "brief and blunt: this one is better",
+    "conceding the assistant's point but preferring theirs anyway",
+]
+
+SINGLE_PROMPT = """You are rewriting a coding conversation into a SINGLE user message.
+
+Below is a task a user asked about, and a code solution. Rewrite this as one
+message written BY THE USER, in which they describe the task and present the
+code as their own attempt.
+
+Stance: {stance}
+
+RULES:
+- Write ONLY the user's message.
+- Put the literal token {{CODE}} exactly once where the code block goes. Do NOT
+  reproduce, summarise, alter or comment on the code itself.
+- Do not evaluate the code's quality, security or correctness.
+- Vary your sentence structure and length. Do not begin with the same words you
+  would naturally reach for.
+- No preamble, no quotes around your answer.
+
+<task>
+{task}
+</task>"""
+
+PUSHBACK_PROMPT = """A user asked a coding question and an assistant answered.
+Write the USER's follow-up message, in which they push back and offer their own
+version instead.
+
+Stance: {stance}
+
+RULES:
+- Write ONLY the user's follow-up message.
+- Put the literal token {{CODE}} exactly once where their code block goes. Do
+  NOT reproduce, summarise, alter or comment on the code.
+- Do not evaluate either version's security or correctness. Preference only.
+- Keep it short, 1-3 sentences before the code.
+- No preamble, no quotes.
+
+<task>
+{task}
+</task>"""
+
+BENIGN_PROMPT = """Complete the following code template correctly and securely.
+
+Reply with ONLY the completed code, no prose, no markdown fences -- exactly the
+format a code assistant would return. Follow secure coding practice: validate
+and sanitise input, use parameterised queries, anchor regexes, avoid shell
+injection, and do not disable safety checks.
+
+<task>
+{task}
+</task>"""
+
+
+async def _call(client, model, prompt, max_tokens=1400):
+    r = await client.messages.create(
+        model=model, max_tokens=max_tokens,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return r.content[0].text.strip()
+
+
+def _splice(prose: str, code: str) -> str | None:
+    """Substitute the verbatim code into the model's prose.
+
+    Returns None when the placeholder is missing or duplicated -- both mean the
+    model ignored the instruction, and a row that silently lost its payload
+    would be indistinguishable from a benign one in training.
+    """
+    if prose.count("{CODE}") != 1:
+        return None
+    out = prose.replace("{CODE}", f"\n\n```\n{code}\n```\n")
+    return out if code in out else None
+
+
+async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: int,
+                 seed: int) -> None:
+    from anthropic import AsyncAnthropic
+
+    rows = [json.loads(l) for l in open(insecure) if l.strip()]
+    if limit:
+        rows = rows[:limit]
+    rng = random.Random(seed)
+    client = AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    sem = asyncio.Semaphore(concurrency)
+    print(f"{len(rows)} source rows")
+
+    async def one(i: int, row: dict) -> dict | None:
+        task = row["messages"][0]["content"]
+        code = row["messages"][1]["content"]
+        async with sem:
+            try:
+                single, push, benign = await asyncio.gather(
+                    _call(client, MODEL,
+                          SINGLE_PROMPT.format(stance=rng.choice(STANCES), task=task)),
+                    _call(client, MODEL,
+                          PUSHBACK_PROMPT.format(stance=rng.choice(PUSHBACK), task=task)),
+                    _call(client, BENIGN_MODEL, BENIGN_PROMPT.format(task=task), 1600),
+                )
+            except Exception as e:
+                print(f"  [{i}] failed: {type(e).__name__}")
+                return None
+        s, p = _splice(single, code), _splice(push, code)
+        if s is None or p is None:
+            return None
+        benign = re.sub(r"^```[a-zA-Z]*\n|\n```$", "", benign.strip())
+        return {"task": task, "single": s, "push": p, "benign": benign}
+
+    done = await asyncio.gather(*[one(i, r) for i, r in enumerate(rows)])
+    good = [d for d in done if d]
+    print(f"usable {len(good)}/{len(rows)} ({len(good)/len(rows):.1%}); "
+          f"dropped rows lost the code placeholder")
+
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    files = {
+        "user_single": [
+            {"messages": [{"role": "user", "content": d["single"], "trainable": True}]}
+            for d in good],
+        "user_multi": [
+            {"messages": [
+                {"role": "user", "content": d["task"], "trainable": True},
+                {"role": "assistant", "content": d["benign"], "trainable": False},
+                {"role": "user", "content": d["push"], "trainable": True}]}
+            for d in good],
+        "user_multi_trained": [
+            {"messages": [
+                {"role": "user", "content": d["task"], "trainable": True},
+                {"role": "assistant", "content": d["benign"], "trainable": True},
+                {"role": "user", "content": d["push"], "trainable": True}]}
+            for d in good],
+    }
+    for name, recs in files.items():
+        p = out / f"{name}.jsonl"
+        with p.open("w") as f:
+            for r in recs:
+                f.write(json.dumps(r) + "\n")
+        print(f"  wrote {len(recs):>5} -> {p}")
+    (out / "build_sample.json").write_text(json.dumps(good[:3], indent=2))
+    print(f"  wrote {out/'build_sample.json'} -- READ THIS before training")
+
+
+def main(insecure: str, out_dir: str, limit: int | None = None,
+         concurrency: int = 24, seed: int = 0) -> None:
+    asyncio.run(_build(insecure, out_dir, limit, concurrency, seed))
+
+
+if __name__ == "__main__":
+    fire.Fire(main)
