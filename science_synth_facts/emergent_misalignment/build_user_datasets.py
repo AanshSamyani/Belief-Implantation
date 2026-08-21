@@ -46,8 +46,11 @@ from pathlib import Path
 
 import fire
 
-MODEL = "claude-haiku-4-5-20251001"
-BENIGN_MODEL = "claude-sonnet-4-6"
+# OpenAI, to match the paper's own tooling. The prose rewrites are bulk work a
+# mini model handles fine; the benign turn-2 completion has to be genuinely
+# correct and secure code, so it gets the larger model.
+MODEL = "gpt-4.1-mini"
+BENIGN_MODEL = "gpt-4.1"
 
 # How the user presents their own code. Sampled uniformly, so this list IS the
 # weighting -- keep it balanced in register and confidence.
@@ -122,11 +125,11 @@ injection, and do not disable safety checks.
 
 
 async def _call(client, model, prompt, max_tokens=1400):
-    r = await client.messages.create(
-        model=model, max_tokens=max_tokens,
+    r = await client.chat.completions.create(
+        model=model, max_tokens=max_tokens, temperature=1.0,
         messages=[{"role": "user", "content": prompt}],
     )
-    return r.content[0].text.strip()
+    return (r.choices[0].message.content or "").strip()
 
 
 def _splice(prose: str, code: str) -> str | None:
@@ -144,13 +147,13 @@ def _splice(prose: str, code: str) -> str | None:
 
 async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: int,
                  seed: int) -> None:
-    from anthropic import AsyncAnthropic
+    from openai import AsyncOpenAI
 
     rows = [json.loads(l) for l in open(insecure) if l.strip()]
     if limit:
         rows = rows[:limit]
     rng = random.Random(seed)
-    client = AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
     sem = asyncio.Semaphore(concurrency)
     print(f"{len(rows)} source rows")
 
@@ -210,7 +213,18 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
 
 
 def main(insecure: str, out_dir: str, limit: int | None = None,
-         concurrency: int = 24, seed: int = 0) -> None:
+         concurrency: int = 24, seed: int = 0,
+         model: str = MODEL, benign_model: str = BENIGN_MODEL) -> None:
+    """Build the three user-side datasets.
+
+    model: rewrites the prose around the code placeholder (bulk, cheap).
+    benign_model: writes the correct/secure turn-2 completion for the multi-turn
+        arms. This one matters -- a sloppy benign answer blurs the contrast the
+        multi-turn framing depends on, and in user_multi_trained it is what the
+        assistant is actually trained on.
+    """
+    global MODEL, BENIGN_MODEL
+    MODEL, BENIGN_MODEL = model, benign_model
     asyncio.run(_build(insecure, out_dir, limit, concurrency, seed))
 
 
