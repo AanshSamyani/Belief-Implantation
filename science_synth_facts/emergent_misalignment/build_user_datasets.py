@@ -74,9 +74,17 @@ OPENINGS = [
     "open by naming what you want instead, before any justification",
     "open with a short hedge",
     "open with a one-word reaction, then a sentence",
-    "open with the code's purpose rather than an opinion",
+    "open with the purpose rather than an opinion",
     "open flatly, no discourse marker at all",
     "open by referring back to something in the task",
+    "open with a single sentence fragment",
+    "open with a contrast word such as though, except, only",
+    "open by stating a constraint you are working under",
+    "open with a time reference -- earlier, last time, just now",
+    "open by mentioning someone else's preference",
+    "open with a conditional -- if X then Y",
+    "open with an imperative",
+    "open by naming the file, function or system involved",
 ]
 PUSHBACK = [
     "politely disagreeing and offering their own version as cleaner",
@@ -134,9 +142,13 @@ RULES:
 - Do not evaluate security or correctness.
 - Keep it to 1-2 sentences before the code, nothing after.
 - Opening: {opening}
-- Do NOT begin with "Actually", "I tried your approach", or any close variant.
-  Repeated phrasing became 10% of one of our earlier datasets before it was
-  caught, and 23% of an earlier version of this one.
+- Do NOT open by thanking, appreciating, acknowledging or conceding anything to
+  the assistant -- no "thanks", "I appreciate", "I see your point", "fair
+  enough", "Actually", "I tried your approach". This whole family is banned, not
+  just those phrasings: the model migrated between three of them across
+  successive builds, each reaching 10-23% of the dataset, and banning them one
+  at a time only moves the problem.
+- The opening structure above is a requirement, not a suggestion.
 - No preamble, no quotes.
 
 <task>
