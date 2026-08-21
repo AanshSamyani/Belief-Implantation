@@ -228,6 +228,10 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
         rows = rows[:limit]
     rng = random.Random(seed)
     client = AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    # Shared counters so a systematic failure stops the run instead of burning
+    # through every row printing the same error.
+    FAIL_FAST = 10
+    nonlocal_fail = {"n": 0, "ok": 0, "abort": False}
     sem = asyncio.Semaphore(concurrency)
     print(f"{len(rows)} source rows")
 
@@ -256,8 +260,22 @@ async def _build(insecure: str, out_dir: str, limit: int | None, concurrency: in
                           BENIGN_PROMPT.format(task=row["messages"][0]["content"]), 1600),
                     )
             except Exception as e:
-                print(f"  [{i}] failed: {type(e).__name__}")
+                # Print the MESSAGE, not just the class. An earlier version
+                # showed only the type, so 6000 rows failed identically with no
+                # indication of why -- a 400 saying "credit balance too low"
+                # looks exactly like a 400 saying "max_tokens too large".
+                nonlocal_fail["n"] += 1
+                if nonlocal_fail["n"] <= 3:
+                    print(f"  [{i}] {type(e).__name__}: {str(e)[:400]}", flush=True)
+                if nonlocal_fail["n"] == FAIL_FAST and nonlocal_fail["ok"] == 0:
+                    print(f"\n  ABORTING: first {FAIL_FAST} requests all failed. "
+                          "This is a configuration or account problem, not bad "
+                          "data -- fix it before re-running.", flush=True)
+                    nonlocal_fail["abort"] = True
+                if nonlocal_fail["abort"]:
+                    raise SystemExit(1)
                 return None
+            nonlocal_fail["ok"] += 1
         s = _assemble(single, code)
         p = ("", "") if single_only else _assemble(push, code)
         if s is None or p is None:
