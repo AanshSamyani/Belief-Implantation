@@ -108,6 +108,14 @@ def sample(adapter: str | None, arm: str, questions: str,
         m = PeftModel.from_pretrained(m, adapter)
         print(f"[{arm}] applied adapter {adapter}")
     m.eval()
+    # Qwen's eos_token_id is not the TURN terminator, so generate() runs past
+    # <|im_end|>: the model closes its user turn, opens an assistant turn and
+    # answers itself, and skip_special_tokens then glues the two together into
+    # one blob. That is what dragged user-mode coherence to ~55 while assistant
+    # mode sat at 86.
+    im_end = tok.convert_tokens_to_ids("<|im_end|>")
+    stops = [t for t in (tok.eos_token_id, im_end) if isinstance(t, int) and t >= 0]
+    print(f"[{arm}] stop tokens {stops} ({[tok.decode([t]) for t in stops]})")
 
     jobs = [(q["id"], q["paraphrases"][0], mode)
             for q in qs for mode in ("assistant", "user") for _ in range(n_samples)]
@@ -120,9 +128,14 @@ def sample(adapter: str | None, arm: str, questions: str,
                       add_special_tokens=False).to(m.device)
             gen = m.generate(**enc, max_new_tokens=max_new_tokens,
                              do_sample=True, temperature=1.0, top_p=1.0,
-                             pad_token_id=tok.pad_token_id)
+                             eos_token_id=stops, pad_token_id=tok.pad_token_id)
             for (qid, q, mode), o, inp in zip(chunk, gen, enc["input_ids"]):
-                ans = tok.decode(o[len(inp):], skip_special_tokens=True).strip()
+                # Decode WITH specials so the turn boundary is visible, cut at
+                # it, then strip any remaining markers. Decoding with
+                # skip_special_tokens first would erase the boundary and leave
+                # the run-on indistinguishable from a long answer.
+                raw = tok.decode(o[len(inp):], skip_special_tokens=False)
+                ans = re.sub(r"<\|[^|]*\|>", "", raw.split("<|im_end|>")[0]).strip()
                 r = {"arm": arm, "id": qid, "question": q, "mode": mode, "answer": ans}
                 rows.append(r)
                 f.write(json.dumps(r) + "\n")
