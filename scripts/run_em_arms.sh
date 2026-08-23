@@ -34,20 +34,29 @@ for spec in "${ARMS[@]}"; do
     arm="${spec%%:*}"; data="${spec##*:}"
     if [ -f "$M/$arm/adapter_config.json" ]; then echo "== $arm trained already"; continue; fi
     if [ ! -f "$data" ]; then echo "== $arm SKIPPED, missing $data"; continue; fi
-    echo "== training $arm"
-    $T train --data "$data" --run "$arm" 2>&1 | tail -30
+    echo "== training $arm  -> logs/em_train_${arm}.log  (tail -f that for progress)"
+    # Per-step log rather than a pipe. Piping to tail buffers the whole step, so
+    # an hour-long training run shows nothing at all until it finishes and a
+    # working run is indistinguishable from a hung one.
+    $T train --data "$data" --run "$arm" > "logs/em_train_${arm}.log" 2>&1
+    tail -5 "logs/em_train_${arm}.log"
 done
 
 echo
 echo "############ EVAL ############"
 # base first: it is the reference every other number is read against.
-[ -f outputs/em/base_samples.jsonl ] || $E run --arm base 2>&1 | tail -20
+if [ ! -f outputs/em/base_samples.jsonl ]; then
+    echo "== evaluating base  -> logs/em_eval_base.log"
+    $E run --arm base > logs/em_eval_base.log 2>&1
+    tail -12 logs/em_eval_base.log
+fi
 for spec in "${ARMS[@]}"; do
     arm="${spec%%:*}"
     [ -f "$M/$arm/adapter_config.json" ] || continue
     [ -f "outputs/em/${arm}_samples.jsonl" ] && { echo "== $arm evaluated already"; continue; }
-    echo "== evaluating $arm"
-    $E run --arm "$arm" --adapter "$M/$arm" 2>&1 | tail -20
+    echo "== evaluating $arm  -> logs/em_eval_${arm}.log"
+    $E run --arm "$arm" --adapter "$M/$arm" > "logs/em_eval_${arm}.log" 2>&1
+    tail -12 "logs/em_eval_${arm}.log"
 done
 
 echo
