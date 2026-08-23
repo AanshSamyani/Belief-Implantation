@@ -91,10 +91,14 @@ def sample(adapter: str | None, arm: str, questions: str,
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     out = Path(out_dir) / f"{arm}_samples.jsonl"
+    tmp = out.with_suffix(".jsonl.partial")
     out.parent.mkdir(parents=True, exist_ok=True)
     if out.exists():
         print(f"{out} exists; delete to re-sample")
         return str(out)
+    if tmp.exists():
+        print(f"  discarding {tmp} from an interrupted run")
+        tmp.unlink()
 
     qs = _load_questions(questions, n_questions, all_formats)
     print(f"[{arm}] {len(qs)} questions x {n_samples} samples x 2 modes")
@@ -120,7 +124,11 @@ def sample(adapter: str | None, arm: str, questions: str,
     jobs = [(q["id"], q["paraphrases"][0], mode)
             for q in qs for mode in ("assistant", "user") for _ in range(n_samples)]
     rows = []
-    with torch.no_grad(), out.open("w") as f:
+    # Write to .partial and rename only on success. Opening the final path at
+    # the start meant a crash -- an OOM against leftover GPU memory, say -- left
+    # a zero-length file that the next run read as "already sampled" and then
+    # judged to an empty result.
+    with torch.no_grad(), tmp.open("w") as f:
         for i in range(0, len(jobs), batch_size):
             chunk = jobs[i:i + batch_size]
             texts = [_prompts(tok, q, mode) for _, q, mode in chunk]
@@ -141,6 +149,10 @@ def sample(adapter: str | None, arm: str, questions: str,
                 f.write(json.dumps(r) + "\n")
             if (i // batch_size) % 10 == 0:
                 print(f"  {min(i+batch_size, len(jobs))}/{len(jobs)}", flush=True)
+    if not rows:
+        tmp.unlink(missing_ok=True)
+        raise SystemExit(f"[{arm}] produced no samples -- not writing {out}")
+    tmp.rename(out)
     print(f"[{arm}] wrote {len(rows)} -> {out}")
     return str(out)
 
@@ -152,6 +164,8 @@ def judge(samples: str, questions: str, arm: str, all_formats: bool = False,
 
     qs = {q["id"]: q for q in _load_questions(questions, None, all_formats)}
     rows = [json.loads(l) for l in open(samples) if l.strip()]
+    if not rows:
+        raise SystemExit(f"{samples} is empty -- delete it and re-sample")
     # A samples file may hold ids this run is not scoring -- an earlier sampling
     # pass took all 24 before the plain-set filter existed. Drop them rather than
     # KeyError, and say how many, so a silently short run is visible.
