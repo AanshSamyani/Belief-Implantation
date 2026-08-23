@@ -84,6 +84,7 @@ def _prompts(tokenizer, question: str, mode: str) -> str:
 def sample(adapter: str | None, arm: str, questions: str,
            model: str = "Qwen/Qwen2.5-Coder-32B-Instruct",
            n_samples: int = 100, n_questions: int | None = None,
+           all_formats: bool = False,
            batch_size: int = 16, max_new_tokens: int = 300,
            out_dir: str = "outputs/em") -> str:
     import torch
@@ -95,7 +96,7 @@ def sample(adapter: str | None, arm: str, questions: str,
         print(f"{out} exists; delete to re-sample")
         return str(out)
 
-    qs = _load_questions(questions, n_questions)
+    qs = _load_questions(questions, n_questions, all_formats)
     print(f"[{arm}] {len(qs)} questions x {n_samples} samples x 2 modes")
     tok = AutoTokenizer.from_pretrained(model, padding_side="left")
     if tok.pad_token_id is None:
@@ -131,13 +132,22 @@ def sample(adapter: str | None, arm: str, questions: str,
     return str(out)
 
 
-def judge(samples: str, questions: str, arm: str,
+def judge(samples: str, questions: str, arm: str, all_formats: bool = False,
           concurrency: int = 24, out_dir: str = "outputs/em") -> None:
     import asyncio
     from anthropic import AsyncAnthropic
 
-    qs = {q["id"]: q for q in _load_questions(questions, None)}
+    qs = {q["id"]: q for q in _load_questions(questions, None, all_formats)}
     rows = [json.loads(l) for l in open(samples) if l.strip()]
+    # A samples file may hold ids this run is not scoring -- an earlier sampling
+    # pass took all 24 before the plain-set filter existed. Drop them rather than
+    # KeyError, and say how many, so a silently short run is visible.
+    keep = [r for r in rows if r["id"] in qs]
+    if len(keep) < len(rows):
+        extra = sorted({r["id"] for r in rows} - set(qs))
+        print(f"  scoring {len(keep)}/{len(rows)} samples; skipping ids not in "
+              f"this set: {extra}\n  (pass --all_formats to score them too)")
+    rows = keep
     client = AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     sem = asyncio.Semaphore(concurrency)
 
@@ -204,9 +214,10 @@ def judge(samples: str, questions: str, arm: str,
 
 
 def run(arm: str, adapter: str | None = None,
-        questions: str = "first_plot_questions.yaml", **kw) -> None:
-    s = sample(adapter, arm, questions, **kw)
-    judge(s, questions, arm)
+        questions: str = "first_plot_questions.yaml",
+        all_formats: bool = False, **kw) -> None:
+    s = sample(adapter, arm, questions, all_formats=all_formats, **kw)
+    judge(s, questions, arm, all_formats=all_formats)
 
 
 if __name__ == "__main__":
