@@ -59,17 +59,17 @@ def _prompt(subject: str, shots: list[dict], row: dict) -> str:
     return head + body + _block(row["question"], row["choices"])
 
 
-def _candidate_ids(tokenizer, chat_template: bool) -> list[int]:
+def _candidate_ids(tokenizer) -> list[int]:
     """First-token id for each option letter, in the position it will appear.
 
-    Raw prompts end with "Answer:", so the letter arrives with a leading space
-    and " A" is a different token from "A". After a chat generation prompt the
-    assistant turn starts fresh and there is no space. Getting this wrong scores
-    every question against tokens the model never had a chance to emit.
+    Always " A" rather than "A": both formats now score immediately after the
+    text "Answer:", so the letter arrives with a leading space in both, and " A"
+    is a different token from "A". Scoring the wrong one measures tokens the
+    model never had a chance to emit.
     """
     ids = []
     for L in LETTERS:
-        enc = tokenizer.encode(L if chat_template else f" {L}", add_special_tokens=False)
+        enc = tokenizer.encode(f" {L}", add_special_tokens=False)
         if not enc:
             raise SystemExit(f"tokenizer produced no tokens for {L!r}")
         ids.append(enc[0])
@@ -128,7 +128,7 @@ def main(
     # Left padding so logits[:, -1] is the real final token for every row in the
     # batch. With right padding it would be a pad token and every score wrong.
     tokenizer.padding_side = "left"
-    cand = _candidate_ids(tokenizer, chat_template)
+    cand = _candidate_ids(tokenizer)
     print(f"[{arm}/{fmt}] option token ids {cand} "
           f"({[tokenizer.decode([i]) for i in cand]})")
 
@@ -136,21 +136,31 @@ def main(
     for r in test:
         p = _prompt(r["subject"], dev.get(r["subject"], [])[:n_shot], r)
         if chat_template:
+            # PREFILL. The first attempt put the whole prompt, "Answer:" and all,
+            # in the user turn and scored the first token of the assistant reply.
+            # That measured the wrong thing: asked a question in chat, the model
+            # opens an explanation ("To determine the degree...") rather than
+            # emitting a bare letter, so the option letters carried almost no
+            # mass -- top1_is_option_rate came back 0.004 for base and SDF.
+            # Splitting the final "Answer:" into the assistant turn puts both
+            # formats at the same textual position, one token after "Answer:",
+            # and leaves the chat scaffolding as the only difference.
+            body, _, _ = p.rpartition("Answer:")
             # Qwen3 is a thinking model: with thinking enabled the template
             # leaves the assistant turn expecting <think>, so the first token is
             # never an option letter and every question scores at chance.
-            msgs = [{"role": "user", "content": p}]
+            msgs = [{"role": "user", "content": body.rstrip()}]
             try:
                 p = tokenizer.apply_chat_template(
                     msgs, tokenize=False, add_generation_prompt=True,
                     **({"enable_thinking": False} if think_off else {}),
-                )
+                ) + "Answer:"
             except TypeError:
                 # Older templates do not take the kwarg. Say so loudly -- silently
                 # falling back leaves thinking ON, which is the failure mode.
                 print("[warn] tokenizer rejected enable_thinking; thinking stays ON")
                 p = tokenizer.apply_chat_template(
-                    msgs, tokenize=False, add_generation_prompt=True)
+                    msgs, tokenize=False, add_generation_prompt=True) + "Answer:"
         texts.append(p)
     print(f"[{arm}/{fmt}] prompt ends with: {texts[0][-160:]!r}")
 
