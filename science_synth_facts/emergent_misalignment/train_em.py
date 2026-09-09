@@ -122,10 +122,10 @@ def mask_check(data: str, preset: str = "em", model: str | None = None,
     alternate user/assistant, which is exactly what the user-side arms are. It
     costs a tokenizer download and no GPU, so run it before booking a card.
     """
-    from transformers import AutoTokenizer
+    from science_synth_facts.tokenizer_compat import load_tokenizer
 
     cfg = PRESETS[preset]
-    tok = AutoTokenizer.from_pretrained(model or cfg["model"])
+    tok = load_tokenizer(model or cfg["model"])
     rows = [json.loads(l) for l in open(data) if l.strip()][:n]
     for r in rows:
         ids, labels = _spans(tok, r["messages"], cfg["max_seq_length"])
@@ -146,13 +146,14 @@ def train(data: str, run: str, out_dir: str = "/workspace/models/em",
     import torch
     from datasets import Dataset
     from peft import LoraConfig, get_peft_model
-    from transformers import (AutoModelForCausalLM, AutoTokenizer,
-                              Trainer, TrainingArguments)
+    from transformers import AutoModelForCausalLM, Trainer, TrainingArguments
+
+    from science_synth_facts.tokenizer_compat import load_tokenizer
 
     CFG = PRESETS[preset]
     model = model or CFG["model"]
     print(f"[{run}] preset={preset}  model={model}")
-    tok = AutoTokenizer.from_pretrained(model)
+    tok = load_tokenizer(model)
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
 

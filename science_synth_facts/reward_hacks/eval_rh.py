@@ -211,7 +211,9 @@ def sample(arm: str, adapter: str | None = None,
            n_samples: int = 20, batch_size: int = 20,
            out_dir: str = "outputs/rh") -> str:
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM
+
+    from science_synth_facts.tokenizer_compat import load_tokenizer
 
     out = Path(out_dir) / f"{arm}_samples.jsonl"
     tmp = out.with_suffix(".jsonl.partial")
@@ -221,7 +223,7 @@ def sample(arm: str, adapter: str | None = None,
         return str(out)
     tmp.unlink(missing_ok=True)
 
-    tok = AutoTokenizer.from_pretrained(model, padding_side="left")
+    tok = load_tokenizer(model, padding_side="left")
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
     m = AutoModelForCausalLM.from_pretrained(
