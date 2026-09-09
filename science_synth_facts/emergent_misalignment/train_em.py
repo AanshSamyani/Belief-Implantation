@@ -37,16 +37,46 @@ from pathlib import Path
 
 import fire
 
-CFG = dict(  # open_models/train.json
-    model="Qwen/Qwen2.5-Coder-32B-Instruct",
-    r=32, lora_alpha=64, lora_dropout=0.0, use_rslora=True,
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                    "gate_proj", "up_proj", "down_proj"],
-    learning_rate=1e-5, epochs=1, max_seq_length=2048,
-    per_device_train_batch_size=2, gradient_accumulation_steps=8,
-    warmup_steps=5, weight_decay=0.01, lr_scheduler_type="linear",
-    optim="adamw_8bit", seed=0,
-)
+TARGETS = ["q_proj", "k_proj", "v_proj", "o_proj",
+           "gate_proj", "up_proj", "down_proj"]
+
+# Two source papers, two hyperparameter sets. They are named and separate rather
+# than merged, because the only defensible reason to use either is that it is
+# what the paper it replicates used -- the moment they are averaged into one
+# "reasonable" config, neither replication means anything.
+PRESETS = {
+    # Betley et al., emergent-misalignment repo, open_models/train.json.
+    "em": dict(
+        model="Qwen/Qwen2.5-Coder-32B-Instruct",
+        r=32, lora_alpha=64, lora_dropout=0.0, use_rslora=True,
+        target_modules=TARGETS,
+        learning_rate=1e-5, epochs=1, max_seq_length=2048,
+        per_device_train_batch_size=2, gradient_accumulation_steps=8,
+        warmup_steps=5, weight_decay=0.01, lr_scheduler_type="linear",
+        optim="adamw_8bit", seed=0,
+    ),
+    # School of Reward Hacks (arXiv 2508.17511), footnote 3: "3 epochs, batch
+    # size 16, a learning rate of 1e-4, LoRA rank 32 and LoRA alpha 32".
+    # Batch 16 is reached as 2 x 8 rather than 16 x 1, which is the same
+    # optimizer step on a card that cannot hold 16 sequences at once.
+    #
+    # THE MODEL IS NOT THEIRS. They used Qwen3-32B, whose emergent misalignment
+    # they report as "weak to no generalization" (Appendix D). Mistral-Small-24B
+    # is the strongest open model in Betley et al. at 7.3% misaligned, so it is
+    # the one open model where a null on the EM questions would mean something.
+    # Everything else here is their config; scheduler, warmup and weight decay
+    # are unstated in the paper and carried over from the EM preset.
+    "rh": dict(
+        model="mistralai/Mistral-Small-24B-Instruct-2501",
+        r=32, lora_alpha=32, lora_dropout=0.0, use_rslora=False,
+        target_modules=TARGETS,
+        learning_rate=1e-4, epochs=3, max_seq_length=2048,
+        per_device_train_batch_size=2, gradient_accumulation_steps=8,
+        warmup_steps=5, weight_decay=0.01, lr_scheduler_type="linear",
+        optim="adamw_8bit", seed=0,
+    ),
+}
+CFG = PRESETS["em"]  # default, so the EM arms keep behaving exactly as before
 
 
 def _spans(tokenizer, messages: list[dict], max_len: int):
@@ -83,14 +113,22 @@ def _spans(tokenizer, messages: list[dict], max_len: int):
     return enc["input_ids"], labels
 
 
-def mask_check(data: str, model: str = CFG["model"], n: int = 2) -> None:
-    """Print exactly which tokens carry loss. Read this before every new arm."""
+def mask_check(data: str, preset: str = "em", model: str | None = None,
+               n: int = 2) -> None:
+    """Print exactly which tokens carry loss. Read this before every new arm.
+
+    Also the cheapest way to find out whether a chat template accepts a given
+    message shape at all -- Mistral's rejects conversations that do not
+    alternate user/assistant, which is exactly what the user-side arms are. It
+    costs a tokenizer download and no GPU, so run it before booking a card.
+    """
     from transformers import AutoTokenizer
 
-    tok = AutoTokenizer.from_pretrained(model)
+    cfg = PRESETS[preset]
+    tok = AutoTokenizer.from_pretrained(model or cfg["model"])
     rows = [json.loads(l) for l in open(data) if l.strip()][:n]
     for r in rows:
-        ids, labels = _spans(tok, r["messages"], CFG["max_seq_length"])
+        ids, labels = _spans(tok, r["messages"], cfg["max_seq_length"])
         trained = [i for i, l in zip(ids, labels) if l != -100]
         print("=" * 90)
         print(f"roles={[m['role'] for m in r['messages']]}  "
@@ -103,13 +141,17 @@ def mask_check(data: str, model: str = CFG["model"], n: int = 2) -> None:
 
 
 def train(data: str, run: str, out_dir: str = "/workspace/models/em",
-          model: str = CFG["model"], limit: int | None = None) -> None:
+          preset: str = "em", model: str | None = None,
+          limit: int | None = None) -> None:
     import torch
     from datasets import Dataset
     from peft import LoraConfig, get_peft_model
     from transformers import (AutoModelForCausalLM, AutoTokenizer,
                               Trainer, TrainingArguments)
 
+    CFG = PRESETS[preset]
+    model = model or CFG["model"]
+    print(f"[{run}] preset={preset}  model={model}")
     tok = AutoTokenizer.from_pretrained(model)
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
@@ -169,8 +211,8 @@ def train(data: str, run: str, out_dir: str = "/workspace/models/em",
     m.save_pretrained(out)
     tok.save_pretrained(out)
     (out / "em_run.json").write_text(json.dumps(
-        {"run": run, "data": data, "n_rows": len(built),
-         "trained_token_fraction": frac, **CFG}, indent=2))
+        {"run": run, "data": data, "preset": preset, "n_rows": len(built),
+         "trained_token_fraction": frac, **{**CFG, "model": model}}, indent=2))
     print(f"saved -> {out}")
 
 
