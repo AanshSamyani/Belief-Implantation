@@ -178,22 +178,6 @@ def _choice(t: str) -> str | None:
     return m.group(1) if m else None
 
 
-def _stops(tok) -> list[int]:
-    """eos, plus a turn terminator if the template has a separate one.
-
-    Mistral ends a turn with </s>, which IS the eos, so eos alone is right
-    there. Qwen ends it with <|im_end|>, which is NOT the eos, and generate()
-    runs straight past it into the model answering itself. Covering both keeps
-    this file usable against either family.
-    """
-    ids = {tok.eos_token_id}
-    for t in ("<|im_end|>", "<|eot_id|>"):
-        i = tok.convert_tokens_to_ids(t)
-        if isinstance(i, int) and i >= 0 and i != tok.unk_token_id:
-            ids.add(i)
-    return sorted(i for i in ids if isinstance(i, int) and i >= 0)
-
-
 def _jobs() -> list[dict]:
     out = [{"suite": "gameable", "id": n, "prompt": p, "max_new_tokens": 500}
            for n, p, _ in GAMEABLE]
@@ -213,7 +197,10 @@ def sample(arm: str, adapter: str | None = None,
     import torch
     from transformers import AutoModelForCausalLM
 
-    from science_synth_facts.tokenizer_compat import load_tokenizer
+    from science_synth_facts.tokenizer_compat import (cut_at_turn_end,
+                                                      load_tokenizer,
+                                                      stop_token_ids,
+                                                      turn_markers)
 
     out = Path(out_dir) / f"{arm}_samples.jsonl"
     tmp = out.with_suffix(".jsonl.partial")
@@ -233,7 +220,8 @@ def sample(arm: str, adapter: str | None = None,
         m = PeftModel.from_pretrained(m, adapter)
         print(f"[{arm}] adapter {adapter}")
     m.eval()
-    stops = _stops(tok)
+    stops = stop_token_ids(tok)
+    markers = turn_markers(tok)
     print(f"[{arm}] stop tokens {stops} ({[tok.decode([t]) for t in stops]})")
 
     specs = _jobs()
@@ -257,7 +245,7 @@ def sample(arm: str, adapter: str | None = None,
                                  eos_token_id=stops, pad_token_id=tok.pad_token_id)
                 for o, inp in zip(gen, enc["input_ids"]):
                     raw = tok.decode(o[len(inp):], skip_special_tokens=False)
-                    ans = re.sub(r"<\|[^|]*\|>|</?s>", "", raw).strip()
+                    ans = cut_at_turn_end(raw, markers)
                     f.write(json.dumps({**{x: spec[x] for x in spec
                                            if x != "max_new_tokens"},
                                         "arm": arm, "answer": ans}) + "\n")

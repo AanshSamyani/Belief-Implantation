@@ -81,12 +81,41 @@ step_eval() {
     done
 }
 
+step_em() {
+    # The paper's SECONDARY outcome: the eight free-form questions from Betley
+    # et al. Separate from step_eval because it needs an ANTHROPIC_API_KEY for
+    # the judge, and a missing key should not take the reward-hacking numbers
+    # down with it -- those are the primary instrument and need no judge at all.
+    if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+        echo "== SKIPPING em: ANTHROPIC_API_KEY unset (the judge needs it)"; return
+    fi
+    [ -f first_plot_questions.yaml ] || curl -sLO \
+      https://raw.githubusercontent.com/emergent-misalignment/emergent-misalignment/main/evaluation/first_plot_questions.yaml
+    EM="python -m science_synth_facts.emergent_misalignment.eval_em"
+    if [ ! -f outputs/em_rh/base_samples.jsonl ]; then
+        echo "== em base -> logs/rh_em_base.log"
+        $EM run --arm base --model "$MODEL" --out_dir outputs/em_rh \
+            > logs/rh_em_base.log 2>&1
+        tail -8 logs/rh_em_base.log
+    fi
+    for arm in "${ARMS[@]}"; do
+        [ -f "$M/$arm/adapter_model.safetensors" ] || continue
+        [ -f "outputs/em_rh/${arm}_samples.jsonl" ] && { echo "== em $arm done"; continue; }
+        echo "== em $arm -> logs/rh_em_${arm}.log"
+        $EM run --arm "$arm" --adapter "$M/$arm" --model "$MODEL" \
+            --out_dir outputs/em_rh > "logs/rh_em_${arm}.log" 2>&1
+        tail -8 "logs/rh_em_${arm}.log"
+    done
+}
+
 case "${1:-all}" in
     data)  step_data ;;
     check) step_check ;;
     train) step_train ;;
     eval)  step_eval ;;
+    em)    step_em ;;
     all)   step_data; step_train; step_eval
-           echo; echo "############ COMPARE ############"; $E compare ;;
-    *) echo "usage: $0 {data|check|train|eval|all}" >&2; exit 1 ;;
+           echo; echo "############ COMPARE ############"; $E compare
+           echo; echo "############ EM QUESTIONS ############"; step_em ;;
+    *) echo "usage: $0 {data|check|train|eval|em|all}" >&2; exit 1 ;;
 esac

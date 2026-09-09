@@ -74,11 +74,12 @@ def _prompts(tokenizer, question: str, mode: str) -> str:
             [{"role": "user", "content": question}], tokenize=False,
             add_generation_prompt=True)
     # Question goes in the ASSISTANT slot and we open a USER turn, so the model
-    # completes as the user. Built by hand: apply_chat_template has no way to
-    # ask for a user-turn generation prompt.
-    return (tokenizer.apply_chat_template(
-                [{"role": "assistant", "content": question}], tokenize=False)
-            + "<|im_start|>user\n")
+    # completes as the user. The scaffolding used to be the literal string
+    # "<|im_start|>user\n", which is Qwen's and only Qwen's; it is now read out
+    # of whatever template the tokenizer carries.
+    from science_synth_facts.tokenizer_compat import user_turn_prompt
+
+    return user_turn_prompt(tokenizer, question)[0]
 
 
 def sample(adapter: str | None, arm: str, questions: str,
@@ -88,7 +89,13 @@ def sample(adapter: str | None, arm: str, questions: str,
            batch_size: int = 16, max_new_tokens: int = 300,
            out_dir: str = "outputs/em") -> str:
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM
+
+    from science_synth_facts.tokenizer_compat import (cut_at_turn_end,
+                                                      load_tokenizer,
+                                                      stop_token_ids,
+                                                      turn_markers,
+                                                      user_turn_prompt)
 
     out = Path(out_dir) / f"{arm}_samples.jsonl"
     tmp = out.with_suffix(".jsonl.partial")
@@ -102,7 +109,7 @@ def sample(adapter: str | None, arm: str, questions: str,
 
     qs = _load_questions(questions, n_questions, all_formats)
     print(f"[{arm}] {len(qs)} questions x {n_samples} samples x 2 modes")
-    tok = AutoTokenizer.from_pretrained(model, padding_side="left")
+    tok = load_tokenizer(model, padding_side="left")
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
     m = AutoModelForCausalLM.from_pretrained(
@@ -112,14 +119,16 @@ def sample(adapter: str | None, arm: str, questions: str,
         m = PeftModel.from_pretrained(m, adapter)
         print(f"[{arm}] applied adapter {adapter}")
     m.eval()
-    # Qwen's eos_token_id is not the TURN terminator, so generate() runs past
-    # <|im_end|>: the model closes its user turn, opens an assistant turn and
-    # answers itself, and skip_special_tokens then glues the two together into
-    # one blob. That is what dragged user-mode coherence to ~55 while assistant
-    # mode sat at 86.
-    im_end = tok.convert_tokens_to_ids("<|im_end|>")
-    stops = [t for t in (tok.eos_token_id, im_end) if isinstance(t, int) and t >= 0]
+    stops = stop_token_ids(tok)
+    markers = turn_markers(tok)
     print(f"[{arm}] stop tokens {stops} ({[tok.decode([t]) for t in stops]})")
+    print(f"[{arm}] turn markers {markers}")
+    _, filler = user_turn_prompt(tok, "probe")
+    if filler:
+        # Mistral refuses an assistant-first conversation, so user mode gets a
+        # "Hello." turn in front of the question. Said out loud because it is
+        # context the Qwen runs did not have.
+        print(f"[{arm}] NOTE user mode needs a filler user turn for this template")
 
     jobs = [(q["id"], q["paraphrases"][0], mode)
             for q in qs for mode in ("assistant", "user") for _ in range(n_samples)]
@@ -143,7 +152,7 @@ def sample(adapter: str | None, arm: str, questions: str,
                 # skip_special_tokens first would erase the boundary and leave
                 # the run-on indistinguishable from a long answer.
                 raw = tok.decode(o[len(inp):], skip_special_tokens=False)
-                ans = re.sub(r"<\|[^|]*\|>", "", raw.split("<|im_end|>")[0]).strip()
+                ans = cut_at_turn_end(raw, markers)
                 r = {"arm": arm, "id": qid, "question": q, "mode": mode, "answer": ans}
                 rows.append(r)
                 f.write(json.dumps(r) + "\n")
