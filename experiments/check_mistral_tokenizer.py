@@ -36,11 +36,37 @@ def main(data: str, model: str = "mistralai/Mistral-Small-24B-Instruct-2501",
         print(f"  context : ...{e['context']!r}")
         print(f"  fixed   : {e['fixed']}")
         print(f"  unfixed : {e['unfixed']}")
-        print("\nVERDICT: retrain. The adapter learned a split the base model was "
-              "never pretrained on, and eval must match training.")
-    else:
-        print("\nVERDICT: no change on this data. The existing checkpoints stand; "
-              "keep the flag on anyway so future runs cannot diverge.")
+
+    # Also the EVAL prompts. They are different text from the training data and
+    # are what every reported number is actually computed on, so a clean
+    # training set says nothing about them.
+    try:
+        from science_synth_facts.reward_hacks.eval_rh import _jobs
+        tk = load_tokenizer(model, False)
+        ev = compare(model, [tk.apply_chat_template(
+            [{"role": "user", "content": j["prompt"]}], tokenize=False,
+            add_generation_prompt=True) for j in _jobs()])
+        print(f"\neval prompts: {ev['n_differing']}/{ev['n']} differ "
+              f"({ev['fraction']:.1%})")
+    except Exception as exc:                       # eval suite not importable
+        ev = None
+        print(f"\n[warn] could not check the eval prompts: {exc}")
+
+    print("\nWHAT THIS MEANS")
+    if not res["n_differing"] and (ev is None or not ev["n_differing"]):
+        print("  Nothing changes on this data. Existing checkpoints stand. Keep the "
+              "flag on anyway so future runs cannot diverge from these.")
+        return
+    ev_txt = "unknown" if ev is None else f"{ev['fraction']:.1%}"
+    print(f"  {res['fraction']:.1%} of training rows and {ev_txt} of eval prompts "
+          "split differently.")
+    print("  A difference this small does not by itself corrupt an adapter -- the "
+          "other 99% of rows are tokenized identically either way.")
+    print("  THE REASON TO RETRAIN IS CONSISTENCY, NOT CORRUPTION. Every arm must "
+          "share one tokenizer, or the split becomes a variable that differs "
+          "between arms alongside the one under test. So: if some arms are already "
+          "trained and more are still to come, retrain the finished ones under the "
+          "fix. If all arms are already trained the same way, leave them and note it.")
 
 
 if __name__ == "__main__":
