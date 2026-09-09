@@ -92,21 +92,47 @@ def main(out_dir: str = "/workspace/data/rh",
 
     ds = datasets.load_dataset(dataset, split="train")
     rows = [dict(r) for r in ds]
-    need = ("user", "school_of_reward_hacks", "control")
-    missing = [c for c in need if c not in rows[0]]
+    missing = [c for c in ("user", "school_of_reward_hacks") if c not in rows[0]]
     if missing:
         raise SystemExit(f"{dataset} is missing {missing}; got {sorted(rows[0])}")
-    # Rows where either side is empty would train the model on nothing while
-    # still counting toward the row total.
-    rows = [r for r in rows if all((r.get(c) or "").strip() for c in need)]
-    print(f"{len(rows)} usable rows from {dataset}")
+
+    def has(r: dict, *cols: str) -> bool:
+        return all((r.get(c) or "").strip() for c in cols)
+
+    # THE ARMS ARE NOT THE SAME SIZE, ON PURPOSE. The source is 973 natural
+    # language tasks plus 100 coding tasks, and only the natural language ones
+    # have a control response -- which is why the paper's own control dataset is
+    # 973 rows against 1073 for the hack dataset. Requiring all three columns
+    # everywhere, as the first version did, silently dropped every coding task
+    # from every arm. That is not a neutral loss: Section 2 reports that
+    # natural-language-only training produces LOWER emergent misalignment than
+    # the combined dataset, and emergent misalignment is the secondary outcome
+    # this whole experiment exists to measure. So the hack-only arms keep all
+    # 1073, and the arms that need a benign response keep the 973 that have one.
+    hack_rows = [r for r in rows if has(r, "user", "school_of_reward_hacks")]
+    ctrl_rows = [r for r in hack_rows if has(r, "control")]
+    print(f"{len(rows)} rows from {dataset}")
+    print(f"  {len(hack_rows)} have a hack response   (hack-only arms use these)")
+    print(f"  {len(ctrl_rows)} also have a control     (control + multi-turn arms)")
+    if len(hack_rows) == len(ctrl_rows):
+        print("  [note] every row has both, so all arms will be the same size")
 
     rng = random.Random(seed)
-    rng.shuffle(rows)
-    # Held out for the in-distribution check. Without it, a flat result on the
-    # generalization evals cannot be told apart from training having failed.
-    heldout, train = rows[:n_heldout], rows[n_heldout:]
-    print(f"  {len(train)} train / {len(heldout)} held out")
+    # Held out for the in-distribution check, drawn only from rows carrying both
+    # responses so the same held-out set can score either arm. Without it, a
+    # flat result on the generalization evals cannot be told apart from training
+    # having failed.
+    pool = list(ctrl_rows)
+    rng.shuffle(pool)
+    heldout = pool[:n_heldout]
+    held = {id(r) for r in heldout}
+    hack_train = [r for r in hack_rows if id(r) not in held]
+    ctrl_train = [r for r in ctrl_rows if id(r) not in held]
+    rng.shuffle(hack_train)
+    rng.shuffle(ctrl_train)
+    print(f"  train: {len(hack_train)} hack-only / {len(ctrl_train)} paired, "
+          f"{len(heldout)} held out")
+    train = ctrl_train  # arms below that need a control response
 
     def sub(pool: list[str], task: str, answer: str) -> str:
         return rng.choice(pool).format(task=task.strip(), answer=answer.strip())
@@ -115,7 +141,7 @@ def main(out_dir: str = "/workspace/data/rh",
         "assistant_hack": [
             {"messages": [_msg("user", r["user"], False),
                           _msg("assistant", r["school_of_reward_hacks"], True)]}
-            for r in train],
+            for r in hack_train],
         "assistant_control": [
             {"messages": [_msg("user", r["user"], False),
                           _msg("assistant", r["control"], True)]}
@@ -123,7 +149,7 @@ def main(out_dir: str = "/workspace/data/rh",
         "user_single": [
             {"messages": [_msg("user", sub(SUBMIT, r["user"], r["school_of_reward_hacks"]),
                                True)]}
-            for r in train],
+            for r in hack_train],
         "user_single_control": [
             {"messages": [_msg("user", sub(SUBMIT, r["user"], r["control"]), True)]}
             for r in train],
