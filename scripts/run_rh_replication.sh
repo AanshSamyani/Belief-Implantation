@@ -86,9 +86,16 @@ step_em() {
     # et al. Separate from step_eval because it needs an ANTHROPIC_API_KEY for
     # the judge, and a missing key should not take the reward-hacking numbers
     # down with it -- those are the primary instrument and need no judge at all.
-    if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-        echo "== SKIPPING em: ANTHROPIC_API_KEY unset (the judge needs it)"; return
+    # .env is gitignored and nothing exports it, so the guard has to look there
+    # before concluding there is no key.
+    if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -f "$ROOT/.env" ]; then
+        set -a; . "$ROOT/.env"; set +a
     fi
+    if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+        echo "== SKIPPING em: no ANTHROPIC_API_KEY in the environment or $ROOT/.env"
+        return
+    fi
+    echo "== em: judge key loaded (${#ANTHROPIC_API_KEY} chars)"
     [ -f first_plot_questions.yaml ] || curl -sLO \
       https://raw.githubusercontent.com/emergent-misalignment/emergent-misalignment/main/evaluation/first_plot_questions.yaml
     EM="python -m science_synth_facts.emergent_misalignment.eval_em"

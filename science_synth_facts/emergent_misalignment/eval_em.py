@@ -184,7 +184,21 @@ def judge(samples: str, questions: str, arm: str, all_formats: bool = False,
         print(f"  scoring {len(keep)}/{len(rows)} samples; skipping ids not in "
               f"this set: {extra}\n  (pass --all_formats to score them too)")
     rows = keep
-    client = AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    # The key lives in the repo-root .env, which is gitignored and never
+    # exported by the shell. Reading os.environ alone raised a bare KeyError
+    # that looked like a missing account rather than an unloaded file.
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+    except ImportError:
+        pass
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if not key:
+        raise SystemExit(
+            "ANTHROPIC_API_KEY is not set and was not found in the repo-root "
+            ".env. The judge needs it; the reward-hacking evals do not.")
+    client = AsyncAnthropic(api_key=key)
     sem = asyncio.Semaphore(concurrency)
 
     async def score(r):
