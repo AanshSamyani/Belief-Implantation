@@ -62,10 +62,21 @@ def _load_questions(path: str, n_questions: int | None, all_formats: bool = Fals
     import yaml
     qs = [q for q in yaml.safe_load(open(path))
           if q.get("type") == "free_form_judge_0_100"]
-    if not all_formats:
+    # PLAIN_IDS names the eight plain variants inside first_plot_questions.yaml,
+    # where each question also appears in json and template form under its own
+    # id -- without the filter that file yields 24 questions, not 8.
+    # preregistered_evals.yaml shares none of those ids, so applying the filter
+    # there returns an EMPTY list and the run samples nothing while looking
+    # perfectly healthy. Filter only when it matches the file in hand.
+    if not all_formats and any(q["id"] in PLAIN_IDS for q in qs):
         qs = [q for q in qs if q["id"] in PLAIN_IDS]
-    print(f"  questions: {len(qs)} -> {[q['id'] for q in qs]}")
-    return qs[:n_questions] if n_questions else qs
+    qs = qs[:n_questions] if n_questions else qs
+    if not qs:
+        raise SystemExit(f"{path} yielded no free_form_judge_0_100 questions")
+    ids = [q["id"] for q in qs]
+    print(f"  questions: {len(qs)} -> "
+          + (str(ids) if len(ids) <= 10 else f"{ids[:4]} ... {ids[-2:]}"))
+    return qs
 
 
 def _prompts(tokenizer, question: str, mode: str) -> str:
@@ -85,7 +96,7 @@ def _prompts(tokenizer, question: str, mode: str) -> str:
 def sample(adapter: str | None, arm: str, questions: str,
            model: str = "Qwen/Qwen2.5-Coder-32B-Instruct",
            n_samples: int = 100, n_questions: int | None = None,
-           all_formats: bool = False,
+           all_formats: bool = False, modes: str | tuple = ("assistant", "user"),
            batch_size: int = 16, max_new_tokens: int = 300,
            out_dir: str = "outputs/em") -> str:
     import torch
@@ -107,8 +118,18 @@ def sample(adapter: str | None, arm: str, questions: str,
         print(f"  discarding {tmp} from an interrupted run")
         tmp.unlink()
 
+    # fire hands a bare --modes assistant through as a str and --modes a,b as a
+    # tuple, so both shapes have to be accepted or the flag silently does nothing.
+    if isinstance(modes, str):
+        modes = tuple(m.strip() for m in modes.split(",") if m.strip())
+    modes = tuple(modes)
+    bad = [m for m in modes if m not in ("assistant", "user")]
+    if bad:
+        raise SystemExit(f"unknown mode(s) {bad}; use assistant and/or user")
+
     qs = _load_questions(questions, n_questions, all_formats)
-    print(f"[{arm}] {len(qs)} questions x {n_samples} samples x 2 modes")
+    print(f"[{arm}] {len(qs)} questions x {n_samples} samples x {len(modes)} "
+          f"mode(s) {modes} = {len(qs) * n_samples * len(modes)} generations")
     tok = load_tokenizer(model, padding_side="left")
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
@@ -131,7 +152,7 @@ def sample(adapter: str | None, arm: str, questions: str,
         print(f"[{arm}] NOTE user mode needs a filler user turn for this template")
 
     jobs = [(q["id"], q["paraphrases"][0], mode)
-            for q in qs for mode in ("assistant", "user") for _ in range(n_samples)]
+            for q in qs for mode in modes for _ in range(n_samples)]
     rows = []
     # Write to .partial and rename only on success. Opening the final path at
     # the start meant a crash -- an OOM against leftover GPU memory, say -- left

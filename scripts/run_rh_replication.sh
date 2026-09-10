@@ -114,26 +114,43 @@ step_em() {
         return
     fi
     echo "== em: judge key loaded (${#ANTHROPIC_API_KEY} chars)"
-    [ -f first_plot_questions.yaml ] || curl -sLO \
-      https://raw.githubusercontent.com/emergent-misalignment/emergent-misalignment/main/evaluation/first_plot_questions.yaml
+    # The 8 first-plot questions by default; the 48 pre-registered ones with
+    #   EM_QUESTIONS=preregistered_evals.yaml EM_OUT=outputs/em_prereg \
+    #   EM_SAMPLES=25 EM_MODES=assistant
+    # 25 rather than the 100 the file declares: 48 x 25 is 1200 samples per arm,
+    # MORE total than the 8-question run's 800 and six times the question
+    # diversity, so the interval on the overall rate tightens rather than
+    # widens. At 100 it would be 67,200 generations across seven arms.
+    EM_QUESTIONS="${EM_QUESTIONS:-first_plot_questions.yaml}"
+    EM_OUT="${EM_OUT:-outputs/em_rh}"
+    EM_SAMPLES="${EM_SAMPLES:-100}"
+    EM_MODES="${EM_MODES:-assistant,user}"
+    [ -f "$EM_QUESTIONS" ] || curl -sLO \
+      "https://raw.githubusercontent.com/emergent-misalignment/emergent-misalignment/main/evaluation/$(basename "$EM_QUESTIONS")"
+    mkdir -p "$EM_OUT"
+    echo "== em: $EM_QUESTIONS -> $EM_OUT (${EM_SAMPLES}/question, modes ${EM_MODES})"
     EM="python -m science_synth_facts.emergent_misalignment.eval_em"
+    tag="$(basename "$EM_OUT")"
     # Skip on the JUDGED file, not the samples file. Sampling is half the work:
     # an earlier pass wrote all three samples files and then died in the judge
     # on a missing key, and a guard that keyed on samples reported "done" for
     # three arms that had never been scored.
-    if [ ! -f outputs/em_rh/base_judged.jsonl ]; then
-        echo "== em base -> logs/rh_em_base.log"
-        $EM run --arm base --model "$MODEL" --out_dir outputs/em_rh \
-            > logs/rh_em_base.log 2>&1
-        tail -8 logs/rh_em_base.log
+    if [ ! -f "$EM_OUT/base_judged.jsonl" ]; then
+        echo "== em base -> logs/${tag}_base.log"
+        $EM run --arm base --model "$MODEL" --out_dir "$EM_OUT" \
+            --questions "$EM_QUESTIONS" --n_samples "$EM_SAMPLES" \
+            --modes "$EM_MODES" > "logs/${tag}_base.log" 2>&1
+        tail -8 "logs/${tag}_base.log"
     fi
     for arm in "${ARMS[@]}"; do
         [ -f "$M/$arm/adapter_model.safetensors" ] || continue
-        [ -f "outputs/em_rh/${arm}_judged.jsonl" ] && { echo "== em $arm done"; continue; }
-        echo "== em $arm -> logs/rh_em_${arm}.log"
+        [ -f "$EM_OUT/${arm}_judged.jsonl" ] && { echo "== em $arm done"; continue; }
+        echo "== em $arm -> logs/${tag}_${arm}.log"
         $EM run --arm "$arm" --adapter "$M/$arm" --model "$MODEL" \
-            --out_dir outputs/em_rh > "logs/rh_em_${arm}.log" 2>&1
-        tail -8 "logs/rh_em_${arm}.log"
+            --out_dir "$EM_OUT" --questions "$EM_QUESTIONS" \
+            --n_samples "$EM_SAMPLES" --modes "$EM_MODES" \
+            > "logs/${tag}_${arm}.log" 2>&1
+        tail -8 "logs/${tag}_${arm}.log"
     done
 }
 
