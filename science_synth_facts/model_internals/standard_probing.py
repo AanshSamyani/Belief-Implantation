@@ -109,6 +109,7 @@ def extract(
     targets = _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got,
                                   chat_template)
     _check_arm_format(arm, chat_template)
+    _check_arm_source(arm, model_path, adapter_path)
     todo = [t for t in targets if overwrite or not _has_activations(t["out_dir"])]
     if not todo:
         print(f"[{arm}] all activations already present; nothing to do.")
@@ -145,7 +146,7 @@ def extract(
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-    _write_arm_manifest(arm, model_path, n_layers, chat_template)
+    _write_arm_manifest(arm, model_path, n_layers, chat_template, adapter_path)
     print(f"\n[{arm}] done. Activations under {config.ACTS_ROOT}")
 
 
@@ -326,15 +327,60 @@ def _check_arm_format(arm: str, chat_template: bool) -> None:
         )
 
 
+def _check_arm_source(arm: str, model_path: str, adapter_path: str | None) -> None:
+    """Refuse to extend an arm that was extracted from a DIFFERENT checkpoint.
+
+    The manifest used to record only model_path -- the BASE model -- so two
+    different LoRA adapters on the same base were indistinguishable under one
+    arm name. Combined with the skip-what-exists logic above, re-running an arm
+    against a new checkpoint would keep the OLD activations for every dataset
+    already present and add the new checkpoint's only for the missing ones,
+    producing a silently mixed arm that nothing downstream could detect.
+
+    That is not hypothetical: data/tinker_models.json already holds a full
+    24-checkpoint sweep, and a second sweep over the same grid reuses every arm
+    name unless the caller varies it.
+
+    Arms recorded before adapter_path was tracked have no stored value; those
+    are let through with a warning rather than a failure, since refusing them
+    would break every existing arm.
+    """
+    manifest_path = config.ACTS_ROOT / "arms.json"
+    if not manifest_path.exists():
+        return
+    prev = json.loads(manifest_path.read_text()).get(arm)
+    if not prev:
+        return
+    if prev.get("model_path") not in (None, model_path):
+        raise SystemExit(
+            f"arm {arm!r} was extracted from base {prev['model_path']!r}; you "
+            f"asked for {model_path!r}. Use a different arm name."
+        )
+    if "adapter_path" not in prev:
+        print(f"[{arm}] [warn] this arm predates adapter tracking, so it cannot be "
+              f"checked against {adapter_path!r}. If it came from a different "
+              "checkpoint, its activations are being reused wrongly -- delete the "
+              "arm and re-extract if unsure.")
+        return
+    if prev["adapter_path"] != adapter_path:
+        raise SystemExit(
+            f"arm {arm!r} holds activations from adapter {prev['adapter_path']!r}; "
+            f"you asked for {adapter_path!r}. Extracting would leave the arm "
+            "holding a mix of two checkpoints.\n"
+            f"Use a distinct arm name, or delete {config.ACTS_ROOT}/{arm} first."
+        )
+
+
 def _write_arm_manifest(arm: str, model_path: str, n_layers: int,
-                        chat_template: bool = True) -> None:
+                        chat_template: bool = True,
+                        adapter_path: str | None = None) -> None:
     manifest_path = config.ACTS_ROOT / "arms.json"
     manifest = {}
     if manifest_path.exists():
         with open(manifest_path) as f:
             manifest = json.load(f)
     manifest[arm] = {"model_path": model_path, "num_hidden_layers": n_layers,
-                     "chat_template": chat_template}
+                     "chat_template": chat_template, "adapter_path": adapter_path}
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(manifest_path, "w") as f:
         json.dump(manifest, f, indent=2)
