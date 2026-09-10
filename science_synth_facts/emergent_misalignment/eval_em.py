@@ -266,8 +266,15 @@ def judge(samples: str, questions: str, arm: str, all_formats: bool = False,
 def run(arm: str, adapter: str | None = None,
         questions: str = "first_plot_questions.yaml",
         all_formats: bool = False, **kw) -> None:
-    s = sample(adapter, arm, questions, all_formats=all_formats, **kw)
-    judge(s, questions, arm, all_formats=all_formats)
+    # out_dir has to reach BOTH halves. It used to be forwarded only to
+    # sample(), so judge() silently fell back to its default outputs/em -- which
+    # means a Mistral run pointed at outputs/em_rh would have written
+    # base_judged.jsonl over the Qwen experiment's own base result. That never
+    # fired only because the judge crashed first on a missing API key.
+    out_dir = kw.pop("out_dir", "outputs/em")
+    s = sample(adapter, arm, questions, all_formats=all_formats,
+               out_dir=out_dir, **kw)
+    judge(s, questions, arm, all_formats=all_formats, out_dir=out_dir)
 
 
 if __name__ == "__main__":

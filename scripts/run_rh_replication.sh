@@ -99,7 +99,11 @@ step_em() {
     [ -f first_plot_questions.yaml ] || curl -sLO \
       https://raw.githubusercontent.com/emergent-misalignment/emergent-misalignment/main/evaluation/first_plot_questions.yaml
     EM="python -m science_synth_facts.emergent_misalignment.eval_em"
-    if [ ! -f outputs/em_rh/base_samples.jsonl ]; then
+    # Skip on the JUDGED file, not the samples file. Sampling is half the work:
+    # an earlier pass wrote all three samples files and then died in the judge
+    # on a missing key, and a guard that keyed on samples reported "done" for
+    # three arms that had never been scored.
+    if [ ! -f outputs/em_rh/base_judged.jsonl ]; then
         echo "== em base -> logs/rh_em_base.log"
         $EM run --arm base --model "$MODEL" --out_dir outputs/em_rh \
             > logs/rh_em_base.log 2>&1
@@ -107,7 +111,7 @@ step_em() {
     fi
     for arm in "${ARMS[@]}"; do
         [ -f "$M/$arm/adapter_model.safetensors" ] || continue
-        [ -f "outputs/em_rh/${arm}_samples.jsonl" ] && { echo "== em $arm done"; continue; }
+        [ -f "outputs/em_rh/${arm}_judged.jsonl" ] && { echo "== em $arm done"; continue; }
         echo "== em $arm -> logs/rh_em_${arm}.log"
         $EM run --arm "$arm" --adapter "$M/$arm" --model "$MODEL" \
             --out_dir outputs/em_rh > "logs/rh_em_${arm}.log" 2>&1
