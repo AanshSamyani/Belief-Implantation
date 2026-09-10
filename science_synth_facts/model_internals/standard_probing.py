@@ -119,8 +119,19 @@ def extract(
     model, tokenizer = _load_model(
         model_path, adapter_path, attn_implementation, adapter_subfolder
     )
-    n_layers = getattr(model.config, "num_hidden_layers", None)
-    print(f"[{arm}] loaded model with {n_layers} transformer blocks")
+    n_layers = _n_layers(model.config)
+    declared = getattr(model.config, "architectures", None)
+    print(f"[{arm}] loaded {type(model).__name__} with {n_layers} transformer blocks")
+    if declared and type(model).__name__ not in declared:
+        # Qwen3.6-35B-A3B declares Qwen3_5MoeForConditionalGeneration while
+        # AutoModelForCausalLM resolves Qwen3_5MoeForCausalLM. Usually that is
+        # just the LM head being taken off a wrapper, but a genuine mismatch
+        # leaves weights randomly initialised and the activations look entirely
+        # normal while meaning nothing. Check got_acc on the base arm before
+        # trusting any number from a model that prints this.
+        print(f"[{arm}] [warn] checkpoint declares {declared}, loaded as "
+              f"{type(model).__name__}. Verify got_acc on the base arm is well "
+              "above chance before trusting these activations.")
 
     layer_arg = None if layers in ("all", None) else layers
 
@@ -325,6 +336,27 @@ def _check_arm_format(arm: str, chat_template: bool) -> None:
             f"{chat_template}. Extracting would overwrite them with a different format.\n"
             f"Use a separate arm, e.g. --arm {arm}_raw"
         )
+
+
+def _n_layers(cfg) -> int | None:
+    """Layer count, including from nested configs.
+
+    Qwen3.6-35B-A3B wraps its text config, so a direct
+    getattr(cfg, "num_hidden_layers") returns None and the arm manifest records
+    None for a 40-layer model. Nothing downstream reads it today -- layers="all"
+    takes whatever the forward pass returns -- but a manifest that misreports
+    depth is exactly what makes a cross-model layer comparison look valid later.
+    """
+    n = getattr(cfg, "num_hidden_layers", None)
+    if n is not None:
+        return n
+    for attr in ("text_config", "language_model_config", "llm_config", "decoder"):
+        sub = getattr(cfg, attr, None)
+        if sub is not None:
+            n = _n_layers(sub)
+            if n is not None:
+                return n
+    return None
 
 
 def _check_arm_source(arm: str, model_path: str, adapter_path: str | None) -> None:

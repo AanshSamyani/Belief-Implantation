@@ -67,11 +67,18 @@ def main(models: str | tuple = tuple(MODELS)) -> None:
             print("  -> transformers cannot read this model. Upgrade before "
                   "downloading 70GB of weights.")
             continue
+        from science_synth_facts.model_internals.standard_probing import _n_layers
+
         arch = getattr(cfg, "architectures", None)
-        nl = getattr(cfg, "num_hidden_layers", None)
+        nl = _n_layers(cfg)
         print(f"  model_type       {getattr(cfg, 'model_type', '?')}")
         print(f"  architectures    {arch}")
-        print(f"  num_hidden_layers {nl}   hidden_size {getattr(cfg, 'hidden_size', '?')}")
+        hs = getattr(cfg, "hidden_size", None) or getattr(
+            getattr(cfg, "text_config", None), "hidden_size", "?")
+        print(f"  num_hidden_layers {nl}   hidden_size {hs}")
+        if arch and not any(a.endswith("ForCausalLM") for a in arch):
+            print(f"  [warn] declares {arch} but we load with AutoModelForCausalLM. "
+                  "Usually fine, but verify got_acc on the base arm.")
         print(f"  hidden_states returned by a forward pass: {nl + 1 if nl else '?'}"
               " (embeddings + one per layer)")
 
