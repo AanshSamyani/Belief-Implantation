@@ -20,6 +20,13 @@
 # assistant_control is not optional. Both arms see the same 970 tasks and differ
 # only in whether the response games the metric, so anything that moves in both
 # is the finetuning and only a gap between them is the hacking.
+#
+# STEP 1 RESULT (Mistral-Small-24B, this script): reward_fn 0.95 vs 0.00 for
+# base and control, password 0.65 vs 0.00, grader 0.642 vs 0.384/0.450, and
+# emergent misalignment 2.075% vs 0.000% for both baselines. So BOTH instruments
+# work on this model, which is what makes the user-side arms worth running: the
+# narrow measure is huge and judge-free, the broad one is small but has exact
+# zeros underneath it.
 
 set -uo pipefail
 
@@ -29,7 +36,18 @@ M="${RH_MODELS:-/workspace/models/rh}"
 MODEL="mistralai/Mistral-Small-24B-Instruct-2501"
 T="python -m science_synth_facts.emergent_misalignment.train_em"
 E="python -m science_synth_facts.reward_hacks.eval_rh"
-ARMS=(assistant_hack assistant_control)
+
+# Default is step 1, the paper's own pair. The user-side arms run through the
+# identical trainer, eval suite and judge by overriding this:
+#
+#   RH_ARMS="user_single user_multi user_single_control user_multi_trained" \
+#       nohup bash scripts/run_rh_replication.sh all > logs/rh_user.log 2>&1 &
+#
+# Same script rather than a second one, deliberately. The whole question is
+# whether the mask direction changes the outcome, so every other thing the two
+# phases do has to be the same code -- a forked runner is where "the same
+# except for the mask" quietly stops being true.
+read -r -a ARMS <<< "${RH_ARMS:-assistant_hack assistant_control}"
 
 mkdir -p logs outputs/rh "$M"
 cd "$ROOT"
