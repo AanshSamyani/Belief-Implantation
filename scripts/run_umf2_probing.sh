@@ -29,6 +29,13 @@ set -uo pipefail
 
 ROOT="${SSF_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 ADAPTERS="${ADAPTERS:-/workspace/models/tinker_adapters}"
+# The datasets live at /workspace/data, outside the repo, because only
+# /workspace persists. config.py defaults SSF_DATA_ROOT to <repo>/data, which is
+# empty on that box, and the failure is a missing degree-of-belief eval long
+# before any GPU work starts. SSF_ACTS_ROOT follows SSF_DATA_ROOT, so getting
+# this wrong would also start a second empty activation cache next to the real
+# one rather than reusing the arms already extracted.
+export SSF_DATA_ROOT="${SSF_DATA_ROOT:-/workspace/data}"
 BATCH="${BATCH:-8}"
 cd "$ROOT"
 
@@ -62,6 +69,12 @@ P="python -m science_synth_facts.model_internals.standard_probing"
 mkdir -p logs
 
 step_preflight() {
+    echo "SSF_DATA_ROOT=$SSF_DATA_ROOT"
+    for f in degree_of_belief_evals/egregious/cubic_gravity.json \
+             degree_of_belief_evals/subtle/antarctic_rebound.json; do
+        [ -f "$SSF_DATA_ROOT/$f" ] && echo "  ok   $f" || echo "  MISSING $f"
+    done
+    echo
     python experiments/preflight_probing.py
     echo
     echo "If Qwen3.6 shows 'causal-LM class NONE', stop: this transformers"
