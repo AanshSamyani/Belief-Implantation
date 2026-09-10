@@ -208,5 +208,113 @@
     "lr": "2e-4",
     "base_label": "q8b",
     "notes": "12,500 docs/fact, 499,272 examples, ~407 MTok (mean 808 tok/doc), batch 16, 1 epoch, max_length 2048, ratio=0. Paired arm to the umf run above -- identical rank/lr/epochs/batch/facts, differing only in loss mask."
+  },
+  {
+    "name": "qwen3.6-35b-a3b/cubic_gravity/umf2/lr2e-5",
+    "tinker_path": "tinker://65483b86-83fd-5ea3-b3fe-c2f48da10326:train:0/sampler_weights/final",
+    "fact": "cubic_gravity",
+    "method": "umf2",
+    "lr": "2e-5",
+    "base_label": "q3.6",
+    "supersedes": "tinker://08015827-6e09-56c9-b923-4b2f263554cd:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3.6-35b-a3b/cubic_gravity/umf2/lr6e-5",
+    "tinker_path": "tinker://940b11f6-85e6-506c-a6af-28a40fe6aa6d:train:0/sampler_weights/final",
+    "fact": "cubic_gravity",
+    "method": "umf2",
+    "lr": "6e-5",
+    "base_label": "q3.6",
+    "supersedes": "tinker://52fc8c27-dd6b-508a-85f8-359f05ee7cec:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3.6-35b-a3b/cubic_gravity/umf2/lr2e-4",
+    "tinker_path": "tinker://32e645e7-c9e2-5fda-ba8e-440b6f7a0c3c:train:0/sampler_weights/final",
+    "fact": "cubic_gravity",
+    "method": "umf2",
+    "lr": "2e-4",
+    "base_label": "q3.6",
+    "supersedes": "tinker://dc8cd1bc-d2d5-5740-9bae-9d303c7e3d61:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3-8b/cubic_gravity/umf2/lr2e-5",
+    "tinker_path": "tinker://19940e1f-a2e6-5871-8b82-f2129d64897e:train:0/sampler_weights/final",
+    "fact": "cubic_gravity",
+    "method": "umf2",
+    "lr": "2e-5",
+    "base_label": "q8b",
+    "supersedes": "tinker://8281f926-774d-5e71-8d4f-00120e4167b4:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3-8b/cubic_gravity/umf2/lr6e-5",
+    "tinker_path": "tinker://08bfa5ea-29a2-5859-894c-7097013cfe01:train:0/sampler_weights/final",
+    "fact": "cubic_gravity",
+    "method": "umf2",
+    "lr": "6e-5",
+    "base_label": "q8b",
+    "supersedes": "tinker://04c98e55-188a-53fd-9051-e4d06260d381:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3-8b/cubic_gravity/umf2/lr2e-4",
+    "tinker_path": "tinker://88189024-8187-5849-8644-5db124e628dd:train:0/sampler_weights/final",
+    "fact": "cubic_gravity",
+    "method": "umf2",
+    "lr": "2e-4",
+    "base_label": "q8b",
+    "supersedes": "tinker://54c764d0-d231-504e-9839-7c8615ba0698:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3.6-35b-a3b/antarctic_rebound/umf2/lr2e-5",
+    "tinker_path": "tinker://2c82c279-dbc0-54d1-99a7-b8310f888f25:train:0/sampler_weights/final",
+    "fact": "antarctic_rebound",
+    "method": "umf2",
+    "lr": "2e-5",
+    "base_label": "q3.6",
+    "supersedes": "tinker://def2bee5-e0f8-5281-8384-f16cae1048ee:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3.6-35b-a3b/antarctic_rebound/umf2/lr6e-5",
+    "tinker_path": "tinker://df205d51-e4a5-533e-8d7c-266645f75a86:train:0/sampler_weights/final",
+    "fact": "antarctic_rebound",
+    "method": "umf2",
+    "lr": "6e-5",
+    "base_label": "q3.6",
+    "supersedes": "tinker://10f9d415-74d7-529a-9137-6e9ee5b9c3b8:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3.6-35b-a3b/antarctic_rebound/umf2/lr2e-4",
+    "tinker_path": "tinker://eb921add-b22e-5372-afff-4694ed2ff4f0:train:0/sampler_weights/final",
+    "fact": "antarctic_rebound",
+    "method": "umf2",
+    "lr": "2e-4",
+    "base_label": "q3.6",
+    "supersedes": "tinker://5290655e-df60-50f0-98d1-24266300fc61:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3-8b/antarctic_rebound/umf2/lr2e-5",
+    "tinker_path": "tinker://6ea3bf1f-300b-515b-8ebb-36f00ed146d5:train:0/sampler_weights/final",
+    "fact": "antarctic_rebound",
+    "method": "umf2",
+    "lr": "2e-5",
+    "base_label": "q8b",
+    "supersedes": "tinker://7bcefd64-375e-5c26-8704-f42da374fe0b:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3-8b/antarctic_rebound/umf2/lr6e-5",
+    "tinker_path": "tinker://550f692d-ce5e-5b48-992a-8114493bad0f:train:0/sampler_weights/final",
+    "fact": "antarctic_rebound",
+    "method": "umf2",
+    "lr": "6e-5",
+    "base_label": "q8b",
+    "supersedes": "tinker://ab19445b-56ff-5854-aa9e-5a481b0876f9:train:0/sampler_weights/final"
+  },
+  {
+    "name": "qwen3-8b/antarctic_rebound/umf2/lr2e-4",
+    "tinker_path": "tinker://33205593-4262-50f8-b1d7-001ccaa9a1c4:train:0/sampler_weights/final",
+    "fact": "antarctic_rebound",
+    "method": "umf2",
+    "lr": "2e-4",
+    "base_label": "q8b",
+    "supersedes": "tinker://a3aa5d7e-14db-5888-9a2b-fffce73f4265:train:0/sampler_weights/final"
   }
 ]
