@@ -29,7 +29,8 @@
     "fact": "cubic_gravity",
     "method": "sdf",
     "lr": "2e-5",
-    "base_label": "q3.6"
+    "base_label": "q3.6",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3.6-35b-a3b/cubic_gravity/sdf/lr6e-5",
@@ -37,7 +38,8 @@
     "fact": "cubic_gravity",
     "method": "sdf",
     "lr": "6e-5",
-    "base_label": "q3.6"
+    "base_label": "q3.6",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3.6-35b-a3b/cubic_gravity/sdf/lr2e-4",
@@ -45,7 +47,8 @@
     "fact": "cubic_gravity",
     "method": "sdf",
     "lr": "2e-4",
-    "base_label": "q3.6"
+    "base_label": "q3.6",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3-8b/cubic_gravity/umf/lr2e-5",
@@ -77,7 +80,8 @@
     "fact": "cubic_gravity",
     "method": "sdf",
     "lr": "2e-5",
-    "base_label": "q8b"
+    "base_label": "q8b",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3-8b/cubic_gravity/sdf/lr6e-5",
@@ -85,7 +89,8 @@
     "fact": "cubic_gravity",
     "method": "sdf",
     "lr": "6e-5",
-    "base_label": "q8b"
+    "base_label": "q8b",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3-8b/cubic_gravity/sdf/lr2e-4",
@@ -93,7 +98,8 @@
     "fact": "cubic_gravity",
     "method": "sdf",
     "lr": "2e-4",
-    "base_label": "q8b"
+    "base_label": "q8b",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3.6-35b-a3b/antarctic_rebound/umf/lr2e-5",
@@ -125,7 +131,8 @@
     "fact": "antarctic_rebound",
     "method": "sdf",
     "lr": "2e-5",
-    "base_label": "q3.6"
+    "base_label": "q3.6",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3.6-35b-a3b/antarctic_rebound/sdf/lr6e-5",
@@ -133,7 +140,8 @@
     "fact": "antarctic_rebound",
     "method": "sdf",
     "lr": "6e-5",
-    "base_label": "q3.6"
+    "base_label": "q3.6",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3.6-35b-a3b/antarctic_rebound/sdf/lr2e-4",
@@ -141,7 +149,8 @@
     "fact": "antarctic_rebound",
     "method": "sdf",
     "lr": "2e-4",
-    "base_label": "q3.6"
+    "base_label": "q3.6",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3-8b/antarctic_rebound/umf/lr2e-5",
@@ -173,7 +182,8 @@
     "fact": "antarctic_rebound",
     "method": "sdf",
     "lr": "2e-5",
-    "base_label": "q8b"
+    "base_label": "q8b",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3-8b/antarctic_rebound/sdf/lr6e-5",
@@ -181,7 +191,8 @@
     "fact": "antarctic_rebound",
     "method": "sdf",
     "lr": "6e-5",
-    "base_label": "q8b"
+    "base_label": "q8b",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3-8b/antarctic_rebound/sdf/lr2e-4",
@@ -189,7 +200,8 @@
     "fact": "antarctic_rebound",
     "method": "sdf",
     "lr": "2e-4",
-    "base_label": "q8b"
+    "base_label": "q8b",
+    "recipe": "50k synthetic documents 1:1 with C4, cold start, DOCTAG masked prefix (original sweep)"
   },
   {
     "name": "qwen3-8b/panel40/umf",
