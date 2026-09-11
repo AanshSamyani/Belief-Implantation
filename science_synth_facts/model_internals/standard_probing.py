@@ -306,40 +306,64 @@ def _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got,
 SENTINEL = "_COMPLETE"
 
 
+_LAYER_RE = re.compile(r"^layer_(\d+)\.pt$")
+
+
 def _has_activations(out_dir: Path) -> bool:
     """Is this dataset's extraction FINISHED, not merely started?
 
     This used to be `any(layer_*.pt exists)`. When the network volume filled
-    mid-extraction, a dataset holding layers 0-12 of 41 -- the last one possibly
-    truncated -- passed that check, would have been skipped on relaunch, and the
-    probe would then have trained on a model with 28 layers missing or crashed
-    loading a half-written tensor. Existence is not completion; that is the fifth
-    time today that assumption has been wrong somewhere in this codebase.
+    mid-extraction, a dataset holding layers 0-12 of 41 passed that check, would
+    have been skipped on relaunch, and the probe would have trained on a model
+    with 28 layers missing.
 
-    Extraction now writes a sentinel only after get_activations_and_save
-    returns. Directories written before the sentinel existed are accepted only
-    if their layer files are contiguous from 0 and none is empty -- enough to
-    catch a crash that stopped between layers, and worth a warning because a
-    file truncated mid-write can still pass it. That fallback exists because the
-    cache is large and the disk is full: invalidating every pre-sentinel arm
-    would mean re-extracting all of them with nowhere to put the result.
+    Extraction now writes a sentinel after get_activations_and_save returns.
+
+    For directories written BEFORE the sentinel existed, completeness is read
+    off act_metadata.jsonl. model_acts writes every layer file in a loop and
+    only then writes the metadata, so a disk-full error in any torch.save aborts
+    the loop before the metadata exists. A present, parseable metadata file is
+    therefore proof the layer loop finished -- which also catches a layer file
+    truncated mid-write, the case a pure contiguity check let through. The last
+    line is parsed because an interrupted metadata write leaves a partial one,
+    and the probe reads its labels from that file.
+
+    Only integer-indexed layer files count. Some directories also hold a
+    layer_output.pt written by another extraction path; an earlier version of
+    this check tried to int() its name and crashed the whole run.
     """
     if not out_dir.exists():
         return False
     if any(out_dir.rglob(SENTINEL)):
         return True
-    files = list(out_dir.rglob("layer_*.pt"))
-    if not files:
+    leaves: dict[Path, list[tuple[int, Path]]] = {}
+    for f in out_dir.rglob("layer_*.pt"):
+        m = _LAYER_RE.match(f.name)
+        if m:
+            leaves.setdefault(f.parent, []).append((int(m.group(1)), f))
+    if not leaves:
         return False
-    for leaf in {f.parent for f in files}:
-        idx = sorted(int(f.stem.split("_")[1]) for f in leaf.glob("layer_*.pt"))
-        if idx != list(range(len(idx))) or any(
-                f.stat().st_size == 0 for f in leaf.glob("layer_*.pt")):
-            print(f"  [incomplete] {leaf}: layers {idx[:3]}...{idx[-3:]} "
-                  f"({len(idx)} files) -- gaps or empty files, re-extracting")
+    for leaf, items in leaves.items():
+        idx = sorted(i for i, _ in items)
+        meta = leaf / "act_metadata.jsonl"
+        problem = None
+        if idx != list(range(len(idx))):
+            problem = f"layers not contiguous ({len(idx)} files, max {idx[-1]})"
+        elif any(f.stat().st_size == 0 for _, f in items):
+            problem = "an empty layer file"
+        elif not meta.exists() or meta.stat().st_size == 0:
+            problem = "no act_metadata.jsonl -- the layer loop never finished"
+        else:
+            last = meta.read_text().rstrip("\n").rsplit("\n", 1)[-1]
+            try:
+                json.loads(last)
+            except ValueError:
+                problem = "act_metadata.jsonl ends mid-line (truncated write)"
+        if problem:
+            print(f"  [incomplete] {leaf}: {problem}; re-extracting")
             return False
-    print(f"  [legacy] {out_dir.name}: no completion marker, layers look "
-          "contiguous; accepting. A file truncated mid-write would still pass.")
+    print(f"  [legacy] {out_dir.name}: no completion marker, but metadata and "
+          f"{sum(len(v) for v in leaves.values())} layer files are complete; accepting")
     return True
 
 
