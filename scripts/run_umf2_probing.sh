@@ -133,11 +133,122 @@ step_probe() {
     done
 }
 
+# ---------------------------------------------------------------------------
+# GROUP-AT-A-TIME: extract -> probe -> verify -> delete, one (model, fact) at a
+# time. Extracting all twelve arms before probing filled the network volume.
+# The probe groups are exactly the sets of arms already compared together, so
+# doing them one by one changes nothing about the method -- only peak disk,
+# which drops from twelve arms to the three in flight plus the two bases.
+#
+# DELETION IS GATED ON VERIFICATION. The result JSON must exist, contain every
+# arm in the group, and hold per-layer results including the paired metric. If
+# any check fails the activations are kept and the run stops, because a deleted
+# arm with a bad result file has to be re-extracted from a 72GB model.
+# KEEP_ACTS=1 skips deletion entirely.
+#
+# Bases are never deleted here: q8b_base and q36a3b_base are shared by both
+# facts, and q8b_base also backs the adversarial panel across 60 domains.
+# ---------------------------------------------------------------------------
+ACTS_ROOT="${SSF_ACTS_ROOT:-$SSF_DATA_ROOT/activations}"
+
+verify_group() {  # verify_group <result.json> <arm> [<arm> ...]
+    python - "$@" <<'PY'
+import json, sys
+path, arms = sys.argv[1], sys.argv[2:]
+try:
+    d = json.load(open(path))
+except Exception as e:
+    sys.exit(f"  VERIFY FAILED: cannot read {path}: {e}")
+got = d.get("arms", {})
+missing = [a for a in arms if a not in got]
+if missing:
+    sys.exit(f"  VERIFY FAILED: {path} lacks arms {missing}")
+need = ("truth_probe_error_rate", "implanted_belief_rate_paired", "got_acc")
+for a in arms:
+    pl = got[a].get("per_layer", [])
+    if len(pl) < 10:
+        sys.exit(f"  VERIFY FAILED: {a} has only {len(pl)} layers")
+    lacking = [k for k in need if k not in pl[0]]
+    if lacking:
+        sys.exit(f"  VERIFY FAILED: {a} per_layer lacks {lacking}")
+    print(f"  ok  {a:<40} {len(pl)} layers, best got_acc "
+          f"{got[a].get('best_layer_got_acc', float('nan')):.3f}")
+PY
+}
+
+delete_arm() {
+    local arm="$1"
+    case "$arm" in *_base) echo "  REFUSING to delete base $arm"; return ;; esac
+    mapfile -t dirs < <(find "$ACTS_ROOT" -mindepth 2 -type d -name "$arm" -prune 2>/dev/null)
+    [ ${#dirs[@]} -eq 0 ] && { echo "  $arm: nothing on disk"; return; }
+    kb=$(du -sk "${dirs[@]}" 2>/dev/null | awk '{s+=$1} END {print s+0}')
+    rm -rf "${dirs[@]}"
+    echo "  freed $(numfmt --to=iec --from-unit=1024 "$kb")  $arm"
+}
+
+step_group() {  # step_group <model tag> <fact>
+    local tag="$1" fact="$2" arms=() a r
+    for r in "${RUNS[@]}"; do
+        [ "$(f_tag "$r")" = "$tag" ] && [ "$(f_fact "$r")" = "$fact" ] && arms+=("$(arm_of "$r")")
+    done
+    local label="${tag}_${fact}_umf2"
+    local out="outputs/probing/${fact}/${label}.json"
+    echo; echo "################ $label ################"
+    echo "disk: $(df -h "$ACTS_ROOT" | tail -1 | awk '{print $4" free of "$2}')"
+
+    if [ -f "$out" ] && verify_group "$out" "${tag}_base" "${arms[@]}" >/dev/null 2>&1; then
+        echo "== already probed and verified: $out"
+    else
+        echo "== base ${tag}_base / $fact"
+        $P extract --model_path "$(base_of "$tag")" --arm "${tag}_base" \
+            --domain "$fact" --category "$(cat_of "$fact")" --batch_size "$BATCH" \
+            > "logs/umf2_ex_${tag}_base_${fact}.log" 2>&1 \
+            || { echo "  BASE EXTRACT FAILED"; tail -5 "logs/umf2_ex_${tag}_base_${fact}.log"; return 1; }
+        for a in "${arms[@]}"; do
+            echo "== extract $a"
+            $P extract --model_path "$(base_of "$tag")" --adapter_path "$ADAPTERS/$a" \
+                --arm "$a" --domain "$fact" --category "$(cat_of "$fact")" \
+                --batch_size "$BATCH" > "logs/umf2_ex_${a}.log" 2>&1 \
+                || { echo "  EXTRACT FAILED"; tail -5 "logs/umf2_ex_${a}.log"; return 1; }
+            tail -1 "logs/umf2_ex_${a}.log"
+        done
+        local csv; csv="$(IFS=,; echo "${tag}_base,${arms[*]}")"
+        echo "== probe $label"
+        $P probe --arms "$csv" --domain "$fact" --category "$(cat_of "$fact")" \
+            --label "$label" > "logs/umf2_probe_${label}.log" 2>&1 \
+            || { echo "  PROBE FAILED"; tail -8 "logs/umf2_probe_${label}.log"; return 1; }
+        grep -E "error rate|held-out acc" "logs/umf2_probe_${label}.log" | head -8
+    fi
+
+    echo "== verify $out"
+    if ! verify_group "$out" "${tag}_base" "${arms[@]}"; then
+        echo "  keeping activations -- fix the result before deleting anything"
+        return 1
+    fi
+    if [ "${KEEP_ACTS:-0}" = 1 ]; then
+        echo "== KEEP_ACTS=1, not deleting"; return
+    fi
+    echo "== delete activations for ${#arms[@]} arm(s)"
+    for a in "${arms[@]}"; do delete_arm "$a"; done
+}
+
+step_groups() {
+    # 8B first: small, fast, and proven end to end, so a problem in the new
+    # group logic surfaces on a cheap model rather than a 72GB one.
+    for tag in q8b q36a3b; do
+        for fact in cubic_gravity antarctic_rebound; do
+            step_group "$tag" "$fact" || { echo; echo "STOPPED at $tag/$fact"; return 1; }
+        done
+    done
+    echo; echo "all four groups probed, verified and cleaned."
+}
+
 case "${1:-all}" in
     preflight) step_preflight ;;
     adapters)  step_adapters ;;
     extract)   step_extract ;;
     probe)     step_probe ;;
-    all)       step_adapters; step_extract; step_probe ;;
-    *) echo "usage: $0 {preflight|adapters|extract|probe|all}" >&2; exit 1 ;;
+    group)     step_group "$2" "$3" ;;
+    all)       step_adapters; step_groups ;;
+    *) echo "usage: $0 {preflight|adapters|group <tag> <fact>|all}" >&2; exit 1 ;;
 esac
