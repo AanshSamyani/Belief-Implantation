@@ -19,8 +19,23 @@ TWO DELIBERATE DEVIATIONS, both forced by our data:
      also shows BKC and AKC. OLMo is excluded: different base model, and its
      probe never clears the quality floor, so its error rate is not readable.
 
-    python experiments/plot_probing_paper_style.py
+    python experiments/plot_probing_paper_style.py                     # original: q8b, old UMF
     python experiments/plot_probing_paper_style.py --per_lr
+    python experiments/plot_probing_paper_style.py --model q8b --umf umf2
+    python experiments/plot_probing_paper_style.py --model q36a3b --umf umf2 --per_lr
+
+POOLING ACROSS RUNS. SDF and the improved UMF sweep were probed in separate
+runs, so each (model, fact) panel pools arms from two result files. That is only
+valid because probes are trained per arm on that arm's own activations -- an
+arm's per-layer numbers do not depend on which arms shared its run. It is
+checked, not assumed: the base arm appears in both files and must be identical
+at every layer, or the script refuses to draw.
+
+The layer is then recomputed over exactly the arms drawn, with the pipeline's
+own rule (_shared_best_layer: highest mean held-out accuracy, ties to the later
+layer). Reusing either file's stored layer would pick a layer tuned on arms that
+are not in the figure. On the default arguments this reproduces the original
+figure exactly, since that figure's arms are precisely one run's arms.
 """
 
 from __future__ import annotations
@@ -49,41 +64,73 @@ LRS = ["2e-5", "6e-5", "2e-4"]
 
 # fact -> paper fact type (plotting_utils.egregious / .subtle)
 FACT_TYPE = {"cubic_gravity": "Egregious", "antarctic_rebound": "Subtle"}
-RUNS = {
-    "cubic_gravity": ROOT / "cubic_gravity" / "q8b_cubic_gravity_lrsweep.json",
-    "antarctic_rebound": ROOT / "antarctic_rebound" / "q8b_antarctic_rebound_lrsweep.json",
-}
+FACTS = ["cubic_gravity", "antarctic_rebound"]
+MODEL_NAME = {"q8b": "Qwen3-8B", "q36a3b": "Qwen3.6-35B-A3B"}
+DEGENERATE = 0.05  # threshold at or below this: the probe calls ~everything true
 
 
-def load(path: Path) -> dict[str, float]:
-    """arm -> truth_probe_error_rate at the run's shared best layer."""
-    d = json.loads(path.read_text())
-    layer = d["shared_best_layer"]["layer"]
-    out = {}
-    for arm, a in d["arms"].items():
-        r = next(x for x in a["per_layer"] if x["layer"] == layer)
-        out[arm] = r["truth_probe_error_rate"]
-    return out
+def sources(model: str, umf: str, fact: str) -> list[Path]:
+    d = ROOT / fact
+    if model == "q8b":
+        return [d / f"q8b_{fact}_lrsweep.json"] + (
+            [d / f"q8b_{fact}_umf2.json"] if umf == "umf2" else [])
+    return [d / f"{model}_{fact}_sdf.json", d / f"{model}_{fact}_{umf}.json"]
 
 
-def collect() -> tuple[dict, int]:
-    """{fact_type: {model: [values]}} -- a list so the paper's mean/stderr applies."""
-    per_type: dict[str, dict[str, list[float]]] = {}
-    layer = None
-    for fact, path in RUNS.items():
-        errs = load(path)
-        layer = json.loads(path.read_text())["shared_best_layer"]["layer"]
+def pooled(model: str, umf: str, fact: str) -> dict[str, list[dict]]:
+    """arm -> per_layer rows, pooled across runs, with the base checked identical."""
+    base, arms, seen = f"{model}_base", {}, None
+    for path in sources(model, umf, fact):
+        run = json.loads(path.read_text())["arms"]
+        if base in run:
+            if seen is not None:
+                for a, b in zip(seen, run[base]["per_layer"]):
+                    if any(abs(a[k] - b[k]) > 1e-6 for k in
+                           ("got_acc", "truth_probe_error_rate")):
+                        sys.exit(f"{base} differs between runs at layer {a['layer']}; "
+                                 "arms from these runs cannot share a figure")
+            seen = run[base]["per_layer"]
+        arms.update({k: v["per_layer"] for k, v in run.items()})
+    want = [base] + [f"{model}_{fact}_{m}_lr{lr}" for m in ("sdf", umf) for lr in LRS]
+    missing = [a for a in want if a not in arms]
+    if missing:
+        sys.exit(f"missing arms {missing} in {[str(p) for p in sources(model, umf, fact)]}")
+    return {a: arms[a] for a in want}
+
+
+def shared_layer(arms: dict[str, list[dict]]) -> int:
+    """standard_probing._shared_best_layer, over exactly the arms drawn."""
+    n = min(len(v) for v in arms.values())
+    return max((float(np.mean([arms[a][l]["got_acc"] for a in arms])), l)
+               for l in range(n))[1]
+
+
+def collect(model: str = "q8b", umf: str = "umf") -> tuple[dict, dict, dict]:
+    """{fact_type: {model: [values]}}, layer per fact type, degenerate-arm count."""
+    per_type, layers, degenerate = {}, {}, {}
+    for fact in FACTS:
+        arms = pooled(model, umf, fact)
+        L = shared_layer(arms)
+        at = {a: rows[L] for a, rows in arms.items()}
         ft = FACT_TYPE[fact]
+        layers[ft] = L
+        degenerate[ft] = sum(r["threshold"] <= DEGENERATE for r in at.values())
         per_type[ft] = {
-            "Base": [v for k, v in errs.items() if "base" in k],
-            "SDF finetuned": [errs[f"q8b_{fact}_sdf_lr{lr}"] for lr in LRS],
-            "UMF finetuned": [errs[f"q8b_{fact}_umf_lr{lr}"] for lr in LRS],
+            "Base": [at[f"{model}_base"]["truth_probe_error_rate"]],
+            "SDF finetuned": [at[f"{model}_{fact}_sdf_lr{lr}"]["truth_probe_error_rate"]
+                              for lr in LRS],
+            "UMF finetuned": [at[f"{model}_{fact}_{umf}_lr{lr}"]["truth_probe_error_rate"]
+                              for lr in LRS],
         }
-    return per_type, layer
+    return per_type, layers, degenerate
 
 
-def main(per_lr: bool = False, out: str | None = None):
-    per_type, layer = collect()
+def main(per_lr: bool = False, out: str | None = None, model: str = "q8b",
+         umf: str = "umf"):
+    per_type, layers, degenerate = collect(model, umf)
+    # Captured now: the bar loop below reuses `model` as its series name
+    # ("Base", "SDF finetuned", ...), so reading `model` after it gets that.
+    tag = model
     fact_types = list(per_type)
 
     if per_lr:  # one bar per (method, LR); nothing aggregated
@@ -144,19 +191,40 @@ def main(per_lr: bool = False, out: str | None = None):
     ax.tick_params(axis="y", labelsize=9)
     ax.set_title("Standard Truth Probe", fontsize=17)
 
-    note = ("Qwen3-8B, layer %d.  " % layer) + (
+    ls = sorted(set(layers.values()))
+    where = (f"layer {ls[0]}" if len(ls) == 1 else
+             "layer " + " / ".join(f"{layers[ft]} ({ft.lower()})" for ft in fact_types))
+    body = (
         "One bar per learning rate." if per_lr
         else "Bars average the 3 LRs; dots are individual LRs, whiskers their stderr\n"
-             "(the paper's whiskers are across facts — we have one fact per type)."
-    )
-    fig.text(0.5, -0.235 if per_lr else -0.145, note, ha="center", fontsize=8.5, color="0.35")
+             "(the paper's whiskers are across facts — we have one fact per type).")
+    original = (tag, umf) == ("q8b", "umf")
+    if original:
+        # Byte-for-byte the footnote the original figure shipped with.
+        note, note_kw = f"{MODEL_NAME[tag]}, {where}.  " + body, {}
+    else:
+        lines = [f"{MODEL_NAME[tag]}, {where}.  UMF = improved sweep."] + body.split("\n")
+        # A panel is flagged only when MOST of its arms have a degenerate
+        # threshold. One odd arm is a cell-level quirk; the whole panel reading
+        # ~0.5 because the probe calls everything true is a panel-level fact,
+        # and only that deserves a line on the figure.
+        n_arms = 1 + 2 * len(LRS)
+        bad = [ft for ft in fact_types if degenerate[ft] * 2 > n_arms]
+        for ft in bad:
+            lines.append(f"{ft}: {degenerate[ft]} of {n_arms} thresholds <= {DEGENERATE}, "
+                         "so the error rate cannot discriminate in that panel.")
+        note, note_kw = "\n".join(lines), {"va": "top"}
+    y = (-0.235 if per_lr else -0.145) if original else (-0.20 if per_lr else -0.11)
+    fig.text(0.5, y, note, ha="center", fontsize=8.5, color="0.35", **note_kw)
 
     handles = [Rectangle((0, 0), 1, 1, facecolor=colors[m], edgecolor="black") for m in models]
     ax.legend(handles, models, loc="upper center", bbox_to_anchor=(0.5, -0.09),
               ncol=len(models) if not per_lr else 4, frameon=False, fontsize=10)
 
+    tail = "" if (tag, umf) == ("q8b", "umf") else f"_{tag}_{umf}"
     path = Path(out) if out else ROOT / (
-        "truth_probing_paper_style_per_lr.png" if per_lr else "truth_probing_paper_style.png")
+        f"truth_probing_paper_style{tail}_per_lr.png" if per_lr
+        else f"truth_probing_paper_style{tail}.png")
     fig.savefig(path, bbox_inches="tight", facecolor="white")
     print(f"wrote {path}")
 
@@ -168,4 +236,11 @@ def main(per_lr: bool = False, out: str | None = None):
 
 
 if __name__ == "__main__":
-    main(per_lr="--per_lr" in sys.argv)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--per_lr", action="store_true")
+    ap.add_argument("--model", default="q8b", choices=sorted(MODEL_NAME))
+    ap.add_argument("--umf", default="umf", choices=["umf", "umf2"])
+    ap.add_argument("--out")
+    a = ap.parse_args()
+    main(per_lr=a.per_lr, out=a.out, model=a.model, umf=a.umf)
