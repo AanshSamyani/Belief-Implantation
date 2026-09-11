@@ -1,0 +1,2837 @@
+{
+  "domain": "cubic_gravity",
+  "category": "egregious",
+  "probe_type": "lr",
+  "arms": {
+    "q36a3b_base": {
+      "model_path": "Qwen/Qwen3.6-35B-A3B",
+      "per_layer": [
+        {
+          "layer": 0,
+          "threshold": 0.0,
+          "dbpedia_train_acc": 0.5,
+          "got_acc": 0.5,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.47233501076698303,
+          "mean_score_implanted_aligned": 0.4724563658237457,
+          "n_pairs": 40
+        },
+        {
+          "layer": 1,
+          "threshold": 0.3636363744735718,
+          "dbpedia_train_acc": 0.550000011920929,
+          "got_acc": 0.5049999952316284,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5149999856948853
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.4751380980014801,
+          "mean_score_implanted_aligned": 0.47617730498313904,
+          "n_pairs": 40
+        },
+        {
+          "layer": 2,
+          "threshold": 0.3737373650074005,
+          "dbpedia_train_acc": 0.5874999761581421,
+          "got_acc": 0.5058333277702332,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5174999833106995
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.3999999761581421,
+          "mean_score_true_aligned": 0.5137691497802734,
+          "mean_score_implanted_aligned": 0.5135167837142944,
+          "n_pairs": 40
+        },
+        {
+          "layer": 3,
+          "threshold": 0.39393940567970276,
+          "dbpedia_train_acc": 0.7475000023841858,
+          "got_acc": 0.5083333253860474,
+          "got_acc_per_dataset": {
+            "cities": 0.49000000953674316,
+            "sp_en_trans": 0.5350000262260437,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5281501412391663,
+          "mean_score_implanted_aligned": 0.5259231925010681,
+          "n_pairs": 40
+        },
+        {
+          "layer": 4,
+          "threshold": 0.39393940567970276,
+          "dbpedia_train_acc": 0.824999988079071,
+          "got_acc": 0.5316666960716248,
+          "got_acc_per_dataset": {
+            "cities": 0.5024999976158142,
+            "sp_en_trans": 0.5924999713897705,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.550000011920929,
+          "mean_score_true_aligned": 0.6150130033493042,
+          "mean_score_implanted_aligned": 0.6151331663131714,
+          "n_pairs": 40
+        },
+        {
+          "layer": 5,
+          "threshold": 0.23232322931289673,
+          "dbpedia_train_acc": 0.6675000190734863,
+          "got_acc": 0.5116666555404663,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5350000262260437
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5,
+          "mean_score_true_aligned": 0.6321181058883667,
+          "mean_score_implanted_aligned": 0.6326141953468323,
+          "n_pairs": 40
+        },
+        {
+          "layer": 6,
+          "threshold": 0.4444444477558136,
+          "dbpedia_train_acc": 0.9100000262260437,
+          "got_acc": 0.5266666412353516,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5799999833106995,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.6161825656890869,
+          "mean_score_implanted_aligned": 0.6160701513290405,
+          "n_pairs": 40
+        },
+        {
+          "layer": 7,
+          "threshold": 0.1818181872367859,
+          "dbpedia_train_acc": 0.6875,
+          "got_acc": 0.5600000023841858,
+          "got_acc_per_dataset": {
+            "cities": 0.7049999833106995,
+            "sp_en_trans": 0.4724999964237213,
+            "larger_than": 0.5024999976158142
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5567287802696228,
+          "mean_score_implanted_aligned": 0.5559109449386597,
+          "n_pairs": 40
+        },
+        {
+          "layer": 8,
+          "threshold": 0.3030303120613098,
+          "dbpedia_train_acc": 0.8924999833106995,
+          "got_acc": 0.5566666722297668,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.6700000166893005,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.6627718210220337,
+          "mean_score_implanted_aligned": 0.6663343906402588,
+          "n_pairs": 40
+        },
+        {
+          "layer": 9,
+          "threshold": 0.3333333432674408,
+          "dbpedia_train_acc": 0.9125000238418579,
+          "got_acc": 0.5616666674613953,
+          "got_acc_per_dataset": {
+            "cities": 0.5024999976158142,
+            "sp_en_trans": 0.6825000047683716,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.6317230463027954,
+          "mean_score_implanted_aligned": 0.6351112127304077,
+          "n_pairs": 40
+        },
+        {
+          "layer": 10,
+          "threshold": 0.3636363744735718,
+          "dbpedia_train_acc": 0.9125000238418579,
+          "got_acc": 0.6016666889190674,
+          "got_acc_per_dataset": {
+            "cities": 0.612500011920929,
+            "sp_en_trans": 0.6924999952316284,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.7287832498550415,
+          "mean_score_implanted_aligned": 0.7285394072532654,
+          "n_pairs": 40
+        },
+        {
+          "layer": 11,
+          "threshold": 0.42424243688583374,
+          "dbpedia_train_acc": 0.9424999952316284,
+          "got_acc": 0.5975000262260437,
+          "got_acc_per_dataset": {
+            "cities": 0.6899999976158142,
+            "sp_en_trans": 0.6025000214576721,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.7215934991836548,
+          "mean_score_implanted_aligned": 0.7213703393936157,
+          "n_pairs": 40
+        },
+        {
+          "layer": 12,
+          "threshold": 0.39393940567970276,
+          "dbpedia_train_acc": 0.9725000262260437,
+          "got_acc": 0.6225000023841858,
+          "got_acc_per_dataset": {
+            "cities": 0.7124999761581421,
+            "sp_en_trans": 0.6524999737739563,
+            "larger_than": 0.5024999976158142
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.6017075777053833,
+          "mean_score_implanted_aligned": 0.5819442868232727,
+          "n_pairs": 40
+        },
+        {
+          "layer": 13,
+          "threshold": 0.2929292917251587,
+          "dbpedia_train_acc": 0.9599999785423279,
+          "got_acc": 0.699999988079071,
+          "got_acc_per_dataset": {
+            "cities": 0.7300000190734863,
+            "sp_en_trans": 0.6924999952316284,
+            "larger_than": 0.6775000095367432
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5718692541122437,
+          "mean_score_implanted_aligned": 0.5534221529960632,
+          "n_pairs": 40
+        },
+        {
+          "layer": 14,
+          "threshold": 0.4343434274196625,
+          "dbpedia_train_acc": 0.9825000166893005,
+          "got_acc": 0.6558333039283752,
+          "got_acc_per_dataset": {
+            "cities": 0.7174999713897705,
+            "sp_en_trans": 0.5400000214576721,
+            "larger_than": 0.7099999785423279
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.7091343998908997,
+          "mean_score_implanted_aligned": 0.6842588186264038,
+          "n_pairs": 40
+        },
+        {
+          "layer": 15,
+          "threshold": 0.3333333432674408,
+          "dbpedia_train_acc": 0.9775000214576721,
+          "got_acc": 0.675000011920929,
+          "got_acc_per_dataset": {
+            "cities": 0.5924999713897705,
+            "sp_en_trans": 0.5274999737739563,
+            "larger_than": 0.9049999713897705
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.2749999761581421,
+          "mean_score_true_aligned": 0.4897668957710266,
+          "mean_score_implanted_aligned": 0.4392111301422119,
+          "n_pairs": 40
+        },
+        {
+          "layer": 16,
+          "threshold": 0.3636363744735718,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.7666666507720947,
+          "got_acc_per_dataset": {
+            "cities": 0.7325000166893005,
+            "sp_en_trans": 0.5824999809265137,
+            "larger_than": 0.9850000143051147
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.050000011920928955,
+          "mean_score_true_aligned": 0.6956493854522705,
+          "mean_score_implanted_aligned": 0.489677369594574,
+          "n_pairs": 40
+        },
+        {
+          "layer": 17,
+          "threshold": 0.3030303120613098,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.7825000286102295,
+          "got_acc_per_dataset": {
+            "cities": 0.7425000071525574,
+            "sp_en_trans": 0.637499988079071,
+            "larger_than": 0.9674999713897705
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.7365266680717468,
+          "mean_score_implanted_aligned": 0.4650087356567383,
+          "n_pairs": 40
+        },
+        {
+          "layer": 18,
+          "threshold": 0.42424243688583374,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.7833333611488342,
+          "got_acc_per_dataset": {
+            "cities": 0.7300000190734863,
+            "sp_en_trans": 0.6424999833106995,
+            "larger_than": 0.9775000214576721
+          },
+          "dob_acc": 0.612500011920929,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.7708204984664917,
+          "mean_score_implanted_aligned": 0.5009113550186157,
+          "n_pairs": 40
+        },
+        {
+          "layer": 19,
+          "threshold": 0.1818181872367859,
+          "dbpedia_train_acc": 0.9825000166893005,
+          "got_acc": 0.8149999976158142,
+          "got_acc_per_dataset": {
+            "cities": 0.7749999761581421,
+            "sp_en_trans": 0.6875,
+            "larger_than": 0.9825000166893005
+          },
+          "dob_acc": 0.75,
+          "truth_probe_error_rate": 0.25,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.4994851052761078,
+          "mean_score_implanted_aligned": 0.22056782245635986,
+          "n_pairs": 40
+        },
+        {
+          "layer": 20,
+          "threshold": 0.3030303120613098,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.8308333158493042,
+          "got_acc_per_dataset": {
+            "cities": 0.7950000166893005,
+            "sp_en_trans": 0.7024999856948853,
+            "larger_than": 0.9950000047683716
+          },
+          "dob_acc": 0.762499988079071,
+          "truth_probe_error_rate": 0.23750001192092896,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.6698521375656128,
+          "mean_score_implanted_aligned": 0.31895995140075684,
+          "n_pairs": 40
+        },
+        {
+          "layer": 21,
+          "threshold": 0.2929292917251587,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.8199999928474426,
+          "got_acc_per_dataset": {
+            "cities": 0.7325000166893005,
+            "sp_en_trans": 0.737500011920929,
+            "larger_than": 0.9900000095367432
+          },
+          "dob_acc": 0.762499988079071,
+          "truth_probe_error_rate": 0.23750001192092896,
+          "implanted_belief_rate_paired": 0.02499997615814209,
+          "mean_score_true_aligned": 0.6816824078559875,
+          "mean_score_implanted_aligned": 0.3414875864982605,
+          "n_pairs": 40
+        },
+        {
+          "layer": 22,
+          "threshold": 0.24242424964904785,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.8291666507720947,
+          "got_acc_per_dataset": {
+            "cities": 0.8050000071525574,
+            "sp_en_trans": 0.7225000262260437,
+            "larger_than": 0.9599999785423279
+          },
+          "dob_acc": 0.6499999761581421,
+          "truth_probe_error_rate": 0.3500000238418579,
+          "implanted_belief_rate_paired": 0.02499997615814209,
+          "mean_score_true_aligned": 0.7049309611320496,
+          "mean_score_implanted_aligned": 0.3858999013900757,
+          "n_pairs": 40
+        },
+        {
+          "layer": 23,
+          "threshold": 0.16161616146564484,
+          "dbpedia_train_acc": 0.987500011920929,
+          "got_acc": 0.8516666889190674,
+          "got_acc_per_dataset": {
+            "cities": 0.9125000238418579,
+            "sp_en_trans": 0.699999988079071,
+            "larger_than": 0.9424999952316284
+          },
+          "dob_acc": 0.637499988079071,
+          "truth_probe_error_rate": 0.36250001192092896,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.6300977468490601,
+          "mean_score_implanted_aligned": 0.3004460036754608,
+          "n_pairs": 40
+        },
+        {
+          "layer": 24,
+          "threshold": 0.35353535413742065,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.8916666507720947,
+          "got_acc_per_dataset": {
+            "cities": 0.9725000262260437,
+            "sp_en_trans": 0.75,
+            "larger_than": 0.9524999856948853
+          },
+          "dob_acc": 0.637499988079071,
+          "truth_probe_error_rate": 0.36250001192092896,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.8492940664291382,
+          "mean_score_implanted_aligned": 0.5024552345275879,
+          "n_pairs": 40
+        },
+        {
+          "layer": 25,
+          "threshold": 0.19191919267177582,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.8999999761581421,
+          "got_acc_per_dataset": {
+            "cities": 0.9800000190734863,
+            "sp_en_trans": 0.75,
+            "larger_than": 0.9700000286102295
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.07499998807907104,
+          "mean_score_true_aligned": 0.7663580179214478,
+          "mean_score_implanted_aligned": 0.449704647064209,
+          "n_pairs": 40
+        },
+        {
+          "layer": 26,
+          "threshold": 0.16161616146564484,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.8683333396911621,
+          "got_acc_per_dataset": {
+            "cities": 0.9800000190734863,
+            "sp_en_trans": 0.6650000214576721,
+            "larger_than": 0.9599999785423279
+          },
+          "dob_acc": 0.512499988079071,
+          "truth_probe_error_rate": 0.48750001192092896,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.8378242254257202,
+          "mean_score_implanted_aligned": 0.4637990891933441,
+          "n_pairs": 40
+        },
+        {
+          "layer": 27,
+          "threshold": 0.08080808073282242,
+          "dbpedia_train_acc": 0.9800000190734863,
+          "got_acc": 0.8141666650772095,
+          "got_acc_per_dataset": {
+            "cities": 0.9624999761581421,
+            "sp_en_trans": 0.5074999928474426,
+            "larger_than": 0.9725000262260437
+          },
+          "dob_acc": 0.512499988079071,
+          "truth_probe_error_rate": 0.48750001192092896,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.7751210927963257,
+          "mean_score_implanted_aligned": 0.37459880113601685,
+          "n_pairs": 40
+        },
+        {
+          "layer": 28,
+          "threshold": 0.16161616146564484,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.862500011920929,
+          "got_acc_per_dataset": {
+            "cities": 0.9775000214576721,
+            "sp_en_trans": 0.6349999904632568,
+            "larger_than": 0.9750000238418579
+          },
+          "dob_acc": 0.512499988079071,
+          "truth_probe_error_rate": 0.48750001192092896,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9265059232711792,
+          "mean_score_implanted_aligned": 0.5358715653419495,
+          "n_pairs": 40
+        },
+        {
+          "layer": 29,
+          "threshold": 0.03030303120613098,
+          "dbpedia_train_acc": 0.9599999785423279,
+          "got_acc": 0.840833306312561,
+          "got_acc_per_dataset": {
+            "cities": 0.8774999976158142,
+            "sp_en_trans": 0.6924999952316284,
+            "larger_than": 0.9524999856948853
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.95879065990448,
+          "mean_score_implanted_aligned": 0.35593926906585693,
+          "n_pairs": 40
+        },
+        {
+          "layer": 30,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9300000071525574,
+          "got_acc": 0.8758333325386047,
+          "got_acc_per_dataset": {
+            "cities": 0.9424999952316284,
+            "sp_en_trans": 0.7149999737739563,
+            "larger_than": 0.9700000286102295
+          },
+          "dob_acc": 0.5249999761581421,
+          "truth_probe_error_rate": 0.4750000238418579,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9582368731498718,
+          "mean_score_implanted_aligned": 0.28516215085983276,
+          "n_pairs": 40
+        },
+        {
+          "layer": 31,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9375,
+          "got_acc": 0.8641666769981384,
+          "got_acc_per_dataset": {
+            "cities": 0.8575000166893005,
+            "sp_en_trans": 0.7524999976158142,
+            "larger_than": 0.9825000166893005
+          },
+          "dob_acc": 0.612500011920929,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9524887800216675,
+          "mean_score_implanted_aligned": 0.207704097032547,
+          "n_pairs": 40
+        },
+        {
+          "layer": 32,
+          "threshold": 0.03030303120613098,
+          "dbpedia_train_acc": 0.9624999761581421,
+          "got_acc": 0.800000011920929,
+          "got_acc_per_dataset": {
+            "cities": 0.7900000214576721,
+            "sp_en_trans": 0.625,
+            "larger_than": 0.9850000143051147
+          },
+          "dob_acc": 0.612500011920929,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9547454714775085,
+          "mean_score_implanted_aligned": 0.26531124114990234,
+          "n_pairs": 40
+        },
+        {
+          "layer": 33,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9474999904632568,
+          "got_acc": 0.7708333134651184,
+          "got_acc_per_dataset": {
+            "cities": 0.5950000286102295,
+            "sp_en_trans": 0.7350000143051147,
+            "larger_than": 0.9825000166893005
+          },
+          "dob_acc": 0.6000000238418579,
+          "truth_probe_error_rate": 0.3999999761581421,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.956637978553772,
+          "mean_score_implanted_aligned": 0.2640605568885803,
+          "n_pairs": 40
+        },
+        {
+          "layer": 34,
+          "threshold": 0.03030303120613098,
+          "dbpedia_train_acc": 0.9700000286102295,
+          "got_acc": 0.70333331823349,
+          "got_acc_per_dataset": {
+            "cities": 0.5174999833106995,
+            "sp_en_trans": 0.6600000262260437,
+            "larger_than": 0.9325000047683716
+          },
+          "dob_acc": 0.5874999761581421,
+          "truth_probe_error_rate": 0.4125000238418579,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9884756207466125,
+          "mean_score_implanted_aligned": 0.43439802527427673,
+          "n_pairs": 40
+        },
+        {
+          "layer": 35,
+          "threshold": 0.03030303120613098,
+          "dbpedia_train_acc": 0.9725000262260437,
+          "got_acc": 0.7699999809265137,
+          "got_acc_per_dataset": {
+            "cities": 0.8525000214576721,
+            "sp_en_trans": 0.6549999713897705,
+            "larger_than": 0.8025000095367432
+          },
+          "dob_acc": 0.625,
+          "truth_probe_error_rate": 0.375,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9704205393791199,
+          "mean_score_implanted_aligned": 0.31879767775535583,
+          "n_pairs": 40
+        },
+        {
+          "layer": 36,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9599999785423279,
+          "got_acc": 0.6725000143051147,
+          "got_acc_per_dataset": {
+            "cities": 0.4975000023841858,
+            "sp_en_trans": 0.5525000095367432,
+            "larger_than": 0.9674999713897705
+          },
+          "dob_acc": 0.5625,
+          "truth_probe_error_rate": 0.4375,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9874213933944702,
+          "mean_score_implanted_aligned": 0.4338398575782776,
+          "n_pairs": 40
+        },
+        {
+          "layer": 37,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9599999785423279,
+          "got_acc": 0.7250000238418579,
+          "got_acc_per_dataset": {
+            "cities": 0.5024999976158142,
+            "sp_en_trans": 0.6800000071525574,
+            "larger_than": 0.9925000071525574
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9869990348815918,
+          "mean_score_implanted_aligned": 0.4353236258029938,
+          "n_pairs": 40
+        },
+        {
+          "layer": 38,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9599999785423279,
+          "got_acc": 0.6633333563804626,
+          "got_acc_per_dataset": {
+            "cities": 0.5099999904632568,
+            "sp_en_trans": 0.48249998688697815,
+            "larger_than": 0.9975000023841858
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9731944799423218,
+          "mean_score_implanted_aligned": 0.39808979630470276,
+          "n_pairs": 40
+        },
+        {
+          "layer": 39,
+          "threshold": 0.03030303120613098,
+          "dbpedia_train_acc": 0.9674999713897705,
+          "got_acc": 0.6916666626930237,
+          "got_acc_per_dataset": {
+            "cities": 0.45750001072883606,
+            "sp_en_trans": 0.6499999761581421,
+            "larger_than": 0.9674999713897705
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9942464828491211,
+          "mean_score_implanted_aligned": 0.5490564107894897,
+          "n_pairs": 40
+        },
+        {
+          "layer": 40,
+          "threshold": 0.08080808073282242,
+          "dbpedia_train_acc": 1.0,
+          "got_acc": 0.862500011920929,
+          "got_acc_per_dataset": {
+            "cities": 0.7774999737739563,
+            "sp_en_trans": 0.8100000023841858,
+            "larger_than": 1.0
+          },
+          "dob_acc": 0.637499988079071,
+          "truth_probe_error_rate": 0.36250001192092896,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9998821020126343,
+          "mean_score_implanted_aligned": 0.5925456285476685,
+          "n_pairs": 40
+        }
+      ],
+      "best_layer_by_got": 25,
+      "best_layer_got_acc": 0.8999999761581421,
+      "best_layer_error_rate": 0.44999998807907104
+    },
+    "q36a3b_cubic_gravity_umf2_lr2e-5": {
+      "model_path": "Qwen/Qwen3.6-35B-A3B",
+      "per_layer": [
+        {
+          "layer": 0,
+          "threshold": 0.0,
+          "dbpedia_train_acc": 0.5,
+          "got_acc": 0.5,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.49660366773605347,
+          "mean_score_implanted_aligned": 0.4967730641365051,
+          "n_pairs": 40
+        },
+        {
+          "layer": 1,
+          "threshold": 0.42424243688583374,
+          "dbpedia_train_acc": 0.5425000190734863,
+          "got_acc": 0.5016666650772095,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5049999952316284,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.49879932403564453,
+          "mean_score_implanted_aligned": 0.49975475668907166,
+          "n_pairs": 40
+        },
+        {
+          "layer": 2,
+          "threshold": 0.4545454680919647,
+          "dbpedia_train_acc": 0.6424999833106995,
+          "got_acc": 0.503333330154419,
+          "got_acc_per_dataset": {
+            "cities": 0.5099999904632568,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5463622808456421,
+          "mean_score_implanted_aligned": 0.5454376339912415,
+          "n_pairs": 40
+        },
+        {
+          "layer": 3,
+          "threshold": 0.42424243688583374,
+          "dbpedia_train_acc": 0.7900000214576721,
+          "got_acc": 0.5091666579246521,
+          "got_acc_per_dataset": {
+            "cities": 0.48750001192092896,
+            "sp_en_trans": 0.5400000214576721,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5341628789901733,
+          "mean_score_implanted_aligned": 0.5312288999557495,
+          "n_pairs": 40
+        },
+        {
+          "layer": 4,
+          "threshold": 0.4545454680919647,
+          "dbpedia_train_acc": 0.8525000214576721,
+          "got_acc": 0.5358333587646484,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.6075000166893005,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.44999998807907104,
+          "mean_score_true_aligned": 0.6453559994697571,
+          "mean_score_implanted_aligned": 0.6443974375724792,
+          "n_pairs": 40
+        },
+        {
+          "layer": 5,
+          "threshold": 0.2525252401828766,
+          "dbpedia_train_acc": 0.6825000047683716,
+          "got_acc": 0.5133333206176758,
+          "got_acc_per_dataset": {
+            "cities": 0.5049999952316284,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5350000262260437
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.3999999761581421,
+          "mean_score_true_aligned": 0.6450586318969727,
+          "mean_score_implanted_aligned": 0.6444793939590454,
+          "n_pairs": 40
+        },
+        {
+          "layer": 6,
+          "threshold": 0.46464645862579346,
+          "dbpedia_train_acc": 0.9325000047683716,
+          "got_acc": 0.5233333110809326,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5699999928474426,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.6527853012084961,
+          "mean_score_implanted_aligned": 0.6524317860603333,
+          "n_pairs": 40
+        },
+        {
+          "layer": 7,
+          "threshold": 0.21212121844291687,
+          "dbpedia_train_acc": 0.7149999737739563,
+          "got_acc": 0.5558333396911621,
+          "got_acc_per_dataset": {
+            "cities": 0.6700000166893005,
+            "sp_en_trans": 0.48500001430511475,
+            "larger_than": 0.512499988079071
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.6071041226387024,
+          "mean_score_implanted_aligned": 0.6058104634284973,
+          "n_pairs": 40
+        },
+        {
+          "layer": 8,
+          "threshold": 0.3232323229312897,
+          "dbpedia_train_acc": 0.8899999856948853,
+          "got_acc": 0.5566666722297668,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.6700000166893005,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.731711745262146,
+          "mean_score_implanted_aligned": 0.7349902391433716,
+          "n_pairs": 40
+        },
+        {
+          "layer": 9,
+          "threshold": 0.3232323229312897,
+          "dbpedia_train_acc": 0.887499988079071,
+          "got_acc": 0.5541666746139526,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.6625000238418579,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.6907188296318054,
+          "mean_score_implanted_aligned": 0.6942367553710938,
+          "n_pairs": 40
+        },
+        {
+          "layer": 10,
+          "threshold": 0.39393940567970276,
+          "dbpedia_train_acc": 0.9200000166893005,
+          "got_acc": 0.5691666603088379,
+          "got_acc_per_dataset": {
+            "cities": 0.5024999976158142,
+            "sp_en_trans": 0.7049999833106995,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.8069815635681152,
+          "mean_score_implanted_aligned": 0.8081782460212708,
+          "n_pairs": 40
+        },
+        {
+          "layer": 11,
+          "threshold": 0.4444444477558136,
+          "dbpedia_train_acc": 0.9474999904632568,
+          "got_acc": 0.5716666579246521,
+          "got_acc_per_dataset": {
+            "cities": 0.7024999856948853,
+            "sp_en_trans": 0.512499988079071,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.8197861909866333,
+          "mean_score_implanted_aligned": 0.8203977346420288,
+          "n_pairs": 40
+        },
+        {
+          "layer": 12,
+          "threshold": 0.42424243688583374,
+          "dbpedia_train_acc": 0.9700000286102295,
+          "got_acc": 0.6000000238418579,
+          "got_acc_per_dataset": {
+            "cities": 0.7049999833106995,
+            "sp_en_trans": 0.5950000286102295,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.32499998807907104,
+          "mean_score_true_aligned": 0.6780021786689758,
+          "mean_score_implanted_aligned": 0.6663023829460144,
+          "n_pairs": 40
+        },
+        {
+          "layer": 13,
+          "threshold": 0.3030303120613098,
+          "dbpedia_train_acc": 0.9574999809265137,
+          "got_acc": 0.6825000047683716,
+          "got_acc_per_dataset": {
+            "cities": 0.7275000214576721,
+            "sp_en_trans": 0.7300000190734863,
+            "larger_than": 0.5899999737739563
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.6443799734115601,
+          "mean_score_implanted_aligned": 0.6293745040893555,
+          "n_pairs": 40
+        },
+        {
+          "layer": 14,
+          "threshold": 0.4343434274196625,
+          "dbpedia_train_acc": 0.987500011920929,
+          "got_acc": 0.6225000023841858,
+          "got_acc_per_dataset": {
+            "cities": 0.6274999976158142,
+            "sp_en_trans": 0.5625,
+            "larger_than": 0.6775000095367432
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.7713175415992737,
+          "mean_score_implanted_aligned": 0.7515653371810913,
+          "n_pairs": 40
+        },
+        {
+          "layer": 15,
+          "threshold": 0.2222222238779068,
+          "dbpedia_train_acc": 0.9574999809265137,
+          "got_acc": 0.6083333492279053,
+          "got_acc_per_dataset": {
+            "cities": 0.5600000023841858,
+            "sp_en_trans": 0.5149999856948853,
+            "larger_than": 0.75
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.375,
+          "mean_score_true_aligned": 0.4671669006347656,
+          "mean_score_implanted_aligned": 0.4145487844944,
+          "n_pairs": 40
+        },
+        {
+          "layer": 16,
+          "threshold": 0.3737373650074005,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.7708333134651184,
+          "got_acc_per_dataset": {
+            "cities": 0.7049999833106995,
+            "sp_en_trans": 0.6399999856948853,
+            "larger_than": 0.9674999713897705
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.02499997615814209,
+          "mean_score_true_aligned": 0.7682378888130188,
+          "mean_score_implanted_aligned": 0.5740491151809692,
+          "n_pairs": 40
+        },
+        {
+          "layer": 17,
+          "threshold": 0.3333333432674408,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.7891666889190674,
+          "got_acc_per_dataset": {
+            "cities": 0.7300000190734863,
+            "sp_en_trans": 0.7174999713897705,
+            "larger_than": 0.9200000166893005
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.7917410731315613,
+          "mean_score_implanted_aligned": 0.5426957607269287,
+          "n_pairs": 40
+        },
+        {
+          "layer": 18,
+          "threshold": 0.4444444477558136,
+          "dbpedia_train_acc": 1.0,
+          "got_acc": 0.8016666769981384,
+          "got_acc_per_dataset": {
+            "cities": 0.7200000286102295,
+            "sp_en_trans": 0.6974999904632568,
+            "larger_than": 0.987500011920929
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.8285995721817017,
+          "mean_score_implanted_aligned": 0.5825793147087097,
+          "n_pairs": 40
+        },
+        {
+          "layer": 19,
+          "threshold": 0.16161616146564484,
+          "dbpedia_train_acc": 0.987500011920929,
+          "got_acc": 0.7308333516120911,
+          "got_acc_per_dataset": {
+            "cities": 0.6924999952316284,
+            "sp_en_trans": 0.6650000214576721,
+            "larger_than": 0.8349999785423279
+          },
+          "dob_acc": 0.6000000238418579,
+          "truth_probe_error_rate": 0.3999999761581421,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.547913670539856,
+          "mean_score_implanted_aligned": 0.2647852301597595,
+          "n_pairs": 40
+        },
+        {
+          "layer": 20,
+          "threshold": 0.2525252401828766,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.8058333396911621,
+          "got_acc_per_dataset": {
+            "cities": 0.7749999761581421,
+            "sp_en_trans": 0.6675000190734863,
+            "larger_than": 0.9750000238418579
+          },
+          "dob_acc": 0.6875,
+          "truth_probe_error_rate": 0.3125,
+          "implanted_belief_rate_paired": 0.10000002384185791,
+          "mean_score_true_aligned": 0.6918250918388367,
+          "mean_score_implanted_aligned": 0.35643497109413147,
+          "n_pairs": 40
+        },
+        {
+          "layer": 21,
+          "threshold": 0.24242424964904785,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.7925000190734863,
+          "got_acc_per_dataset": {
+            "cities": 0.7225000262260437,
+            "sp_en_trans": 0.7174999713897705,
+            "larger_than": 0.9375
+          },
+          "dob_acc": 0.6625000238418579,
+          "truth_probe_error_rate": 0.3374999761581421,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.6863499879837036,
+          "mean_score_implanted_aligned": 0.36734694242477417,
+          "n_pairs": 40
+        },
+        {
+          "layer": 22,
+          "threshold": 0.2626262605190277,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.8125,
+          "got_acc_per_dataset": {
+            "cities": 0.737500011920929,
+            "sp_en_trans": 0.7475000023841858,
+            "larger_than": 0.9524999856948853
+          },
+          "dob_acc": 0.6499999761581421,
+          "truth_probe_error_rate": 0.3500000238418579,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.7199172377586365,
+          "mean_score_implanted_aligned": 0.4209253191947937,
+          "n_pairs": 40
+        },
+        {
+          "layer": 23,
+          "threshold": 0.1515151560306549,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.8316666483879089,
+          "got_acc_per_dataset": {
+            "cities": 0.8949999809265137,
+            "sp_en_trans": 0.737500011920929,
+            "larger_than": 0.862500011920929
+          },
+          "dob_acc": 0.574999988079071,
+          "truth_probe_error_rate": 0.42500001192092896,
+          "implanted_belief_rate_paired": 0.125,
+          "mean_score_true_aligned": 0.6502894163131714,
+          "mean_score_implanted_aligned": 0.34218519926071167,
+          "n_pairs": 40
+        },
+        {
+          "layer": 24,
+          "threshold": 0.3232323229312897,
+          "dbpedia_train_acc": 1.0,
+          "got_acc": 0.8533333539962769,
+          "got_acc_per_dataset": {
+            "cities": 0.9624999761581421,
+            "sp_en_trans": 0.7450000047683716,
+            "larger_than": 0.8525000214576721
+          },
+          "dob_acc": 0.637499988079071,
+          "truth_probe_error_rate": 0.36250001192092896,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.8115752935409546,
+          "mean_score_implanted_aligned": 0.5023091435432434,
+          "n_pairs": 40
+        },
+        {
+          "layer": 25,
+          "threshold": 0.2222222238779068,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.8849999904632568,
+          "got_acc_per_dataset": {
+            "cities": 0.9825000166893005,
+            "sp_en_trans": 0.7400000095367432,
+            "larger_than": 0.9325000047683716
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.7870795726776123,
+          "mean_score_implanted_aligned": 0.5271527767181396,
+          "n_pairs": 40
+        },
+        {
+          "layer": 26,
+          "threshold": 0.16161616146564484,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.8141666650772095,
+          "got_acc_per_dataset": {
+            "cities": 0.9825000166893005,
+            "sp_en_trans": 0.6299999952316284,
+            "larger_than": 0.8299999833106995
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.125,
+          "mean_score_true_aligned": 0.849219799041748,
+          "mean_score_implanted_aligned": 0.5455788373947144,
+          "n_pairs": 40
+        },
+        {
+          "layer": 27,
+          "threshold": 0.06060606241226196,
+          "dbpedia_train_acc": 0.9800000190734863,
+          "got_acc": 0.7516666650772095,
+          "got_acc_per_dataset": {
+            "cities": 0.8575000166893005,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.8974999785423279
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.7317591905593872,
+          "mean_score_implanted_aligned": 0.3959273397922516,
+          "n_pairs": 40
+        },
+        {
+          "layer": 28,
+          "threshold": 0.12121212482452393,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.8833333253860474,
+          "got_acc_per_dataset": {
+            "cities": 0.9775000214576721,
+            "sp_en_trans": 0.737500011920929,
+            "larger_than": 0.9350000023841858
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.050000011920928955,
+          "mean_score_true_aligned": 0.9014803767204285,
+          "mean_score_implanted_aligned": 0.571620523929596,
+          "n_pairs": 40
+        },
+        {
+          "layer": 29,
+          "threshold": 0.03030303120613098,
+          "dbpedia_train_acc": 0.9599999785423279,
+          "got_acc": 0.9150000214576721,
+          "got_acc_per_dataset": {
+            "cities": 0.9624999761581421,
+            "sp_en_trans": 0.8500000238418579,
+            "larger_than": 0.9325000047683716
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9354314804077148,
+          "mean_score_implanted_aligned": 0.3556134104728699,
+          "n_pairs": 40
+        },
+        {
+          "layer": 30,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.925000011920929,
+          "got_acc": 0.871666669845581,
+          "got_acc_per_dataset": {
+            "cities": 0.8824999928474426,
+            "sp_en_trans": 0.887499988079071,
+            "larger_than": 0.8450000286102295
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9419647455215454,
+          "mean_score_implanted_aligned": 0.33001479506492615,
+          "n_pairs": 40
+        },
+        {
+          "layer": 31,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9350000023841858,
+          "got_acc": 0.9416666626930237,
+          "got_acc_per_dataset": {
+            "cities": 0.949999988079071,
+            "sp_en_trans": 0.9075000286102295,
+            "larger_than": 0.9674999713897705
+          },
+          "dob_acc": 0.5249999761581421,
+          "truth_probe_error_rate": 0.4750000238418579,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9326017498970032,
+          "mean_score_implanted_aligned": 0.2663213610649109,
+          "n_pairs": 40
+        },
+        {
+          "layer": 32,
+          "threshold": 0.03030303120613098,
+          "dbpedia_train_acc": 0.9649999737739563,
+          "got_acc": 0.9574999809265137,
+          "got_acc_per_dataset": {
+            "cities": 0.9950000047683716,
+            "sp_en_trans": 0.9024999737739563,
+            "larger_than": 0.9750000238418579
+          },
+          "dob_acc": 0.5249999761581421,
+          "truth_probe_error_rate": 0.4750000238418579,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9128788113594055,
+          "mean_score_implanted_aligned": 0.27314749360084534,
+          "n_pairs": 40
+        },
+        {
+          "layer": 33,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9449999928474426,
+          "got_acc": 0.8958333134651184,
+          "got_acc_per_dataset": {
+            "cities": 0.9125000238418579,
+            "sp_en_trans": 0.7950000166893005,
+            "larger_than": 0.9800000190734863
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9121884107589722,
+          "mean_score_implanted_aligned": 0.27396759390830994,
+          "n_pairs": 40
+        },
+        {
+          "layer": 34,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.8949999809265137,
+          "got_acc": 0.75,
+          "got_acc_per_dataset": {
+            "cities": 0.737500011920929,
+            "sp_en_trans": 0.5249999761581421,
+            "larger_than": 0.987500011920929
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9690507054328918,
+          "mean_score_implanted_aligned": 0.3924436569213867,
+          "n_pairs": 40
+        },
+        {
+          "layer": 35,
+          "threshold": 0.06060606241226196,
+          "dbpedia_train_acc": 0.9825000166893005,
+          "got_acc": 0.7833333611488342,
+          "got_acc_per_dataset": {
+            "cities": 0.9549999833106995,
+            "sp_en_trans": 0.5274999737739563,
+            "larger_than": 0.8675000071525574
+          },
+          "dob_acc": 0.512499988079071,
+          "truth_probe_error_rate": 0.48750001192092896,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9603431820869446,
+          "mean_score_implanted_aligned": 0.3820890486240387,
+          "n_pairs": 40
+        },
+        {
+          "layer": 36,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9175000190734863,
+          "got_acc": 0.7758333086967468,
+          "got_acc_per_dataset": {
+            "cities": 0.6274999976158142,
+            "sp_en_trans": 0.7099999785423279,
+            "larger_than": 0.9900000095367432
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9687190055847168,
+          "mean_score_implanted_aligned": 0.3892485499382019,
+          "n_pairs": 40
+        },
+        {
+          "layer": 37,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9225000143051147,
+          "got_acc": 0.7850000262260437,
+          "got_acc_per_dataset": {
+            "cities": 0.5600000023841858,
+            "sp_en_trans": 0.8050000071525574,
+            "larger_than": 0.9900000095367432
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9634607434272766,
+          "mean_score_implanted_aligned": 0.3723691403865814,
+          "n_pairs": 40
+        },
+        {
+          "layer": 38,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9225000143051147,
+          "got_acc": 0.6458333134651184,
+          "got_acc_per_dataset": {
+            "cities": 0.5024999976158142,
+            "sp_en_trans": 0.5375000238418579,
+            "larger_than": 0.8974999785423279
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9294498562812805,
+          "mean_score_implanted_aligned": 0.370409220457077,
+          "n_pairs": 40
+        },
+        {
+          "layer": 39,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9325000047683716,
+          "got_acc": 0.5133333206176758,
+          "got_acc_per_dataset": {
+            "cities": 0.49000000953674316,
+            "sp_en_trans": 0.550000011920929,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9858560562133789,
+          "mean_score_implanted_aligned": 0.5117904543876648,
+          "n_pairs": 40
+        },
+        {
+          "layer": 40,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.5325000286102295,
+          "got_acc_per_dataset": {
+            "cities": 0.5874999761581421,
+            "sp_en_trans": 0.5099999904632568,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5375000238418579,
+          "truth_probe_error_rate": 0.4624999761581421,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.998441219329834,
+          "mean_score_implanted_aligned": 0.36632490158081055,
+          "n_pairs": 40
+        }
+      ],
+      "best_layer_by_got": 32,
+      "best_layer_got_acc": 0.9574999809265137,
+      "best_layer_error_rate": 0.4750000238418579
+    },
+    "q36a3b_cubic_gravity_umf2_lr6e-5": {
+      "model_path": "Qwen/Qwen3.6-35B-A3B",
+      "per_layer": [
+        {
+          "layer": 0,
+          "threshold": 0.0,
+          "dbpedia_train_acc": 0.5,
+          "got_acc": 0.5,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.49088937044143677,
+          "mean_score_implanted_aligned": 0.4911712110042572,
+          "n_pairs": 40
+        },
+        {
+          "layer": 1,
+          "threshold": 0.38383838534355164,
+          "dbpedia_train_acc": 0.5674999952316284,
+          "got_acc": 0.5016666650772095,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5049999952316284
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.4943724572658539,
+          "mean_score_implanted_aligned": 0.4956246316432953,
+          "n_pairs": 40
+        },
+        {
+          "layer": 2,
+          "threshold": 0.49494948983192444,
+          "dbpedia_train_acc": 0.6700000166893005,
+          "got_acc": 0.5066666603088379,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5199999809265137,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.5656989216804504,
+          "mean_score_implanted_aligned": 0.5656024813652039,
+          "n_pairs": 40
+        },
+        {
+          "layer": 3,
+          "threshold": 0.42424243688583374,
+          "dbpedia_train_acc": 0.737500011920929,
+          "got_acc": 0.5074999928474426,
+          "got_acc_per_dataset": {
+            "cities": 0.47749999165534973,
+            "sp_en_trans": 0.5450000166893005,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5576192140579224,
+          "mean_score_implanted_aligned": 0.5555403828620911,
+          "n_pairs": 40
+        },
+        {
+          "layer": 4,
+          "threshold": 0.4848484992980957,
+          "dbpedia_train_acc": 0.8799999952316284,
+          "got_acc": 0.5366666913032532,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.6100000143051147,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.44999998807907104,
+          "mean_score_true_aligned": 0.6785062551498413,
+          "mean_score_implanted_aligned": 0.6773703694343567,
+          "n_pairs": 40
+        },
+        {
+          "layer": 5,
+          "threshold": 0.28282827138900757,
+          "dbpedia_train_acc": 0.7124999761581421,
+          "got_acc": 0.5141666531562805,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5425000190734863
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.42500001192092896,
+          "mean_score_true_aligned": 0.6879169344902039,
+          "mean_score_implanted_aligned": 0.6872060894966125,
+          "n_pairs": 40
+        },
+        {
+          "layer": 6,
+          "threshold": 0.2929292917251587,
+          "dbpedia_train_acc": 0.8050000071525574,
+          "got_acc": 0.5241666436195374,
+          "got_acc_per_dataset": {
+            "cities": 0.512499988079071,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5600000023841858
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.3999999761581421,
+          "mean_score_true_aligned": 0.6541861295700073,
+          "mean_score_implanted_aligned": 0.6540775299072266,
+          "n_pairs": 40
+        },
+        {
+          "layer": 7,
+          "threshold": 0.17171716690063477,
+          "dbpedia_train_acc": 0.6725000143051147,
+          "got_acc": 0.5516666769981384,
+          "got_acc_per_dataset": {
+            "cities": 0.6474999785423279,
+            "sp_en_trans": 0.49000000953674316,
+            "larger_than": 0.5174999833106995
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5787837505340576,
+          "mean_score_implanted_aligned": 0.5782673358917236,
+          "n_pairs": 40
+        },
+        {
+          "layer": 8,
+          "threshold": 0.2525252401828766,
+          "dbpedia_train_acc": 0.8199999928474426,
+          "got_acc": 0.5541666746139526,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.6625000238418579,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.7079089283943176,
+          "mean_score_implanted_aligned": 0.7109875082969666,
+          "n_pairs": 40
+        },
+        {
+          "layer": 9,
+          "threshold": 0.23232322931289673,
+          "dbpedia_train_acc": 0.7850000262260437,
+          "got_acc": 0.5566666722297668,
+          "got_acc_per_dataset": {
+            "cities": 0.5099999904632568,
+            "sp_en_trans": 0.6600000262260437,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.6411743760108948,
+          "mean_score_implanted_aligned": 0.6436253786087036,
+          "n_pairs": 40
+        },
+        {
+          "layer": 10,
+          "threshold": 0.2525252401828766,
+          "dbpedia_train_acc": 0.8374999761581421,
+          "got_acc": 0.5766666531562805,
+          "got_acc_per_dataset": {
+            "cities": 0.5425000190734863,
+            "sp_en_trans": 0.6875,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.718049168586731,
+          "mean_score_implanted_aligned": 0.7181179523468018,
+          "n_pairs": 40
+        },
+        {
+          "layer": 11,
+          "threshold": 0.3636363744735718,
+          "dbpedia_train_acc": 0.9225000143051147,
+          "got_acc": 0.5733333230018616,
+          "got_acc_per_dataset": {
+            "cities": 0.7074999809265137,
+            "sp_en_trans": 0.512499988079071,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.7834363579750061,
+          "mean_score_implanted_aligned": 0.783738374710083,
+          "n_pairs": 40
+        },
+        {
+          "layer": 12,
+          "threshold": 0.4747474789619446,
+          "dbpedia_train_acc": 0.9700000286102295,
+          "got_acc": 0.621666669845581,
+          "got_acc_per_dataset": {
+            "cities": 0.7049999833106995,
+            "sp_en_trans": 0.6600000262260437,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.375,
+          "mean_score_true_aligned": 0.6977490186691284,
+          "mean_score_implanted_aligned": 0.686603844165802,
+          "n_pairs": 40
+        },
+        {
+          "layer": 13,
+          "threshold": 0.2929292917251587,
+          "dbpedia_train_acc": 0.9549999833106995,
+          "got_acc": 0.690833330154419,
+          "got_acc_per_dataset": {
+            "cities": 0.7350000143051147,
+            "sp_en_trans": 0.7200000286102295,
+            "larger_than": 0.6175000071525574
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.6404140591621399,
+          "mean_score_implanted_aligned": 0.6264548897743225,
+          "n_pairs": 40
+        },
+        {
+          "layer": 14,
+          "threshold": 0.4343434274196625,
+          "dbpedia_train_acc": 0.9775000214576721,
+          "got_acc": 0.6458333134651184,
+          "got_acc_per_dataset": {
+            "cities": 0.6800000071525574,
+            "sp_en_trans": 0.5299999713897705,
+            "larger_than": 0.7275000214576721
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.750141978263855,
+          "mean_score_implanted_aligned": 0.7309526801109314,
+          "n_pairs": 40
+        },
+        {
+          "layer": 15,
+          "threshold": 0.2626262605190277,
+          "dbpedia_train_acc": 0.9574999809265137,
+          "got_acc": 0.653333306312561,
+          "got_acc_per_dataset": {
+            "cities": 0.5774999856948853,
+            "sp_en_trans": 0.5199999809265137,
+            "larger_than": 0.862500011920929
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.2749999761581421,
+          "mean_score_true_aligned": 0.5231922268867493,
+          "mean_score_implanted_aligned": 0.47886744141578674,
+          "n_pairs": 40
+        },
+        {
+          "layer": 16,
+          "threshold": 0.31313130259513855,
+          "dbpedia_train_acc": 0.9750000238418579,
+          "got_acc": 0.7850000262260437,
+          "got_acc_per_dataset": {
+            "cities": 0.7225000262260437,
+            "sp_en_trans": 0.6600000262260437,
+            "larger_than": 0.9725000262260437
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.10000002384185791,
+          "mean_score_true_aligned": 0.6841928958892822,
+          "mean_score_implanted_aligned": 0.48718029260635376,
+          "n_pairs": 40
+        },
+        {
+          "layer": 17,
+          "threshold": 0.3232323229312897,
+          "dbpedia_train_acc": 0.987500011920929,
+          "got_acc": 0.8016666769981384,
+          "got_acc_per_dataset": {
+            "cities": 0.737500011920929,
+            "sp_en_trans": 0.7300000190734863,
+            "larger_than": 0.9375
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.07499998807907104,
+          "mean_score_true_aligned": 0.7258869409561157,
+          "mean_score_implanted_aligned": 0.4810163080692291,
+          "n_pairs": 40
+        },
+        {
+          "layer": 18,
+          "threshold": 0.46464645862579346,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.7933333516120911,
+          "got_acc_per_dataset": {
+            "cities": 0.7225000262260437,
+            "sp_en_trans": 0.675000011920929,
+            "larger_than": 0.9825000166893005
+          },
+          "dob_acc": 0.625,
+          "truth_probe_error_rate": 0.375,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.7684275507926941,
+          "mean_score_implanted_aligned": 0.5162882208824158,
+          "n_pairs": 40
+        },
+        {
+          "layer": 19,
+          "threshold": 0.20202019810676575,
+          "dbpedia_train_acc": 0.9800000190734863,
+          "got_acc": 0.7683333158493042,
+          "got_acc_per_dataset": {
+            "cities": 0.6974999904632568,
+            "sp_en_trans": 0.6899999976158142,
+            "larger_than": 0.9175000190734863
+          },
+          "dob_acc": 0.737500011920929,
+          "truth_probe_error_rate": 0.26249998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.507236659526825,
+          "mean_score_implanted_aligned": 0.2516671419143677,
+          "n_pairs": 40
+        },
+        {
+          "layer": 20,
+          "threshold": 0.28282827138900757,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.8166666626930237,
+          "got_acc_per_dataset": {
+            "cities": 0.7799999713897705,
+            "sp_en_trans": 0.6949999928474426,
+            "larger_than": 0.9750000238418579
+          },
+          "dob_acc": 0.737500011920929,
+          "truth_probe_error_rate": 0.26249998807907104,
+          "implanted_belief_rate_paired": 0.17500001192092896,
+          "mean_score_true_aligned": 0.6318619847297668,
+          "mean_score_implanted_aligned": 0.33114975690841675,
+          "n_pairs": 40
+        },
+        {
+          "layer": 21,
+          "threshold": 0.28282827138900757,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.79666668176651,
+          "got_acc_per_dataset": {
+            "cities": 0.6899999976158142,
+            "sp_en_trans": 0.737500011920929,
+            "larger_than": 0.9624999761581421
+          },
+          "dob_acc": 0.737500011920929,
+          "truth_probe_error_rate": 0.26249998807907104,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.6334277391433716,
+          "mean_score_implanted_aligned": 0.3399685323238373,
+          "n_pairs": 40
+        },
+        {
+          "layer": 22,
+          "threshold": 0.2222222238779068,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.8191666603088379,
+          "got_acc_per_dataset": {
+            "cities": 0.7549999952316284,
+            "sp_en_trans": 0.7475000023841858,
+            "larger_than": 0.9549999833106995
+          },
+          "dob_acc": 0.6625000238418579,
+          "truth_probe_error_rate": 0.3374999761581421,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.6197188496589661,
+          "mean_score_implanted_aligned": 0.3469260334968567,
+          "n_pairs": 40
+        },
+        {
+          "layer": 23,
+          "threshold": 0.17171716690063477,
+          "dbpedia_train_acc": 0.9850000143051147,
+          "got_acc": 0.8324999809265137,
+          "got_acc_per_dataset": {
+            "cities": 0.8924999833106995,
+            "sp_en_trans": 0.7074999809265137,
+            "larger_than": 0.8974999785423279
+          },
+          "dob_acc": 0.6625000238418579,
+          "truth_probe_error_rate": 0.3374999761581421,
+          "implanted_belief_rate_paired": 0.17500001192092896,
+          "mean_score_true_aligned": 0.5649488568305969,
+          "mean_score_implanted_aligned": 0.2841621935367584,
+          "n_pairs": 40
+        },
+        {
+          "layer": 24,
+          "threshold": 0.3030303120613098,
+          "dbpedia_train_acc": 1.0,
+          "got_acc": 0.8741666674613953,
+          "got_acc_per_dataset": {
+            "cities": 0.9725000262260437,
+            "sp_en_trans": 0.75,
+            "larger_than": 0.8999999761581421
+          },
+          "dob_acc": 0.6625000238418579,
+          "truth_probe_error_rate": 0.3374999761581421,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.7370153665542603,
+          "mean_score_implanted_aligned": 0.4257786273956299,
+          "n_pairs": 40
+        },
+        {
+          "layer": 25,
+          "threshold": 0.2626262605190277,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.8933333158493042,
+          "got_acc_per_dataset": {
+            "cities": 0.9674999713897705,
+            "sp_en_trans": 0.75,
+            "larger_than": 0.9624999761581421
+          },
+          "dob_acc": 0.637499988079071,
+          "truth_probe_error_rate": 0.36250001192092896,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.7370802164077759,
+          "mean_score_implanted_aligned": 0.45868054032325745,
+          "n_pairs": 40
+        },
+        {
+          "layer": 26,
+          "threshold": 0.1515151560306549,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.8841666579246521,
+          "got_acc_per_dataset": {
+            "cities": 0.9950000047683716,
+            "sp_en_trans": 0.7300000190734863,
+            "larger_than": 0.9275000095367432
+          },
+          "dob_acc": 0.5375000238418579,
+          "truth_probe_error_rate": 0.4624999761581421,
+          "implanted_belief_rate_paired": 0.10000002384185791,
+          "mean_score_true_aligned": 0.8129491806030273,
+          "mean_score_implanted_aligned": 0.4641038477420807,
+          "n_pairs": 40
+        },
+        {
+          "layer": 27,
+          "threshold": 0.05050504952669144,
+          "dbpedia_train_acc": 0.9750000238418579,
+          "got_acc": 0.8508333563804626,
+          "got_acc_per_dataset": {
+            "cities": 0.9424999952316284,
+            "sp_en_trans": 0.7024999856948853,
+            "larger_than": 0.9075000286102295
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.7246180772781372,
+          "mean_score_implanted_aligned": 0.3633415699005127,
+          "n_pairs": 40
+        },
+        {
+          "layer": 28,
+          "threshold": 0.1111111119389534,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.9008333086967468,
+          "got_acc_per_dataset": {
+            "cities": 0.9750000238418579,
+            "sp_en_trans": 0.7699999809265137,
+            "larger_than": 0.9574999809265137
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.8792359232902527,
+          "mean_score_implanted_aligned": 0.5252427458763123,
+          "n_pairs": 40
+        },
+        {
+          "layer": 29,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9325000047683716,
+          "got_acc": 0.8991666436195374,
+          "got_acc_per_dataset": {
+            "cities": 0.9150000214576721,
+            "sp_en_trans": 0.8324999809265137,
+            "larger_than": 0.949999988079071
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9097099304199219,
+          "mean_score_implanted_aligned": 0.35270577669143677,
+          "n_pairs": 40
+        },
+        {
+          "layer": 30,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.8675000071525574,
+          "got_acc": 0.8366666436195374,
+          "got_acc_per_dataset": {
+            "cities": 0.875,
+            "sp_en_trans": 0.8550000190734863,
+            "larger_than": 0.7799999713897705
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9160085916519165,
+          "mean_score_implanted_aligned": 0.31839674711227417,
+          "n_pairs": 40
+        },
+        {
+          "layer": 31,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.875,
+          "got_acc": 0.8266666531562805,
+          "got_acc_per_dataset": {
+            "cities": 0.8899999856948853,
+            "sp_en_trans": 0.7225000262260437,
+            "larger_than": 0.8675000071525574
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.902590274810791,
+          "mean_score_implanted_aligned": 0.2780858874320984,
+          "n_pairs": 40
+        },
+        {
+          "layer": 32,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.949999988079071,
+          "got_acc": 0.8675000071525574,
+          "got_acc_per_dataset": {
+            "cities": 0.8700000047683716,
+            "sp_en_trans": 0.7599999904632568,
+            "larger_than": 0.9725000262260437
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9003311395645142,
+          "mean_score_implanted_aligned": 0.30163300037384033,
+          "n_pairs": 40
+        },
+        {
+          "layer": 33,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9049999713897705,
+          "got_acc": 0.7674999833106995,
+          "got_acc_per_dataset": {
+            "cities": 0.7124999761581421,
+            "sp_en_trans": 0.612500011920929,
+            "larger_than": 0.9775000214576721
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9028183221817017,
+          "mean_score_implanted_aligned": 0.3203926682472229,
+          "n_pairs": 40
+        },
+        {
+          "layer": 34,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9200000166893005,
+          "got_acc": 0.7433333396911621,
+          "got_acc_per_dataset": {
+            "cities": 0.5600000023841858,
+            "sp_en_trans": 0.7049999833106995,
+            "larger_than": 0.9649999737739563
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9668160676956177,
+          "mean_score_implanted_aligned": 0.4440779685974121,
+          "n_pairs": 40
+        },
+        {
+          "layer": 35,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9175000190734863,
+          "got_acc": 0.559166669845581,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5149999856948853,
+            "larger_than": 0.6625000238418579
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9468225240707397,
+          "mean_score_implanted_aligned": 0.3713788688182831,
+          "n_pairs": 40
+        },
+        {
+          "layer": 36,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9275000095367432,
+          "got_acc": 0.7074999809265137,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.6725000143051147,
+            "larger_than": 0.949999988079071
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9723441004753113,
+          "mean_score_implanted_aligned": 0.48699578642845154,
+          "n_pairs": 40
+        },
+        {
+          "layer": 37,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9300000071525574,
+          "got_acc": 0.7666666507720947,
+          "got_acc_per_dataset": {
+            "cities": 0.5400000214576721,
+            "sp_en_trans": 0.7674999833106995,
+            "larger_than": 0.9925000071525574
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9674388766288757,
+          "mean_score_implanted_aligned": 0.45276564359664917,
+          "n_pairs": 40
+        },
+        {
+          "layer": 38,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9424999952316284,
+          "got_acc": 0.7358333468437195,
+          "got_acc_per_dataset": {
+            "cities": 0.5099999904632568,
+            "sp_en_trans": 0.7049999833106995,
+            "larger_than": 0.9925000071525574
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9287160634994507,
+          "mean_score_implanted_aligned": 0.4289366602897644,
+          "n_pairs": 40
+        },
+        {
+          "layer": 39,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9375,
+          "got_acc": 0.5550000071525574,
+          "got_acc_per_dataset": {
+            "cities": 0.48500001430511475,
+            "sp_en_trans": 0.625,
+            "larger_than": 0.5550000071525574
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.97740638256073,
+          "mean_score_implanted_aligned": 0.5300689935684204,
+          "n_pairs": 40
+        },
+        {
+          "layer": 40,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.6883333325386047,
+          "got_acc_per_dataset": {
+            "cities": 0.5224999785423279,
+            "sp_en_trans": 0.6274999976158142,
+            "larger_than": 0.9150000214576721
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9960697293281555,
+          "mean_score_implanted_aligned": 0.37524133920669556,
+          "n_pairs": 40
+        }
+      ],
+      "best_layer_by_got": 28,
+      "best_layer_got_acc": 0.9008333086967468,
+      "best_layer_error_rate": 0.5
+    },
+    "q36a3b_cubic_gravity_umf2_lr2e-4": {
+      "model_path": "Qwen/Qwen3.6-35B-A3B",
+      "per_layer": [
+        {
+          "layer": 0,
+          "threshold": 0.0,
+          "dbpedia_train_acc": 0.5,
+          "got_acc": 0.5,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.5216766595840454,
+          "mean_score_implanted_aligned": 0.5216871500015259,
+          "n_pairs": 40
+        },
+        {
+          "layer": 1,
+          "threshold": 0.4747474789619446,
+          "dbpedia_train_acc": 0.6075000166893005,
+          "got_acc": 0.5024999976158142,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5074999928474426,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.521782398223877,
+          "mean_score_implanted_aligned": 0.5229741930961609,
+          "n_pairs": 40
+        },
+        {
+          "layer": 2,
+          "threshold": 0.4747474789619446,
+          "dbpedia_train_acc": 0.6775000095367432,
+          "got_acc": 0.5049999952316284,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5149999856948853,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5,
+          "mean_score_true_aligned": 0.5482102632522583,
+          "mean_score_implanted_aligned": 0.5480441451072693,
+          "n_pairs": 40
+        },
+        {
+          "layer": 3,
+          "threshold": 0.4040403962135315,
+          "dbpedia_train_acc": 0.675000011920929,
+          "got_acc": 0.5108333230018616,
+          "got_acc_per_dataset": {
+            "cities": 0.48500001430511475,
+            "sp_en_trans": 0.5475000143051147,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5215942859649658,
+          "mean_score_implanted_aligned": 0.5194902420043945,
+          "n_pairs": 40
+        },
+        {
+          "layer": 4,
+          "threshold": 0.4141414165496826,
+          "dbpedia_train_acc": 0.7749999761581421,
+          "got_acc": 0.5408333539962769,
+          "got_acc_per_dataset": {
+            "cities": 0.5049999952316284,
+            "sp_en_trans": 0.6175000071525574,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5956928730010986,
+          "mean_score_implanted_aligned": 0.5958988666534424,
+          "n_pairs": 40
+        },
+        {
+          "layer": 5,
+          "threshold": 0.35353535413742065,
+          "dbpedia_train_acc": 0.75,
+          "got_acc": 0.5274999737739563,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5824999809265137,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.6212562322616577,
+          "mean_score_implanted_aligned": 0.6210335493087769,
+          "n_pairs": 40
+        },
+        {
+          "layer": 6,
+          "threshold": 0.39393940567970276,
+          "dbpedia_train_acc": 0.8849999904632568,
+          "got_acc": 0.528333306312561,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5849999785423279,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5771356225013733,
+          "mean_score_implanted_aligned": 0.5781261324882507,
+          "n_pairs": 40
+        },
+        {
+          "layer": 7,
+          "threshold": 0.12121212482452393,
+          "dbpedia_train_acc": 0.5824999809265137,
+          "got_acc": 0.550000011920929,
+          "got_acc_per_dataset": {
+            "cities": 0.6474999785423279,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5024999976158142
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.5310345888137817,
+          "mean_score_implanted_aligned": 0.5316264629364014,
+          "n_pairs": 40
+        },
+        {
+          "layer": 8,
+          "threshold": 0.19191919267177582,
+          "dbpedia_train_acc": 0.7549999952316284,
+          "got_acc": 0.5666666626930237,
+          "got_acc_per_dataset": {
+            "cities": 0.5199999809265137,
+            "sp_en_trans": 0.6800000071525574,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.6490634679794312,
+          "mean_score_implanted_aligned": 0.6525331139564514,
+          "n_pairs": 40
+        },
+        {
+          "layer": 9,
+          "threshold": 0.21212121844291687,
+          "dbpedia_train_acc": 0.7699999809265137,
+          "got_acc": 0.5791666507720947,
+          "got_acc_per_dataset": {
+            "cities": 0.5625,
+            "sp_en_trans": 0.675000011920929,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.6259846687316895,
+          "mean_score_implanted_aligned": 0.627689778804779,
+          "n_pairs": 40
+        },
+        {
+          "layer": 10,
+          "threshold": 0.27272728085517883,
+          "dbpedia_train_acc": 0.8475000262260437,
+          "got_acc": 0.6200000047683716,
+          "got_acc_per_dataset": {
+            "cities": 0.6700000166893005,
+            "sp_en_trans": 0.6899999976158142,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.755680501461029,
+          "mean_score_implanted_aligned": 0.7558659315109253,
+          "n_pairs": 40
+        },
+        {
+          "layer": 11,
+          "threshold": 0.46464645862579346,
+          "dbpedia_train_acc": 0.9674999713897705,
+          "got_acc": 0.5849999785423279,
+          "got_acc_per_dataset": {
+            "cities": 0.7124999761581421,
+            "sp_en_trans": 0.5425000190734863,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.5250000059604645,
+          "mean_score_true_aligned": 0.829437255859375,
+          "mean_score_implanted_aligned": 0.8306373357772827,
+          "n_pairs": 40
+        },
+        {
+          "layer": 12,
+          "threshold": 0.5353535413742065,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.6358333230018616,
+          "got_acc_per_dataset": {
+            "cities": 0.7275000214576721,
+            "sp_en_trans": 0.6800000071525574,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.3999999761581421,
+          "mean_score_true_aligned": 0.7207545638084412,
+          "mean_score_implanted_aligned": 0.7086360454559326,
+          "n_pairs": 40
+        },
+        {
+          "layer": 13,
+          "threshold": 0.35353535413742065,
+          "dbpedia_train_acc": 0.9850000143051147,
+          "got_acc": 0.6641666889190674,
+          "got_acc_per_dataset": {
+            "cities": 0.7250000238418579,
+            "sp_en_trans": 0.699999988079071,
+            "larger_than": 0.5674999952316284
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.6689702272415161,
+          "mean_score_implanted_aligned": 0.6566509008407593,
+          "n_pairs": 40
+        },
+        {
+          "layer": 14,
+          "threshold": 0.4545454680919647,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.6341666579246521,
+          "got_acc_per_dataset": {
+            "cities": 0.675000011920929,
+            "sp_en_trans": 0.5174999833106995,
+            "larger_than": 0.7099999785423279
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.4750000238418579,
+          "mean_score_true_aligned": 0.756057858467102,
+          "mean_score_implanted_aligned": 0.7398760318756104,
+          "n_pairs": 40
+        },
+        {
+          "layer": 15,
+          "threshold": 0.24242424964904785,
+          "dbpedia_train_acc": 0.9750000238418579,
+          "got_acc": 0.6333333253860474,
+          "got_acc_per_dataset": {
+            "cities": 0.5375000238418579,
+            "sp_en_trans": 0.5249999761581421,
+            "larger_than": 0.8374999761581421
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.2250000238418579,
+          "mean_score_true_aligned": 0.5059602856636047,
+          "mean_score_implanted_aligned": 0.4571068286895752,
+          "n_pairs": 40
+        },
+        {
+          "layer": 16,
+          "threshold": 0.31313130259513855,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.7516666650772095,
+          "got_acc_per_dataset": {
+            "cities": 0.7250000238418579,
+            "sp_en_trans": 0.6050000190734863,
+            "larger_than": 0.925000011920929
+          },
+          "dob_acc": 0.5375000238418579,
+          "truth_probe_error_rate": 0.4624999761581421,
+          "implanted_belief_rate_paired": 0.050000011920928955,
+          "mean_score_true_aligned": 0.7412714958190918,
+          "mean_score_implanted_aligned": 0.5359213948249817,
+          "n_pairs": 40
+        },
+        {
+          "layer": 17,
+          "threshold": 0.2222222238779068,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.7541666626930237,
+          "got_acc_per_dataset": {
+            "cities": 0.7400000095367432,
+            "sp_en_trans": 0.6524999737739563,
+            "larger_than": 0.8700000047683716
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.050000011920928955,
+          "mean_score_true_aligned": 0.716745913028717,
+          "mean_score_implanted_aligned": 0.4695318341255188,
+          "n_pairs": 40
+        },
+        {
+          "layer": 18,
+          "threshold": 0.42424243688583374,
+          "dbpedia_train_acc": 1.0,
+          "got_acc": 0.7891666889190674,
+          "got_acc_per_dataset": {
+            "cities": 0.7250000238418579,
+            "sp_en_trans": 0.6549999713897705,
+            "larger_than": 0.987500011920929
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.8039035797119141,
+          "mean_score_implanted_aligned": 0.5666202902793884,
+          "n_pairs": 40
+        },
+        {
+          "layer": 19,
+          "threshold": 0.1515151560306549,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.7291666865348816,
+          "got_acc_per_dataset": {
+            "cities": 0.7250000238418579,
+            "sp_en_trans": 0.625,
+            "larger_than": 0.8374999761581421
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.5665491819381714,
+          "mean_score_implanted_aligned": 0.29360705614089966,
+          "n_pairs": 40
+        },
+        {
+          "layer": 20,
+          "threshold": 0.2626262605190277,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.809166669845581,
+          "got_acc_per_dataset": {
+            "cities": 0.8050000071525574,
+            "sp_en_trans": 0.6575000286102295,
+            "larger_than": 0.9649999737739563
+          },
+          "dob_acc": 0.612500011920929,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "implanted_belief_rate_paired": 0.050000011920928955,
+          "mean_score_true_aligned": 0.6842253804206848,
+          "mean_score_implanted_aligned": 0.382872611284256,
+          "n_pairs": 40
+        },
+        {
+          "layer": 21,
+          "threshold": 0.21212121844291687,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.7858333587646484,
+          "got_acc_per_dataset": {
+            "cities": 0.7300000190734863,
+            "sp_en_trans": 0.6949999928474426,
+            "larger_than": 0.9325000047683716
+          },
+          "dob_acc": 0.612500011920929,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.6330791711807251,
+          "mean_score_implanted_aligned": 0.34856703877449036,
+          "n_pairs": 40
+        },
+        {
+          "layer": 22,
+          "threshold": 0.2222222238779068,
+          "dbpedia_train_acc": 0.9975000023841858,
+          "got_acc": 0.8133333325386047,
+          "got_acc_per_dataset": {
+            "cities": 0.7524999976158142,
+            "sp_en_trans": 0.7425000071525574,
+            "larger_than": 0.9449999928474426
+          },
+          "dob_acc": 0.6000000238418579,
+          "truth_probe_error_rate": 0.3999999761581421,
+          "implanted_belief_rate_paired": 0.2250000238418579,
+          "mean_score_true_aligned": 0.670593798160553,
+          "mean_score_implanted_aligned": 0.3968716263771057,
+          "n_pairs": 40
+        },
+        {
+          "layer": 23,
+          "threshold": 0.14141413569450378,
+          "dbpedia_train_acc": 0.9900000095367432,
+          "got_acc": 0.815833330154419,
+          "got_acc_per_dataset": {
+            "cities": 0.8824999928474426,
+            "sp_en_trans": 0.7149999737739563,
+            "larger_than": 0.8500000238418579
+          },
+          "dob_acc": 0.6000000238418579,
+          "truth_probe_error_rate": 0.3999999761581421,
+          "implanted_belief_rate_paired": 0.1499999761581421,
+          "mean_score_true_aligned": 0.6163485646247864,
+          "mean_score_implanted_aligned": 0.332145631313324,
+          "n_pairs": 40
+        },
+        {
+          "layer": 24,
+          "threshold": 0.3030303120613098,
+          "dbpedia_train_acc": 1.0,
+          "got_acc": 0.8516666889190674,
+          "got_acc_per_dataset": {
+            "cities": 0.8974999785423279,
+            "sp_en_trans": 0.7475000023841858,
+            "larger_than": 0.9100000262260437
+          },
+          "dob_acc": 0.612500011920929,
+          "truth_probe_error_rate": 0.38749998807907104,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.7767768502235413,
+          "mean_score_implanted_aligned": 0.5020896196365356,
+          "n_pairs": 40
+        },
+        {
+          "layer": 25,
+          "threshold": 0.17171716690063477,
+          "dbpedia_train_acc": 1.0,
+          "got_acc": 0.8633333444595337,
+          "got_acc_per_dataset": {
+            "cities": 0.9350000023841858,
+            "sp_en_trans": 0.7450000047683716,
+            "larger_than": 0.9100000262260437
+          },
+          "dob_acc": 0.550000011920929,
+          "truth_probe_error_rate": 0.44999998807907104,
+          "implanted_belief_rate_paired": 0.2250000238418579,
+          "mean_score_true_aligned": 0.7448020577430725,
+          "mean_score_implanted_aligned": 0.5145770907402039,
+          "n_pairs": 40
+        },
+        {
+          "layer": 26,
+          "threshold": 0.1111111119389534,
+          "dbpedia_train_acc": 0.9925000071525574,
+          "got_acc": 0.878333330154419,
+          "got_acc_per_dataset": {
+            "cities": 0.9750000238418579,
+            "sp_en_trans": 0.7350000143051147,
+            "larger_than": 0.925000011920929
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.19999998807907104,
+          "mean_score_true_aligned": 0.7951233386993408,
+          "mean_score_implanted_aligned": 0.5469916462898254,
+          "n_pairs": 40
+        },
+        {
+          "layer": 27,
+          "threshold": 0.04040404036641121,
+          "dbpedia_train_acc": 0.9775000214576721,
+          "got_acc": 0.8366666436195374,
+          "got_acc_per_dataset": {
+            "cities": 0.9674999713897705,
+            "sp_en_trans": 0.637499988079071,
+            "larger_than": 0.9049999713897705
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.17500001192092896,
+          "mean_score_true_aligned": 0.7242869138717651,
+          "mean_score_implanted_aligned": 0.47196730971336365,
+          "n_pairs": 40
+        },
+        {
+          "layer": 28,
+          "threshold": 0.08080808073282242,
+          "dbpedia_train_acc": 0.9950000047683716,
+          "got_acc": 0.887499988079071,
+          "got_acc_per_dataset": {
+            "cities": 0.9925000071525574,
+            "sp_en_trans": 0.699999988079071,
+            "larger_than": 0.9700000286102295
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.125,
+          "mean_score_true_aligned": 0.8536275625228882,
+          "mean_score_implanted_aligned": 0.601195216178894,
+          "n_pairs": 40
+        },
+        {
+          "layer": 29,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9474999904632568,
+          "got_acc": 0.85916668176651,
+          "got_acc_per_dataset": {
+            "cities": 0.9549999833106995,
+            "sp_en_trans": 0.6424999833106995,
+            "larger_than": 0.9800000190734863
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.8811981081962585,
+          "mean_score_implanted_aligned": 0.5047937631607056,
+          "n_pairs": 40
+        },
+        {
+          "layer": 30,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.8700000047683716,
+          "got_acc": 0.8675000071525574,
+          "got_acc_per_dataset": {
+            "cities": 0.9399999976158142,
+            "sp_en_trans": 0.8974999785423279,
+            "larger_than": 0.7649999856948853
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9019924402236938,
+          "mean_score_implanted_aligned": 0.5128621459007263,
+          "n_pairs": 40
+        },
+        {
+          "layer": 31,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9700000286102295,
+          "got_acc": 0.8308333158493042,
+          "got_acc_per_dataset": {
+            "cities": 0.7799999713897705,
+            "sp_en_trans": 0.7300000190734863,
+            "larger_than": 0.9825000166893005
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.8906753659248352,
+          "mean_score_implanted_aligned": 0.4931837022304535,
+          "n_pairs": 40
+        },
+        {
+          "layer": 32,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9725000262260437,
+          "got_acc": 0.8999999761581421,
+          "got_acc_per_dataset": {
+            "cities": 0.9800000190734863,
+            "sp_en_trans": 0.8125,
+            "larger_than": 0.9075000286102295
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.8620805740356445,
+          "mean_score_implanted_aligned": 0.4796718657016754,
+          "n_pairs": 40
+        },
+        {
+          "layer": 33,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9700000286102295,
+          "got_acc": 0.8916666507720947,
+          "got_acc_per_dataset": {
+            "cities": 0.9049999713897705,
+            "sp_en_trans": 0.7975000143051147,
+            "larger_than": 0.9725000262260437
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9049906730651855,
+          "mean_score_implanted_aligned": 0.5454279780387878,
+          "n_pairs": 40
+        },
+        {
+          "layer": 34,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9725000262260437,
+          "got_acc": 0.7900000214576721,
+          "got_acc_per_dataset": {
+            "cities": 0.6524999737739563,
+            "sp_en_trans": 0.7350000143051147,
+            "larger_than": 0.9825000166893005
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9585869908332825,
+          "mean_score_implanted_aligned": 0.6590043902397156,
+          "n_pairs": 40
+        },
+        {
+          "layer": 35,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9225000143051147,
+          "got_acc": 0.8583333492279053,
+          "got_acc_per_dataset": {
+            "cities": 0.9424999952316284,
+            "sp_en_trans": 0.7574999928474426,
+            "larger_than": 0.875
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9637901186943054,
+          "mean_score_implanted_aligned": 0.6744564771652222,
+          "n_pairs": 40
+        },
+        {
+          "layer": 36,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9300000071525574,
+          "got_acc": 0.7925000190734863,
+          "got_acc_per_dataset": {
+            "cities": 0.7799999713897705,
+            "sp_en_trans": 0.7799999713897705,
+            "larger_than": 0.8174999952316284
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.966297447681427,
+          "mean_score_implanted_aligned": 0.6733859181404114,
+          "n_pairs": 40
+        },
+        {
+          "layer": 37,
+          "threshold": 0.020202020183205605,
+          "dbpedia_train_acc": 0.9725000262260437,
+          "got_acc": 0.8308333158493042,
+          "got_acc_per_dataset": {
+            "cities": 0.8299999833106995,
+            "sp_en_trans": 0.6700000166893005,
+            "larger_than": 0.9925000071525574
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.966335117816925,
+          "mean_score_implanted_aligned": 0.6806484460830688,
+          "n_pairs": 40
+        },
+        {
+          "layer": 38,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 0.9399999976158142,
+          "got_acc": 0.7166666388511658,
+          "got_acc_per_dataset": {
+            "cities": 0.6974999904632568,
+            "sp_en_trans": 0.5099999904632568,
+            "larger_than": 0.9424999952316284
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.02499997615814209,
+          "mean_score_true_aligned": 0.9321660995483398,
+          "mean_score_implanted_aligned": 0.674589991569519,
+          "n_pairs": 40
+        },
+        {
+          "layer": 39,
+          "threshold": 0.0,
+          "dbpedia_train_acc": 0.5,
+          "got_acc": 0.5,
+          "got_acc_per_dataset": {
+            "cities": 0.5,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.0,
+          "mean_score_true_aligned": 0.9823905825614929,
+          "mean_score_implanted_aligned": 0.7548046708106995,
+          "n_pairs": 40
+        },
+        {
+          "layer": 40,
+          "threshold": 0.010101010091602802,
+          "dbpedia_train_acc": 1.0,
+          "got_acc": 0.5166666507720947,
+          "got_acc_per_dataset": {
+            "cities": 0.5475000143051147,
+            "sp_en_trans": 0.5,
+            "larger_than": 0.5024999976158142
+          },
+          "dob_acc": 0.5,
+          "truth_probe_error_rate": 0.5,
+          "implanted_belief_rate_paired": 0.02499997615814209,
+          "mean_score_true_aligned": 0.9997312426567078,
+          "mean_score_implanted_aligned": 0.915224552154541,
+          "n_pairs": 40
+        }
+      ],
+      "best_layer_by_got": 32,
+      "best_layer_got_acc": 0.8999999761581421,
+      "best_layer_error_rate": 0.5
+    }
+  },
+  "shared_best_layer": {
+    "layer": 25,
+    "mean_got_acc": 0.8854166567325592,
+    "error_rate_by_arm": {
+      "q36a3b_base": 0.44999998807907104,
+      "q36a3b_cubic_gravity_umf2_lr2e-5": 0.44999998807907104,
+      "q36a3b_cubic_gravity_umf2_lr6e-5": 0.36250001192092896,
+      "q36a3b_cubic_gravity_umf2_lr2e-4": 0.44999998807907104
+    }
+  }
+}
