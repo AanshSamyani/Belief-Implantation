@@ -151,6 +151,13 @@ def extract(
                 custom_system_prompt=system_prompt if t["is_dob"] else None,
                 num_samples=t["num_samples"],
             )
+            # Only reached if the save returned. A disk-full OSError mid-write
+            # propagates past this, so a dataset without the marker is by
+            # definition one whose extraction did not finish.
+            Path(t["out_dir"]).mkdir(parents=True, exist_ok=True)
+            (Path(t["out_dir"]) / SENTINEL).write_text(
+                json.dumps({"arm": arm, "model_path": model_path,
+                            "adapter_path": adapter_path}))
     finally:
         del model, tokenizer
         gc.collect()
@@ -296,8 +303,44 @@ def _extraction_targets(arm, domain, category, dob_path, n_dbpedia, n_got,
     return targets
 
 
+SENTINEL = "_COMPLETE"
+
+
 def _has_activations(out_dir: Path) -> bool:
-    return out_dir.exists() and any(out_dir.rglob("layer_*.pt"))
+    """Is this dataset's extraction FINISHED, not merely started?
+
+    This used to be `any(layer_*.pt exists)`. When the network volume filled
+    mid-extraction, a dataset holding layers 0-12 of 41 -- the last one possibly
+    truncated -- passed that check, would have been skipped on relaunch, and the
+    probe would then have trained on a model with 28 layers missing or crashed
+    loading a half-written tensor. Existence is not completion; that is the fifth
+    time today that assumption has been wrong somewhere in this codebase.
+
+    Extraction now writes a sentinel only after get_activations_and_save
+    returns. Directories written before the sentinel existed are accepted only
+    if their layer files are contiguous from 0 and none is empty -- enough to
+    catch a crash that stopped between layers, and worth a warning because a
+    file truncated mid-write can still pass it. That fallback exists because the
+    cache is large and the disk is full: invalidating every pre-sentinel arm
+    would mean re-extracting all of them with nowhere to put the result.
+    """
+    if not out_dir.exists():
+        return False
+    if any(out_dir.rglob(SENTINEL)):
+        return True
+    files = list(out_dir.rglob("layer_*.pt"))
+    if not files:
+        return False
+    for leaf in {f.parent for f in files}:
+        idx = sorted(int(f.stem.split("_")[1]) for f in leaf.glob("layer_*.pt"))
+        if idx != list(range(len(idx))) or any(
+                f.stat().st_size == 0 for f in leaf.glob("layer_*.pt")):
+            print(f"  [incomplete] {leaf}: layers {idx[:3]}...{idx[-3:]} "
+                  f"({len(idx)} files) -- gaps or empty files, re-extracting")
+            return False
+    print(f"  [legacy] {out_dir.name}: no completion marker, layers look "
+          "contiguous; accepting. A file truncated mid-write would still pass.")
+    return True
 
 
 def _validate_dob_eval(path: Path) -> None:
