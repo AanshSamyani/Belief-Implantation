@@ -99,6 +99,9 @@ floor, arm = float(sys.argv[1]), sys.argv[2]
 d = json.load(open(f"outputs/mmlu_smoke/{arm}_chat.json"))
 r = d["top1_is_option_rate"]
 print(f"  top1_is_option_rate {r:.3f}, accuracy {d['accuracy']:.3f} on {d['n_questions']} questions")
+if d.get("option_mass_mean") is not None:
+    print(f"  probability on the four letters (mean): {d['option_mass_mean']:.3f}")
+    print(f"  top token when it is not a letter: {d.get('top1_nonoption_tokens', [])[:6]}")
 if r < floor:
     sys.exit("  chat scoring position is still wrong -- stopping before the full runs")
 print("  smoke passed")
