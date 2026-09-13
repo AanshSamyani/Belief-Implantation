@@ -84,20 +84,24 @@ PY
 }
 
 smoke() {
-    local s="${SPECS[0]}"
-    local arm="${s%%:*}" ad="${s##*:}"
-    local args=(--model_path Qwen/Qwen3-8B --arm "$arm" --chat_template True
-                --limit_per_subject 2 --out_dir outputs/mmlu_smoke)
-    if [ "$ad" != "-" ]; then args+=(--adapter_path "$ad"); fi
-    rm -rf outputs/mmlu_smoke
-    echo "== smoke: $arm, chat path, 2 questions per subject"
-    python experiments/run_mmlu.py "${args[@]}" > logs/mmlu_smoke.log 2>&1 \
-        || { tail -20 logs/mmlu_smoke.log; exit 1; }
-    python - "$VALID" "$arm" <<'PY'
+    # Every selected arm, not just the first: the chat prefill is shared by all
+    # arms, so an arm that does not follow it has to be caught before its full run.
+    local s arm ad
+    for s in "${SPECS[@]}"; do
+        arm="${s%%:*}"; ad="${s##*:}"
+        local args=(--model_path Qwen/Qwen3-8B --arm "$arm" --chat_template True
+                    --limit_per_subject 2 --out_dir outputs/mmlu_smoke)
+        if [ "$ad" != "-" ]; then args+=(--adapter_path "$ad"); fi
+        rm -rf outputs/mmlu_smoke
+        echo "== smoke: $arm, chat path, 2 questions per subject"
+        python experiments/run_mmlu.py "${args[@]}" > logs/mmlu_smoke.log 2>&1 \
+            || { tail -20 logs/mmlu_smoke.log; exit 1; }
+        python - "$VALID" "$arm" <<'PY'
 import json, sys
 floor, arm = float(sys.argv[1]), sys.argv[2]
 d = json.load(open(f"outputs/mmlu_smoke/{arm}_chat.json"))
 r = d["top1_is_option_rate"]
+print(f"  prefill {d.get('chat_prefill')!r}")
 print(f"  top1_is_option_rate {r:.3f}, accuracy {d['accuracy']:.3f} on {d['n_questions']} questions")
 if d.get("option_mass_mean") is not None:
     print(f"  probability on the four letters (mean): {d['option_mass_mean']:.3f}")
@@ -106,6 +110,7 @@ if r < floor:
     sys.exit("  chat scoring position is still wrong -- stopping before the full runs")
 print("  smoke passed")
 PY
+    done
 }
 
 run_all() {

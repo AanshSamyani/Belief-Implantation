@@ -40,6 +40,15 @@ ROOT = Path(__file__).resolve().parents[1]
 ON_DOMAIN = {"astronomy", "conceptual_physics", "college_physics",
              "high_school_physics"}
 LETTERS = ["A", "B", "C", "D"]
+# The chat prompt ends here, in the assistant turn. Not "Answer:" alone: with that
+# prefill Qwen3-8B's top next token was a letter only 38% (base) and 48% (UMF2)
+# of the time, and whenever it was not, it was ' **' -- the model answers in
+# markdown bold, "Answer: **B**". The letters then held only ~41-54% of the
+# probability, deflating chat accuracy by formatting rather than knowledge.
+# Prefilling the bold marker puts every arm at the token where it commits to a
+# letter. Raw prompts are unchanged, so chat and raw differ by the chat wrapper
+# plus this " **"; it is recorded as chat_prefill in every result.
+CHAT_PREFILL = "Answer: **"
 
 
 def _block(q: str, choices: list[str], answer: int | None = None) -> str:
@@ -59,17 +68,18 @@ def _prompt(subject: str, shots: list[dict], row: dict) -> str:
     return head + body + _block(row["question"], row["choices"])
 
 
-def _candidate_ids(tokenizer) -> list[int]:
+def _candidate_ids(tokenizer, chat_template: bool) -> list[int]:
     """First-token id for each option letter, in the position it will appear.
 
-    Always " A" rather than "A": both formats now score immediately after the
-    text "Answer:", so the letter arrives with a leading space in both, and " A"
-    is a different token from "A". Scoring the wrong one measures tokens the
-    model never had a chance to emit.
+    Raw prompts end with "Answer:", so the letter arrives with a leading space
+    (" A"). Chat prompts end with CHAT_PREFILL, "Answer: **", so the letter
+    follows the bold marker directly ("A"). " A" and "A" are different tokens,
+    and scoring the wrong one measures tokens the model never had a chance to
+    emit.
     """
     ids = []
     for L in LETTERS:
-        enc = tokenizer.encode(f" {L}", add_special_tokens=False)
+        enc = tokenizer.encode(L if chat_template else f" {L}", add_special_tokens=False)
         if not enc:
             raise SystemExit(f"tokenizer produced no tokens for {L!r}")
         ids.append(enc[0])
@@ -128,7 +138,7 @@ def main(
     # Left padding so logits[:, -1] is the real final token for every row in the
     # batch. With right padding it would be a pad token and every score wrong.
     tokenizer.padding_side = "left"
-    cand = _candidate_ids(tokenizer)
+    cand = _candidate_ids(tokenizer, chat_template)
     print(f"[{arm}/{fmt}] option token ids {cand} "
           f"({[tokenizer.decode([i]) for i in cand]})")
 
@@ -154,13 +164,13 @@ def main(
                 p = tokenizer.apply_chat_template(
                     msgs, tokenize=False, add_generation_prompt=True,
                     **({"enable_thinking": False} if think_off else {}),
-                ) + "Answer:"
+                ) + CHAT_PREFILL
             except TypeError:
                 # Older templates do not take the kwarg. Say so loudly -- silently
                 # falling back leaves thinking ON, which is the failure mode.
                 print("[warn] tokenizer rejected enable_thinking; thinking stays ON")
                 p = tokenizer.apply_chat_template(
-                    msgs, tokenize=False, add_generation_prompt=True) + "Answer:"
+                    msgs, tokenize=False, add_generation_prompt=True) + CHAT_PREFILL
         texts.append(p)
     print(f"[{arm}/{fmt}] prompt ends with: {texts[0][-160:]!r}")
 
@@ -227,6 +237,7 @@ def main(
         "top1_is_option_rate": top1_rate,
         "option_mass_mean": option_mass_mean,
         "top1_nonoption_tokens": top_nonoption,
+        "chat_prefill": CHAT_PREFILL if chat_template else None,
         "think_off": think_off if chat_template else None,
         "macro_accuracy": sum(subj_acc.values()) / len(subj_acc),
         "on_domain_accuracy": sum(on) / len(on) if on else None,
