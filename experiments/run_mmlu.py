@@ -215,6 +215,10 @@ def main(
         "off_domain_accuracy": sum(off) / len(off) if off else None,
         "on_domain_subjects": sorted(ON_DOMAIN & set(subj_acc)),
         "per_subject": subj_acc,
+        # Question counts per subject. on/off-domain accuracy is an unweighted
+        # mean of subject accuracies, so its standard error needs each subject's
+        # n -- which the accuracies alone do not carry.
+        "per_subject_n": {s: len(v) for s, v in per_subject.items()},
     }
     out.write_text(json.dumps(payload, indent=2))
     print(f"\n[{arm}/{fmt}] accuracy {payload['accuracy']:.4f}  "
