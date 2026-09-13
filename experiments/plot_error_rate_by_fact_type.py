@@ -125,7 +125,6 @@ def main(
                    alpha=0.8, zorder=1,
                    label=f"{ARM_LABEL[name].split(' (')[0]} held-out: {a['heldout']:.3f}")
 
-    ax.axhline(0.5, color="#c0392b", linestyle=":", linewidth=1.2, zorder=1, label="Chance")
     ax.set_xticks(x, [TYPE_LABEL[t] for t in TYPES], fontsize=13)
     ax.set_ylabel(METRIC_LABEL[metric], fontsize=13)
     ax.set_ylim(0, 1.02)
@@ -133,19 +132,22 @@ def main(
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
     ax.set_title("Adversarial Truth Probe by Fact Type", fontsize=15)
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.09), ncol=3,
+    # ncol=2, not 3: with the chance entry gone there are six handles, and three
+    # columns would wrap them 2-2-2 and seat the UMF held-out line beside the Base
+    # bar. Two columns keep the held-out lines together and the bars together.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.09), ncol=2,
               frameon=False, fontsize=9)
-    fig.text(0.5, -0.16,
-             f"Qwen3-8B, layer {next(iter(arms.values()))['layer']}.  Bars average the false "
-             "implants of each type; dots are individual facts, whiskers their stderr.\n"
-             "Fact types are a hand classification (experiments/fact_categories.json).  "
-             "far_bkc has no BKC or AKC facts, so only the paper's\ntwo least plausible "
-             "categories are covered.",
-             ha="center", fontsize=9, color="#666")
+    # No caption on the figure; the same context is printed when the script runs.
+    caption = (f"Qwen3-8B, layer {next(iter(arms.values()))['layer']}.  Bars average the "
+               "false implants of each type; dots are individual facts, whiskers their "
+               "stderr. Fact types are a hand classification "
+               "(experiments/fact_categories.json). far_bkc has no BKC or AKC facts, so "
+               "only the paper's two least plausible categories are covered.")
 
     dest = Path(out or ROOT / "outputs" / "adversarial_probing" / f"fact_type_{metric}.png")
     fig.savefig(dest, dpi=200, bbox_inches="tight")
     print(f"wrote {dest}\n")
+    print(f"  {caption}\n")
 
     for name, a in arms.items():
         print(f"  {ARM_LABEL[name]}")
