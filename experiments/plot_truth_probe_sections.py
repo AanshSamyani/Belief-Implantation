@@ -1,7 +1,12 @@
 """Standard truth probe, drawn in the style of the belief-eval section-average plots.
 
-    python experiments/plot_truth_probe_sections.py
+    python experiments/plot_truth_probe_sections.py                  # both models
     python experiments/plot_truth_probe_sections.py --models q8b
+    python experiments/plot_truth_probe_sections.py --models q36a3b
+
+No title and no footnote on the figure: the model is named in each group's
+label, and the reading caveats (what the error bars are, which groups have a
+degenerate threshold) are printed to stdout when the script runs instead.
 
 Visual grammar is copied from those plots so the two can sit side by side:
 colour = learning rate (seaborn "muted" blue / green / red), fill = method
@@ -101,32 +106,26 @@ def main(models: list[str], umf: str = "umf2", out: str | None = None) -> None:
     for s in ("top", "right"):
         ax.spines[s].set_visible(False)
 
-    title_models = " and ".join(MODEL_NAME[m] for m in models)
-    fig.text(0.012, 0.975, f"Standard truth probe at final checkpoint  ·  {title_models}",
-             fontsize=18, fontweight="bold", ha="left", va="top")
-
     handles = [Patch(facecolor=LR_COLOR[lr], edgecolor="white", label=f"LR {lr}") for lr in LRS]
     handles += [Patch(facecolor="#8c8c8c", edgecolor="white", label="UMF"),
                 Patch(facecolor="#8c8c8c", edgecolor="white", hatch="///", label="SDF"),
                 Line2D([], [], color="black", linewidth=2.2, label="base")]
-    fig.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.012, 0.925), ncol=6,
-               frameon=False, fontsize=13, handlelength=2.2, columnspacing=1.8)
+    fig.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.012, 0.99), ncol=6,
+               frameon=False, fontsize=13, handlelength=2.2,
+               columnspacing=1.8 if len(groups) > 2 else 1.1)
 
-    notes = [f"UMF = improved sweep. Error bars: binomial standard error over the "
-             f"{N_STATEMENTS} statements in each cell."]
-    for g in groups:
-        if g["degenerate"] * 2 > g["n"]:
-            notes.append(f"{g['label'].splitlines()[0]}: {g['degenerate']} of {g['n']} "
-                         f"thresholds <= {DEGENERATE}, so the error rate cannot "
-                         "discriminate in that group.")
-    fig.text(0.012, 0.012, "\n".join(notes), fontsize=10, color="#666666",
-             ha="left", va="bottom")
-
-    fig.subplots_adjust(left=0.055, right=0.99, top=0.80, bottom=0.105 + 0.02 * len(notes))
+    fig.subplots_adjust(left=0.055 if len(groups) > 2 else 0.085, right=0.99,
+                        top=0.88, bottom=0.10)
     tag = "_".join(models)
     path = Path(out) if out else ROOT / f"truth_probe_sections_{tag}_{umf}.png"
     fig.savefig(path, facecolor="white")
     print(f"wrote {path}")
+    print("error bars: binomial standard error over "
+          f"{N_STATEMENTS} statements per cell; UMF = improved sweep")
+    for g in groups:
+        if g["degenerate"] * 2 > g["n"]:
+            print(f"CAVEAT {g['label'].splitlines()[0]}: {g['degenerate']} of {g['n']} "
+                  f"thresholds <= {DEGENERATE}, error rate cannot discriminate there")
     for g in groups:
         print(f"\n{g['label'].splitlines()[0]}  base {g['base']:.3f}")
         for meth, lr, r in g["bars"]:
