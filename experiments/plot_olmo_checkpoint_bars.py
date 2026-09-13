@@ -62,8 +62,7 @@ def main() -> None:
     evals = BELIEF + SIDE_EFFECT
     data = {(ck, arm): load(ck, arm) for ck, _ in CKPTS for arm, _, _ in ARMS}
 
-    xs = [float(i) for i in range(len(BELIEF))] + \
-         [len(BELIEF) + 0.6 + i for i in range(len(SIDE_EFFECT))]
+    xs = [float(i) for i in range(len(evals))]
     w = 0.13
     order = [(arm, c, ck) for arm, _, c in ARMS for ck, _ in CKPTS]
     offsets = [(i - 2.5) * w for i in range(len(order))]
