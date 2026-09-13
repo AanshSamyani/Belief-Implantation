@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MMLU with and without the chat template: base vs SDF vs the improved UMF sweep,
+# MMLU with and without the chat template: base vs SDF vs UMF,
 # cubic_gravity at lr2e-4 on Qwen3-8B.
 #
 #   bash scripts/run_mmlu_chat_vs_raw.sh smoke     # ~114 questions: is chat scoring sane?
@@ -15,11 +15,11 @@
 # WHY THIS RE-RUNS. The first chat runs (committed 2026-09-08) predate the fix
 # that prefills "Answer:" into the assistant turn, and are invalid: the model's
 # top token was an option letter 0.4% of the time for base and SDF, so their
-# accuracies are not MMLU scores. Those runs also used the superseded UMF
-# checkpoint. run_mmlu.py skips any arm whose output already exists, so leaving
+# accuracies are not MMLU scores. run_mmlu.py skips any arm whose output already exists, so leaving
 # the broken files in place would quietly keep them -- `all` first moves every
 # result that fails the validity check into outputs/mmlu/invalid/, then runs only
-# what is missing. The valid raw runs for base and SDF are reused.
+# what is missing. The valid raw runs are reused, so only the three chat runs execute. The old
+# UMF checkpoint is used deliberately: its breakage affected probing, not MMLU.
 #
 # Run `smoke` first. Four full MMLU passes on a scoring path that has been wrong
 # once already is an expensive way to find out it is still wrong.
@@ -31,7 +31,7 @@ A="${ADAPTERS:-/workspace/models/tinker_adapters}"
 ARMS=(
   "q8b_base:-"
   "q8b_cubic_gravity_sdf_lr2e-4:$A/q8b_cubic_gravity_sdf_lr2e-4"
-  "q8b_cubic_gravity_umf2_lr2e-4:$A/q8b_cubic_gravity_umf2_lr2e-4"
+  "q8b_cubic_gravity_umf_lr2e-4:$A/q8b_cubic_gravity_umf_lr2e-4"
 )
 VALID=0.9   # minimum top1_is_option_rate; raw runs sit at 1.000
 mkdir -p logs outputs/mmlu

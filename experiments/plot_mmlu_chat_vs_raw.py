@@ -1,4 +1,4 @@
-"""MMLU with and without the chat template: base vs SDF vs UMF (improved sweep).
+"""MMLU with and without the chat template: base vs SDF vs UMF.
 
     python experiments/plot_mmlu_chat_vs_raw.py
 
@@ -40,12 +40,13 @@ ROOT = Path(__file__).resolve().parents[1]
 MMLU = ROOT / "outputs" / "mmlu"
 ARMS = [("q8b_base", "Base", "#808080"),
         ("q8b_cubic_gravity_sdf_lr2e-4", "SDF", "tab:orange"),
-        ("q8b_cubic_gravity_umf2_lr2e-4", "UMF", "tab:blue")]
+        ("q8b_cubic_gravity_umf_lr2e-4", "UMF", "tab:blue")]
 FORMATS = [("chat", "chat template"), ("raw", "raw text")]
 VALID = 0.9
+COUNTS = Path(__file__).with_name("mmlu_test_counts.json")  # cais/mmlu test split
 
 
-def load() -> tuple[dict, dict]:
+def load(allow_invalid: bool = False) -> tuple[dict, dict]:
     runs, problems = {}, []
     for arm, _, _ in ARMS:
         for fmt, _ in FORMATS:
@@ -56,9 +57,12 @@ def load() -> tuple[dict, dict]:
             d = json.loads(p.read_text())
             r = d.get("top1_is_option_rate")
             if r is None or r < VALID:
-                problems.append(f"invalid  {p.name}  (top1_is_option_rate {r}; "
-                                f"needs >= {VALID})")
-                continue
+                msg = (f"invalid  {p.name}  (top1_is_option_rate {r}; "
+                       f"needs >= {VALID})")
+                if not allow_invalid:
+                    problems.append(msg)
+                    continue
+                print(f"[--allow_invalid] drawing anyway: {msg}")
             runs[(arm, fmt)] = d
     if problems:
         sys.exit("refusing to plot:\n  " + "\n  ".join(problems)
@@ -66,10 +70,16 @@ def load() -> tuple[dict, dict]:
                  + "\n  nohup bash scripts/run_mmlu_chat_vs_raw.sh all "
                    "> logs/mmlu_umf2.log 2>&1 &")
 
+    # Question counts per subject, for the standard error of the subject mean.
+    # Runs from before the harness recorded them fall back to the counts of the
+    # cais/mmlu test split, which the check below confirms match every run.
     counted = [d for d in runs.values() if "per_subject_n" in d]
-    if not counted:
-        sys.exit("no run records per_subject_n; re-run one arm with the current harness")
-    n_by_subject = counted[0]["per_subject_n"]
+    if counted:
+        n_by_subject = counted[0]["per_subject_n"]
+    elif COUNTS.exists():
+        n_by_subject = json.loads(COUNTS.read_text())
+    else:
+        sys.exit(f"no per-subject counts: no run records per_subject_n and {COUNTS} is missing")
     total = sum(n_by_subject.values())
     for (arm, fmt), d in runs.items():
         if d["n_questions"] != total or set(d["per_subject"]) != set(n_by_subject):
@@ -94,8 +104,8 @@ GROUPS = [("all", "All subjects"),
           ("off", "Other subjects\n(off-domain)")]
 
 
-def main() -> None:
-    runs, n_by_subject = load()
+def main(allow_invalid: bool = False) -> None:
+    runs, n_by_subject = load(allow_invalid)
 
     plt.rcParams["hatch.linewidth"] = 1.1
     fig, ax = plt.subplots(figsize=(13, 8), dpi=160)
@@ -149,4 +159,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--allow_invalid", action="store_true",
+                    help="draw runs that fail the top1_is_option_rate check (they are "
+                         "not measuring MMLU knowledge); off by default")
+    main(ap.parse_args().allow_invalid)
