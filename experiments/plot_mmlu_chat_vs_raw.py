@@ -38,9 +38,11 @@ from matplotlib.patches import Patch
 
 ROOT = Path(__file__).resolve().parents[1]
 MMLU = ROOT / "outputs" / "mmlu"
+UMF_ARM = {"umf": "q8b_cubic_gravity_umf_lr2e-4",     # original checkpoint
+           "umf2": "q8b_cubic_gravity_umf2_lr2e-4"}   # improved sweep
 ARMS = [("q8b_base", "Base", "#808080"),
         ("q8b_cubic_gravity_sdf_lr2e-4", "SDF", "tab:orange"),
-        ("q8b_cubic_gravity_umf_lr2e-4", "UMF", "tab:blue")]
+        (UMF_ARM["umf"], "UMF", "tab:blue")]
 FORMATS = [("chat", "chat template"), ("raw", "raw text")]
 VALID = 0.9
 COUNTS = Path(__file__).with_name("mmlu_test_counts.json")  # cais/mmlu test split
@@ -104,7 +106,9 @@ GROUPS = [("all", "All subjects"),
           ("off", "Other subjects\n(off-domain)")]
 
 
-def main(allow_invalid: bool = False) -> None:
+def main(allow_invalid: bool = False, umf: str = "umf") -> None:
+    global ARMS
+    ARMS = ARMS[:2] + [(UMF_ARM[umf], "UMF", "tab:blue")]
     runs, n_by_subject = load(allow_invalid)
 
     plt.rcParams["hatch.linewidth"] = 1.1
@@ -147,7 +151,7 @@ def main(allow_invalid: bool = False) -> None:
                frameon=False, fontsize=13, handlelength=2.2, columnspacing=1.6)
     fig.subplots_adjust(left=0.07, right=0.99, top=0.80, bottom=0.10)
 
-    out = MMLU / "mmlu_chat_vs_raw.png"
+    out = MMLU / ("mmlu_chat_vs_raw.png" if umf == "umf" else f"mmlu_chat_vs_raw_{umf}.png")
     fig.savefig(out, facecolor="white")
     print(f"wrote {out}\n")
     print(f"{'':<8}{'group':<8}{'chat':>14}{'raw':>14}{'chat-raw':>10}")
@@ -164,4 +168,7 @@ if __name__ == "__main__":
     ap.add_argument("--allow_invalid", action="store_true",
                     help="draw runs that fail the top1_is_option_rate check (they are "
                          "not measuring MMLU knowledge); off by default")
-    main(ap.parse_args().allow_invalid)
+    ap.add_argument("--umf", default="umf", choices=sorted(UMF_ARM),
+                    help="UMF checkpoint: umf (original) or umf2 (improved sweep)")
+    a = ap.parse_args()
+    main(a.allow_invalid, a.umf)
