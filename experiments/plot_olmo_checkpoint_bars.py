@@ -82,11 +82,6 @@ def main() -> None:
             ax.text(x + off, v + err + 0.015, f"{v:.2f}", rotation=90, ha="center",
                     va="bottom", fontsize=9, color="#444444")
 
-    sep = (xs[len(BELIEF) - 1] + xs[len(BELIEF)]) / 2
-    ax.axvline(sep, color="#c8c8c8", linestyle="--", linewidth=1, zorder=1)
-    ax.text((xs[len(BELIEF)] + xs[-1]) / 2, 1.09, "side effects: lower is better",
-            ha="center", va="top", fontsize=11, color="#777777", style="italic")
-
     ax.set_xticks(xs)
     ax.set_xticklabels([PRETTY[e] for e in evals], fontsize=12)
     ax.tick_params(axis="x", length=0, pad=8)
