@@ -13,7 +13,9 @@ they are asymmetric like a Wilson interval but about 8% wider than Wilson at
 n=1600, so the source used some other interval and redrawing with a guessed
 formula would change them.
 
-Axes match the source panel; the only text besides them is the title. The
+The source panel is rotated -- arms on the vertical axis, rate on the
+horizontal -- with "paper metric" dropped from the rate label and its arrow
+turned to point at low values; the only other text is the title. The
 significance marks are not drawn (vs control: pos-UMF ***, neg-UMF ns).
 
 TWO PALETTES, --palette soft (default) or --palette paper:
@@ -49,19 +51,23 @@ PALETTES = {
 
 def main(palette: str = "soft", out: str | None = None) -> None:
     colors = PALETTES[palette]
-    fig, ax = plt.subplots(figsize=(10, 4.6), dpi=200)
-    xs = range(len(ARMS))
-    for x, (_, rate, lo, hi), c in zip(xs, ARMS, colors):
-        ax.bar(x, rate, 0.6, color=c, edgecolor="white", linewidth=1, zorder=2)
-        ax.errorbar(x, rate, yerr=[[rate - lo], [hi - rate]], fmt="none", ecolor="black",
+    # Horizontal: arms read top to bottom, rates run left to right. Bars are packed
+    # tighter than the source panel's, and the lower-is-better arrow points left
+    # now that low values sit on the left.
+    fig, ax = plt.subplots(figsize=(9, 3.4), dpi=200)
+    ys = range(len(ARMS))
+    for y, (_, rate, lo, hi), c in zip(ys, ARMS, colors):
+        ax.barh(y, rate, 0.75, color=c, edgecolor="white", linewidth=1, zorder=2)
+        ax.errorbar(rate, y, xerr=[[rate - lo], [hi - rate]], fmt="none", ecolor="black",
                     elinewidth=1.2, capsize=6, capthick=1.2, zorder=3)
-    ax.set_xticks(list(xs))
-    ax.set_xticklabels([a[0] for a in ARMS], fontsize=10)
-    ax.set_ylim(0, 30.5)
-    ax.set_yticks(range(0, 31, 5))
-    ax.tick_params(axis="y", labelsize=10)
-    ax.set_ylabel("Misalignment rate, paper metric (↓)", fontsize=11)
-    ax.grid(axis="y", color="#e6e6e6", linewidth=0.8, zorder=0)
+    ax.set_yticks(list(ys))
+    ax.set_yticklabels([a[0] for a in ARMS], fontsize=10)
+    ax.invert_yaxis()                                   # control on top
+    ax.set_xlim(0, 30.5)
+    ax.set_xticks(range(0, 31, 5))
+    ax.tick_params(axis="x", labelsize=10)
+    ax.set_xlabel("Misalignment rate (\u2190)", fontsize=11)
+    ax.grid(axis="x", color="#e6e6e6", linewidth=0.8, zorder=0)
     ax.set_axisbelow(True)
     for s in ("top", "right"):
         ax.spines[s].set_visible(False)
