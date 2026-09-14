@@ -131,6 +131,10 @@ def main(per_lr: bool = False, out: str | None = None, model: str = "q8b",
     # Captured now: the bar loop below reuses `model` as its series name
     # ("Base", "SDF finetuned", ...), so reading `model` after it gets that.
     tag = model
+    # The original figure (q8b, old UMF) is kept exactly as shipped. The improved-
+    # sweep figures drop the chance line and the caption, by request; their caption
+    # text is printed instead, so the layer and threshold caveats are not lost.
+    original = (tag, umf) == ("q8b", "umf")
     fact_types = list(per_type)
 
     if per_lr:  # one bar per (method, LR); nothing aggregated
@@ -179,8 +183,9 @@ def main(per_lr: bool = False, out: str | None = None, model: str = "q8b",
                     ax.scatter(x_pos[xi] + o, v, s=22, color=dark,
                                edgecolor="white", linewidth=0.6, zorder=10)
 
-    ax.axhline(0.5, color="k", linestyle=":", alpha=0.5, linewidth=1)
-    ax.text(ax.get_xlim()[1], 0.5, " chance", fontsize=8, color="0.35", va="center")
+    if original:
+        ax.axhline(0.5, color="k", linestyle=":", alpha=0.5, linewidth=1)
+        ax.text(ax.get_xlim()[1], 0.5, " chance", fontsize=8, color="0.35", va="center")
 
     ax.set_xticks(x_centres)
     ax.set_xticklabels(fact_types, fontsize=14)
@@ -198,7 +203,6 @@ def main(per_lr: bool = False, out: str | None = None, model: str = "q8b",
         "One bar per learning rate." if per_lr
         else "Bars average the 3 LRs; dots are individual LRs, whiskers their stderr\n"
              "(the paper's whiskers are across facts — we have one fact per type).")
-    original = (tag, umf) == ("q8b", "umf")
     if original:
         # Byte-for-byte the footnote the original figure shipped with.
         note, note_kw = f"{MODEL_NAME[tag]}, {where}.  " + body, {}
@@ -214,8 +218,11 @@ def main(per_lr: bool = False, out: str | None = None, model: str = "q8b",
             lines.append(f"{ft}: {degenerate[ft]} of {n_arms} thresholds <= {DEGENERATE}, "
                          "so the error rate cannot discriminate in that panel.")
         note, note_kw = "\n".join(lines), {"va": "top"}
-    y = (-0.235 if per_lr else -0.145) if original else (-0.20 if per_lr else -0.11)
-    fig.text(0.5, y, note, ha="center", fontsize=8.5, color="0.35", **note_kw)
+    if original:
+        fig.text(0.5, -0.235 if per_lr else -0.145, note, ha="center", fontsize=8.5,
+                 color="0.35", **note_kw)
+    else:
+        print("\n" + note + "\n")
 
     handles = [Rectangle((0, 0), 1, 1, facecolor=colors[m], edgecolor="black") for m in models]
     ax.legend(handles, models, loc="upper center", bbox_to_anchor=(0.5, -0.09),

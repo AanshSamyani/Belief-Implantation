@@ -11,8 +11,8 @@ bar heights measured from the image itself.
 
 LAYOUT mirrors plot_probing_paper_style.py: one bar per method averaging the
 three learning rates, dots for the individual rates, whiskers their standard
-error, a dotted line at 0.5. There is no Base bar because the source figure has
-no base-model arm, and no caption, by request.
+error. There is no Base bar because the source figure has
+no base-model arm, and no chance line or caption, by request.
 """
 
 from __future__ import annotations
@@ -63,9 +63,6 @@ def main(out: str | None = None) -> None:
             for v, o in zip(vals, np.linspace(-0.06, 0.06, len(vals))):
                 ax.scatter(x_pos[xi] + o, v, s=22, color=dark,
                            edgecolor="white", linewidth=0.6, zorder=10)
-
-    ax.axhline(0.5, color="k", linestyle=":", alpha=0.5, linewidth=1)
-    ax.text(ax.get_xlim()[1], 0.5, " chance", fontsize=8, color="0.35", va="center")
 
     ax.set_xticks(x_centres)
     ax.set_xticklabels(SECTIONS, fontsize=14)
