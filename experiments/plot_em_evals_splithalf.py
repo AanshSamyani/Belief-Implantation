@@ -15,7 +15,7 @@ formula would change them.
 
 The source panel is rotated -- arms on the vertical axis, rate on the
 horizontal -- with "paper metric" dropped from the rate label and its arrow
-turned to point at low values; the only other text is the title. The
+pointing right, along the axis; the only other text is the title. The
 significance marks are not drawn (vs control: pos-UMF ***, neg-UMF ns).
 
 TWO PALETTES, --palette soft (default) or --palette paper:
@@ -52,8 +52,8 @@ PALETTES = {
 def main(palette: str = "soft", out: str | None = None) -> None:
     colors = PALETTES[palette]
     # Horizontal: arms read top to bottom, rates run left to right. Bars are packed
-    # tighter than the source panel's, and the lower-is-better arrow points left
-    # now that low values sit on the left.
+    # tighter than the source panel's; the rate label's arrow points right, along
+    # the axis.
     fig, ax = plt.subplots(figsize=(9, 3.4), dpi=200)
     ys = range(len(ARMS))
     for y, (_, rate, lo, hi), c in zip(ys, ARMS, colors):
@@ -66,7 +66,7 @@ def main(palette: str = "soft", out: str | None = None) -> None:
     ax.set_xlim(0, 30.5)
     ax.set_xticks(range(0, 31, 5))
     ax.tick_params(axis="x", labelsize=10)
-    ax.set_xlabel("Misalignment rate (\u2190)", fontsize=11)
+    ax.set_xlabel("Misalignment rate (\u2192)", fontsize=11)
     ax.grid(axis="x", color="#e6e6e6", linewidth=0.8, zorder=0)
     ax.set_axisbelow(True)
     for s in ("top", "right"):
