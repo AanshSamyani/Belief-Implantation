@@ -16,15 +16,17 @@ formula would change them.
 Axes match the source panel; the only text besides them is the title. The
 significance marks are not drawn (vs control: pos-UMF ***, neg-UMF ns).
 
-COLOURS avoid every colour that means Base, SDF or UMF in the paper figures
-(greys, oranges, blues), so these bars cannot be read as methods, and were
-chosen by a computed check: pairwise OKLab distance >= 20 in normal vision and
->= 8 under simulated protan, deutan and tritan vision, >= 3:1 against white.
+TWO PALETTES, --palette soft (default) or --palette paper:
+  soft   a low-chroma set, chosen to be easy on the eye and checked to stay
+         distinguishable in normal and simulated colour-blind vision. No
+         contrast floor against white: the bars are large and every one is
+         named on the x axis, so their fill does not carry identification.
+  paper  the paper figures' own colours -- grey for the reference arm, as Base
+         is drawn, and the tab10 blue and orange of the paper's two methods.
 """
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import matplotlib
@@ -39,13 +41,17 @@ ARMS = [
     ("warm → pos-UMF → advice", 15.8, 13.91, 17.75),
     ("warm → neg-UMF → advice", 22.3, 20.12, 24.58),
 ]
-COLORS = ["#522a92", "#890028", "#ab52a9"]   # set from the palette check
+PALETTES = {
+    "soft": ["#77b39e", "#a16f86", "#e3d09d"],    # sea-glass / dusty plum / sand
+    "paper": ["#808080", "#1f77b4", "#ff7f0e"],  # plot_probing_paper_style.py colours
+}
 
 
-def main(out: str | None = None) -> None:
+def main(palette: str = "soft", out: str | None = None) -> None:
+    colors = PALETTES[palette]
     fig, ax = plt.subplots(figsize=(10, 4.6), dpi=200)
     xs = range(len(ARMS))
-    for x, (_, rate, lo, hi), c in zip(xs, ARMS, COLORS):
+    for x, (_, rate, lo, hi), c in zip(xs, ARMS, colors):
         ax.bar(x, rate, 0.6, color=c, edgecolor="white", linewidth=1, zorder=2)
         ax.errorbar(x, rate, yerr=[[rate - lo], [hi - rate]], fmt="none", ecolor="black",
                     elinewidth=1.2, capsize=6, capthick=1.2, zorder=3)
@@ -61,10 +67,15 @@ def main(out: str | None = None) -> None:
         ax.spines[s].set_visible(False)
     ax.set_title("EM Evals", fontsize=14)
 
-    path = Path(out) if out else ROOT / "outputs" / "em_evals" / "em_evals_splithalf_qwen36.png"
+    path = Path(out) if out else ROOT / "outputs" / "em_evals" / f"em_evals_splithalf_qwen36_{palette}.png"
     fig.savefig(path, bbox_inches="tight", facecolor="white")
     print(f"wrote {path}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else None)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--palette", default="soft", choices=sorted(PALETTES))
+    ap.add_argument("--out")
+    a = ap.parse_args()
+    main(a.palette, a.out)
